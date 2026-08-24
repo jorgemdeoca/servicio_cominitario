@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estudiantes � Sistema de Gestión Escolar</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-6);
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+    .search-bar {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+    }
+    .search-bar input {
+      width: 300px;
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: var(--font-size-sm);
+      outline: none;
+    }
+    .search-bar input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px hsla(215, 60%, 45%, 0.15);
+    }
+    .badge-sexo {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+    .badge-sexo-m { background: hsl(215, 50%, 92%); color: hsl(215, 60%, 40%); }
+    .badge-sexo-f { background: hsl(330, 50%, 92%); color: hsl(330, 60%, 40%); }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+    }
+    .pagination button {
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--border);
+      background: var(--bg-white);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: var(--font-size-sm);
+    }
+    .pagination button:hover:not(:disabled) { background: var(--primary-bg); }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pagination span { font-size: var(--font-size-sm); color: var(--text-muted); }
+    .actions-cell { display: flex; gap: var(--space-2); }
+
+    /* Modal grande tipo planilla */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-planilla {
+      background: var(--bg-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 95%;
+      max-width: 900px;
+      margin: auto;
+    }
+    .modal-planilla-header {
+      background: var(--sidebar-bg);
+      color: white;
+      padding: var(--space-5) var(--space-8);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-planilla-header h2 {
+      font-size: var(--font-size-lg);
+      font-weight: 600;
+    }
+    .modal-planilla-body {
+      padding: var(--space-6) var(--space-8);
+    }
+
+    /* Secciones de la planilla */
+    .planilla-seccion {
+      margin-bottom: var(--space-6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .planilla-seccion-titulo {
+      background: var(--bg);
+      padding: var(--space-3) var(--space-5);
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .planilla-seccion-titulo .seccion-num {
+      background: var(--primary);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+    }
+    .planilla-seccion-body {
+      padding: var(--space-5);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--space-4);
+    }
+    .form-row-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    /* Buscar cédula inline */
+    .cedula-search {
+      display: flex;
+      gap: var(--space-2);
+      align-items: flex-end;
+    }
+    .cedula-search input { flex: 1; }
+    .cedula-search button {
+      height: 42px;
+      white-space: nowrap;
+    }
+    .persona-found {
+      background: var(--success-bg);
+      border: 1px solid hsl(142, 50%, 75%);
+      color: var(--success);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      margin-top: var(--space-2);
+    }
+    .persona-not-found {
+      background: var(--warning-bg);
+      border: 1px solid hsl(38, 90%, 75%);
+      color: hsl(38, 70%, 30%);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      margin-top: var(--space-2);
+    }
+
+    /* Representante selector */
+    .rep-selector {
+      display: flex;
+      gap: var(--space-6);
+      margin-bottom: var(--space-4);
+    }
+    .rep-option {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+    }
+    .rep-option input[type="radio"] {
+      accent-color: var(--primary);
+      width: 18px;
+      height: 18px;
+    }
+    #seccionRepOtro {
+      display: none;
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+    #seccionRepOtro.visible { display: block; }
+
+    .modal-planilla-footer {
+      padding: var(--space-4) var(--space-8);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-3);
+      background: var(--bg);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+    .btn-secondary {
+      background: var(--bg-white);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--border); }
+  </style>
+</head>
+<body class="dashboard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Gestión Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
+    </div>
+        <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="/personas.html" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">Personas</span>
+      </a>
+      <a href="/estudiantes.html" class="nav-item active">
+        <span class="nav-icon">🎓</span>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a href="/inscripciones.html" class="nav-item">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Inscripciones</span>
+      </a>
+      <a href="/profesores.html" class="nav-item">
+        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/reportes.html" class="nav-item">
+        <span class="nav-icon">📄</span>
+        <span class="nav-text">Reportes y PDFs</span>
+      </a>
+      <a href="/configuracion.html" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Configuración</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer"><p>v1.0 � Servicio Comunitario UNEFA</p></div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="main-header">
+      <button class="menu-toggle" id="menuToggle">�ܰ</button>
+      <div class="header-info"><span class="header-year" id="headerYear">Año Escolar: �</span></div>
+      <div class="header-user">
+        <span id="headerUserName">�</span>
+        <span class="header-role" id="headerUserRole">�</span>
+        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent">
+      <div class="page-header">
+        <div>
+          <h1>Estudiantes</h1>
+          <p class="welcome-text">Registro de estudiantes de la institución.</p>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+          <div class="search-bar">
+            <input type="text" id="inputBuscar" placeholder="Buscar por nombre, apellido o código...">
+            <button class="btn btn-primary btn-sm" onclick="buscarEstudiantes()">Buscar</button>
+          </div>
+          <button class="btn btn-primary" onclick="abrirPlanilla()">+ Nuevo Estudiante</button>
+        </div>
+      </div>
+
+      <div id="alertEstudiantes" class="alert" style="display: none;"></div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Nombre Completo</th>
+              <th>Sexo</th>
+              <th>F. Nacimiento</th>
+              <th>Representante</th>
+              <th>Teléfono Rep.</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyEstudiantes"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="paginacion"></div>
+    </main>
+  </div>
+
+  <!-- =============================================
+       MODAL PLANILLA DE INSCRIPCI�N
+       ============================================= -->
+  <div class="modal-overlay" id="modalPlanilla">
+    <div class="modal-planilla">
+      <div class="modal-planilla-header">
+        <h2 id="planillaTitulo">�x9 Planilla de Registro de Estudiante</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarPlanilla()">�S" Cerrar</button>
+      </div>
+
+      <form id="formPlanilla">
+        <input type="hidden" id="e_id">
+        <div class="modal-planilla-body">
+          <div id="alertPlanilla" class="alert" style="display: none;"></div>
+
+          <!-- SECCI�N 1: DATOS DEL ESTUDIANTE -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo">
+              <span class="seccion-num">1</span>
+              DATOS DEL ESTUDIANTE (Partida de Nacimiento)
+            </div>
+            <div class="planilla-seccion-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Primer Apellido *</label>
+                  <input type="text" id="e_primer_apellido" required>
+                </div>
+                <div class="form-group">
+                  <label>Segundo Apellido</label>
+                  <input type="text" id="e_segundo_apellido">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Primer Nombre *</label>
+                  <input type="text" id="e_primer_nombre" required>
+                </div>
+                <div class="form-group">
+                  <label>Segundo Nombre</label>
+                  <input type="text" id="e_segundo_nombre">
+                </div>
+              </div>
+              <div class="form-row-4">
+                <div class="form-group">
+                  <label>Nacionalidad *</label>
+                  <select id="e_nacionalidad" required>
+                    <option value="V">V</option>
+                    <option value="E">E</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Sexo *</label>
+                  <select id="e_sexo" required>
+                    <option value="M">Masculino</option>
+                    <option value="F">Femenino</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Fecha de Nacimiento *</label>
+                  <input type="date" id="e_fecha_nacimiento" required>
+                </div>
+                <div class="form-group">
+                  <label>Código Escolar</label>
+                  <input type="text" id="e_codigo_escolar">
+                </div>
+              </div>
+              <div class="form-row-4">
+                <div class="form-group">
+                  <label>Lugar de Nacimiento</label>
+                  <input type="text" id="e_lugar_nacimiento">
+                </div>
+                <div class="form-group">
+                  <label>Estado de Nacimiento</label>
+                  <input type="text" id="e_estado_nacimiento">
+                </div>
+                <div class="form-group">
+                  <label>Lateralidad</label>
+                  <select id="e_lateralidad">
+                    <option value="">- Seleccionar -</option>
+                    <option value="Diestro">Diestro</option>
+                    <option value="Zurdo">Zurdo</option>
+                    <option value="Ambidiestro">Ambidiestro</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Tipo de Sangre</label>
+                  <select id="e_tipo_sangre">
+                    <option value="">- Desconocido -</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCI N 2: DATOS DE LA MADRE -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo">
+              <span class="seccion-num">2</span>
+              DATOS DE LA MADRE
+            </div>
+            <div class="planilla-seccion-body">
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Cédula de la Madre *</label>
+                  <div class="cedula-search">
+                    <input type="text" id="m_cedula" required placeholder="Ej: 12345678">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersona('madre')">Buscar</button>
+                  </div>
+                  <div id="m_status"></div>
+                </div>
+                <div class="form-group">
+                  <label>Nacionalidad *</label>
+                  <select id="m_nacionalidad" required>
+                    <option value="V">V</option>
+                    <option value="E">E</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Fecha de Nacimiento</label>
+                  <input type="date" id="m_fecha_nacimiento">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Apellidos *</label>
+                  <input type="text" id="m_apellidos" required>
+                </div>
+                <div class="form-group">
+                  <label>Nombres *</label>
+                  <input type="text" id="m_nombres" required>
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Profesión u Oficio</label>
+                  <input type="text" id="m_profesion">
+                </div>
+                <div class="form-group">
+                  <label>Teléfono</label>
+                  <input type="text" id="m_telefono" placeholder="0412-1234567">
+                </div>
+                <div class="form-group">
+                  <label>Estado Civil</label>
+                  <select id="m_estado_civil">
+                    <option value="">�</option>
+                    <option value="Soltero/a">Soltero/a</option>
+                    <option value="Casado/a">Casado/a</option>
+                    <option value="Divorciado/a">Divorciado/a</option>
+                    <option value="Viudo/a">Viudo/a</option>
+                    <option value="Concubinato">Concubinato</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Dirección</label>
+                <input type="text" id="m_direccion">
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCI�N 3: DATOS DEL PADRE -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo">
+              <span class="seccion-num">3</span>
+              DATOS DEL PADRE
+            </div>
+            <div class="planilla-seccion-body">
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Cédula del Padre *</label>
+                  <div class="cedula-search">
+                    <input type="text" id="p_cedula" required placeholder="Ej: 12345678">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersona('padre')">Buscar</button>
+                  </div>
+                  <div id="p_status"></div>
+                </div>
+                <div class="form-group">
+                  <label>Nacionalidad *</label>
+                  <select id="p_nacionalidad" required>
+                    <option value="V">V</option>
+                    <option value="E">E</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Fecha de Nacimiento</label>
+                  <input type="date" id="p_fecha_nacimiento">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Apellidos *</label>
+                  <input type="text" id="p_apellidos" required>
+                </div>
+                <div class="form-group">
+                  <label>Nombres *</label>
+                  <input type="text" id="p_nombres" required>
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Profesión u Oficio</label>
+                  <input type="text" id="p_profesion">
+                </div>
+                <div class="form-group">
+                  <label>Teléfono</label>
+                  <input type="text" id="p_telefono" placeholder="0412-1234567">
+                </div>
+                <div class="form-group">
+                  <label>Estado Civil</label>
+                  <select id="p_estado_civil">
+                    <option value="">�</option>
+                    <option value="Soltero/a">Soltero/a</option>
+                    <option value="Casado/a">Casado/a</option>
+                    <option value="Divorciado/a">Divorciado/a</option>
+                    <option value="Viudo/a">Viudo/a</option>
+                    <option value="Concubinato">Concubinato</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Dirección</label>
+                <input type="text" id="p_direccion">
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCI�N 4: REPRESENTANTE LEGAL -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo">
+              <span class="seccion-num">4</span>
+              REPRESENTANTE LEGAL
+            </div>
+            <div class="planilla-seccion-body">
+              <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-bottom:var(--space-4);">
+                ¿Quién es el representante legal del estudiante?
+              </p>
+              <div class="rep-selector">
+                <label class="rep-option">
+                  <input type="radio" name="representante_es" value="MADRE" checked>
+                  La Madre
+                </label>
+                <label class="rep-option">
+                  <input type="radio" name="representante_es" value="PADRE">
+                  El Padre
+                </label>
+                <label class="rep-option">
+                  <input type="radio" name="representante_es" value="OTRO">
+                  Otra Persona
+                </label>
+              </div>
+
+              <div id="seccionRepOtro">
+                <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-bottom:var(--space-4);">
+                  Complete los datos de la tercera persona que fungirá como representante legal:
+                </p>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label>Cédula *</label>
+                    <div class="cedula-search">
+                      <input type="text" id="r_cedula" placeholder="Ej: 12345678">
+                      <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersona('rep')">Buscar</button>
+                    </div>
+                    <div id="r_status"></div>
+                  </div>
+                  <div class="form-group">
+                    <label>Nacionalidad</label>
+                    <select id="r_nacionalidad">
+                      <option value="V">V</option>
+                      <option value="E">E</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Fecha de Nacimiento</label>
+                    <input type="date" id="r_fecha_nacimiento">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Apellidos *</label>
+                    <input type="text" id="r_apellidos">
+                  </div>
+                  <div class="form-group">
+                    <label>Nombres *</label>
+                    <input type="text" id="r_nombres">
+                  </div>
+                </div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label>Profesión</label>
+                    <input type="text" id="r_profesion">
+                  </div>
+                  <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" id="r_telefono">
+                  </div>
+                  <div class="form-group">
+                    <label>Parentesco</label>
+                    <input type="text" id="r_parentesco" placeholder="Ej: Abuela, Tía...">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Dirección</label>
+                  <input type="text" id="r_direccion">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-planilla-footer">
+          <button type="button" class="btn btn-secondary" onclick="cerrarPlanilla()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar Estudiante</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/estudiantes.js"></script>
+</body>
+</html>
+

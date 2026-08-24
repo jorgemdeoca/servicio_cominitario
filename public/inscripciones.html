@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscripciones � Sistema de Gestión Escolar</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-6); flex-wrap:wrap; gap:var(--space-4); }
+
+    /* Filtros */
+    .filtros-bar { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; margin-bottom:var(--space-5); padding:var(--space-4); background:var(--bg); border-radius:var(--radius); border:1px solid var(--border); }
+    .filtros-bar select, .filtros-bar input { padding:var(--space-2) var(--space-3); border:1px solid var(--border); border-radius:var(--radius); font-family:var(--font); font-size:var(--font-size-sm); outline:none; }
+    .filtros-bar select:focus, .filtros-bar input:focus { border-color:var(--primary); }
+    .filtros-bar label { font-size:var(--font-size-xs); font-weight:600; color:var(--text-muted); margin-right:0.25rem; }
+
+    .badge-estado { display:inline-block; padding:0.15rem 0.6rem; border-radius:100px; font-size:var(--font-size-xs); font-weight:600; }
+    .badge-ACTIVO { background:var(--success-bg); color:var(--success); }
+    .badge-RETIRADO { background:hsl(0,50%,93%); color:hsl(0,50%,45%); }
+    .badge-APROBADO { background:hsl(215,50%,92%); color:hsl(215,60%,40%); }
+    .badge-REPROBADO { background:hsl(38,80%,90%); color:hsl(38,70%,30%); }
+
+    .badge-modalidad { display:inline-block; padding:0.1rem 0.5rem; border-radius:var(--radius); font-size:var(--font-size-xs); font-weight:500; background:var(--bg); color:var(--text-muted); border:1px solid var(--border); }
+
+    .actions-cell { display:flex; gap:var(--space-2); }
+    .pagination { display:flex; justify-content:center; align-items:center; gap:var(--space-3); margin-top:var(--space-6); }
+    .pagination button { padding:var(--space-2) var(--space-4); border:1px solid var(--border); background:var(--bg-white); border-radius:var(--radius); cursor:pointer; font-family:var(--font); font-size:var(--font-size-sm); }
+    .pagination button:hover:not(:disabled) { background:var(--primary-bg); }
+    .pagination button:disabled { opacity:0.4; cursor:not-allowed; }
+    .pagination span { font-size:var(--font-size-sm); color:var(--text-muted); }
+
+    /* Modal */
+    .modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center; padding:2rem 1rem; overflow-y:auto; }
+    .modal-overlay.active { display:flex; }
+    .modal-insc { background:var(--bg-white); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:95%; max-width:750px; margin:auto; }
+    .modal-insc-header { background:var(--sidebar-bg); color:white; padding:var(--space-5) var(--space-8); border-radius:var(--radius-lg) var(--radius-lg) 0 0; display:flex; justify-content:space-between; align-items:center; }
+    .modal-insc-header h2 { font-size:var(--font-size-lg); font-weight:600; }
+    .modal-insc-body { padding:var(--space-6) var(--space-8); }
+    .modal-insc-footer { padding:var(--space-4) var(--space-8); border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:var(--space-3); background:var(--bg); border-radius:0 0 var(--radius-lg) var(--radius-lg); }
+
+    .planilla-seccion { margin-bottom:var(--space-5); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+    .planilla-seccion-titulo { background:var(--bg); padding:var(--space-3) var(--space-5); font-size:var(--font-size-sm); font-weight:700; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:var(--space-3); }
+    .planilla-seccion-titulo .seccion-num { background:var(--primary); color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:var(--font-size-xs); font-weight:700; }
+    .planilla-seccion-body { padding:var(--space-5); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+    .form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--space-4); }
+    .form-row-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:var(--space-4); }
+
+    .btn-secondary { background:var(--bg-white); color:var(--text); border:1px solid var(--border); }
+    .btn-secondary:hover { background:var(--border); }
+
+    /* Búsqueda de estudiante */
+    .estudiante-search { display:flex; gap:var(--space-2); }
+    .estudiante-search input { flex:1; }
+    .estudiante-result { margin-top:var(--space-3); }
+    .estudiante-result table { width:100%; font-size:var(--font-size-sm); }
+    .estudiante-result tr { cursor:pointer; }
+    .estudiante-result tr:hover { background:var(--primary-bg); }
+    .estudiante-selected { background:var(--success-bg); border:1px solid hsl(142,50%,75%); border-radius:var(--radius); padding:var(--space-3) var(--space-4); font-size:var(--font-size-sm); margin-top:var(--space-3); }
+
+    /* Documentos checkboxes */
+    .docs-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); }
+    .doc-check { display:flex; align-items:center; gap:var(--space-2); font-size:var(--font-size-sm); }
+    .doc-check input[type="checkbox"] { accent-color:var(--primary); width:18px; height:18px; }
+    /* Buscar cédula inline */
+    .cedula-search { display: flex; gap: var(--space-2); align-items: flex-end; }
+    .cedula-search input { flex: 1; }
+    .cedula-search button { height: 42px; white-space: nowrap; }
+    .persona-found { background: var(--success-bg); border: 1px solid hsl(142, 50%, 75%); color: var(--success); padding: var(--space-2) var(--space-3); border-radius: var(--radius); font-size: var(--font-size-xs); font-weight: 500; margin-top: var(--space-2); }
+    .persona-not-found { background: var(--warning-bg); border: 1px solid hsl(38, 90%, 75%); color: hsl(38, 70%, 30%); padding: var(--space-2) var(--space-3); border-radius: var(--radius); font-size: var(--font-size-xs); font-weight: 500; margin-top: var(--space-2); }
+
+    /* Representante selector */
+    .rep-selector { display: flex; gap: var(--space-6); margin-bottom: var(--space-4); }
+    .rep-option { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; font-size: var(--font-size-sm); font-weight: 500; }
+    .rep-option input[type="radio"] { accent-color: var(--primary); width: 18px; height: 18px; }
+    #seccionRepOtro { display: none; margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
+    #seccionRepOtro.visible { display: block; }
+
+    /* Formulario estudiante inline */
+    .modo-registro-activo #modoBusquedaEstudiante { display: none; }
+    .modo-registro-activo #modoRegistroEstudiante { display: block; }
+    #modoRegistroEstudiante { display: none; }
+    
+    .form-inline-title {
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px dashed var(--border);
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Gestión Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
+    </div>
+        <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="/personas.html" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">Personas</span>
+      </a>
+      <a href="/estudiantes.html" class="nav-item">
+        <span class="nav-icon">🎓</span>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a href="/inscripciones.html" class="nav-item active">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Inscripciones</span>
+      </a>
+      <a href="/profesores.html" class="nav-item">
+        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/reportes.html" class="nav-item">
+        <span class="nav-icon">📄</span>
+        <span class="nav-text">Reportes y PDFs</span>
+      </a>
+      <a href="/configuracion.html" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Configuración</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer"><p>v1.0 � Servicio Comunitario UNEFA</p></div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="main-header">
+      <button class="menu-toggle" id="menuToggle">�ܰ</button>
+      <div class="header-info"><span class="header-year" id="headerYear">Año Escolar: �</span></div>
+      <div class="header-user">
+        <span id="headerUserName">�</span>
+        <span class="header-role" id="headerUserRole">�</span>
+        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent">
+      <div class="page-header">
+        <div>
+          <h1>Inscripciones</h1>
+          <p class="welcome-text">Gestión de inscripciones del año escolar.</p>
+        </div>
+        <button class="btn btn-primary" onclick="abrirModalInscripcion()">+ Nueva Inscripción</button>
+      </div>
+
+      <div id="alertInscripciones" class="alert" style="display: none;"></div>
+
+      <!-- Filtros -->
+      <div class="filtros-bar">
+        <div>
+          <label>Año Escolar:</label>
+          <select id="filtroAnio" onchange="cargarSeccionesFiltro(); loadInscripciones();"></select>
+        </div>
+        <div>
+          <label>Grado:</label>
+          <select id="filtroGrado" onchange="cargarSeccionesFiltro(); loadInscripciones();">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div>
+          <label>Sección:</label>
+          <select id="filtroSeccion" onchange="loadInscripciones()">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div>
+          <label>Estado:</label>
+          <select id="filtroEstado" onchange="loadInscripciones()">
+            <option value="">Todos</option>
+            <option value="ACTIVO">Activo</option>
+            <option value="APROBADO">Aprobado</option>
+            <option value="REPROBADO">Reprobado</option>
+            <option value="RETIRADO">Retirado</option>
+          </select>
+        </div>
+        <div>
+          <label>Buscar:</label>
+          <input type="text" id="filtroBuscar" placeholder="Nombre o código..." onkeydown="if(event.key==='Enter')loadInscripciones()">
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="loadInscripciones()">Filtrar</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Estudiante</th>
+              <th>Grado � Sección</th>
+              <th>Modalidad</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyInscripciones"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="paginacion"></div>
+    </main>
+  </div>
+
+  <!-- MODAL NUEVA INSCRIPCI�N -->
+  <div class="modal-overlay" id="modalInscripcion">
+    <div class="modal-insc">
+      <div class="modal-insc-header">
+        <h2 id="modalInscTitulo">�x� Nueva Inscripción</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalInscripcion()">�S"</button>
+      </div>
+      <form id="formInscripcion">
+        <input type="hidden" id="insc_id">
+        <div class="modal-insc-body">
+          <div id="alertModal" class="alert" style="display:none;"></div>
+
+          <!-- Sección 1: Seleccionar Estudiante -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo"><span class="seccion-num">1</span> ESTUDIANTE</div>
+            <div class="planilla-seccion-body" id="containerEstudiante">
+              
+              <!-- MODO BUSCAR ESTUDIANTE -->
+              <div id="modoBusquedaEstudiante">
+                <div class="form-group">
+                  <label>Buscar estudiante por nombre, apellido o código</label>
+                  <div class="estudiante-search">
+                    <input type="text" id="insc_buscar_est" placeholder="Ej: Montes de Oca, Jorge...">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="buscarEstudianteInsc()">Buscar</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="mostrarFormNuevoEstudiante()" style="margin-left: 1rem;">+ Registrar Nuevo</button>
+                  </div>
+                </div>
+                <div class="estudiante-result" id="resultadoEstudiantes"></div>
+                <div class="estudiante-selected" id="estudianteSeleccionado" style="display:none;"></div>
+                <input type="hidden" id="insc_estudiante_id">
+              </div>
+
+              <!-- MODO REGISTRAR NUEVO ESTUDIANTE -->
+              <div id="modoRegistroEstudiante">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4);">
+                  <div class="form-inline-title">Registro de Nuevo Estudiante</div>
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="volverBusquedaEstudiante()">� � Volver a Búsqueda</button>
+                </div>
+                
+                <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
+                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Datos del Estudiante</div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Primer Apellido *</label>
+                      <input type="text" id="ni_e_primer_apellido">
+                    </div>
+                    <div class="form-group">
+                      <label>Segundo Apellido</label>
+                      <input type="text" id="ni_e_segundo_apellido">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Primer Nombre *</label>
+                      <input type="text" id="ni_e_primer_nombre">
+                    </div>
+                    <div class="form-group">
+                      <label>Segundo Nombre</label>
+                      <input type="text" id="ni_e_segundo_nombre">
+                    </div>
+                  </div>
+                  <div class="form-row-4">
+                    <div class="form-group">
+                      <label>Nacionalidad *</label>
+                      <select id="ni_e_nacionalidad">
+                        <option value="V">V</option>
+                        <option value="E">E</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Sexo *</label>
+                      <select id="ni_e_sexo">
+                        <option value="M">Masculino</option>
+                        <option value="F">Femenino</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Fecha Nac. *</label>
+                      <input type="date" id="ni_e_fecha_nacimiento">
+                    </div>
+                    <div class="form-group">
+                      <label>Código Escolar</label>
+                      <input type="text" id="ni_e_codigo_escolar">
+                    </div>
+                  </div>
+                  <div class="form-row-4">
+                    <div class="form-group">
+                      <label>Lugar de Nac.</label>
+                      <input type="text" id="ni_e_lugar_nacimiento">
+                    </div>
+                    <div class="form-group">
+                      <label>Estado de Nac.</label>
+                      <input type="text" id="ni_e_estado_nacimiento">
+                    </div>
+                    <div class="form-group">
+                      <label>Lateralidad</label>
+                      <select id="ni_e_lateralidad">
+                        <option value="">- Seleccionar -</option>
+                        <option value="Diestro">Diestro</option>
+                        <option value="Zurdo">Zurdo</option>
+                        <option value="Ambidiestro">Ambidiestro</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Tipo de Sangre</label>
+                      <select id="ni_e_tipo_sangre">
+                        <option value="">- Desconocido -</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
+                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Datos de la Madre</div>
+                  <div class="form-row-3">
+                    <div class="form-group">
+                      <label>Cédula *</label>
+                      <div class="cedula-search">
+                        <input type="text" id="ni_m_cedula" placeholder="Ej: 12345678">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersonaInsc('madre')">Buscar</button>
+                      </div>
+                      <div id="ni_m_status"></div>
+                    </div>
+                    <div class="form-group">
+                      <label>Nacionalidad *</label>
+                      <select id="ni_m_nacionalidad">
+                        <option value="V">V</option>
+                        <option value="E">E</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Fecha de Nac.</label>
+                      <input type="date" id="ni_m_fecha_nacimiento">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Apellidos *</label>
+                      <input type="text" id="ni_m_apellidos">
+                    </div>
+                    <div class="form-group">
+                      <label>Nombres *</label>
+                      <input type="text" id="ni_m_nombres">
+                    </div>
+                  </div>
+                  <div class="form-row-3">
+                    <div class="form-group">
+                      <label>Profesión</label>
+                      <input type="text" id="ni_m_profesion">
+                    </div>
+                    <div class="form-group">
+                      <label>Teléfono</label>
+                      <input type="text" id="ni_m_telefono" placeholder="0412-1234567">
+                    </div>
+                    <div class="form-group">
+                      <label>Estado Civil</label>
+                      <select id="ni_m_estado_civil">
+                        <option value="">�</option>
+                        <option value="Soltero/a">Soltero/a</option>
+                        <option value="Casado/a">Casado/a</option>
+                        <option value="Divorciado/a">Divorciado/a</option>
+                        <option value="Viudo/a">Viudo/a</option>
+                        <option value="Concubinato">Concubinato</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" id="ni_m_direccion">
+                  </div>
+                </div>
+
+                <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
+                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Datos del Padre</div>
+                  <div class="form-row-3">
+                    <div class="form-group">
+                      <label>Cédula *</label>
+                      <div class="cedula-search">
+                        <input type="text" id="ni_p_cedula" placeholder="Ej: 12345678">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersonaInsc('padre')">Buscar</button>
+                      </div>
+                      <div id="ni_p_status"></div>
+                    </div>
+                    <div class="form-group">
+                      <label>Nacionalidad *</label>
+                      <select id="ni_p_nacionalidad">
+                        <option value="V">V</option>
+                        <option value="E">E</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Fecha de Nac.</label>
+                      <input type="date" id="ni_p_fecha_nacimiento">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Apellidos *</label>
+                      <input type="text" id="ni_p_apellidos">
+                    </div>
+                    <div class="form-group">
+                      <label>Nombres *</label>
+                      <input type="text" id="ni_p_nombres">
+                    </div>
+                  </div>
+                  <div class="form-row-3">
+                    <div class="form-group">
+                      <label>Profesión</label>
+                      <input type="text" id="ni_p_profesion">
+                    </div>
+                    <div class="form-group">
+                      <label>Teléfono</label>
+                      <input type="text" id="ni_p_telefono">
+                    </div>
+                    <div class="form-group">
+                      <label>Estado Civil</label>
+                      <select id="ni_p_estado_civil">
+                        <option value="">�</option>
+                        <option value="Soltero/a">Soltero/a</option>
+                        <option value="Casado/a">Casado/a</option>
+                        <option value="Divorciado/a">Divorciado/a</option>
+                        <option value="Viudo/a">Viudo/a</option>
+                        <option value="Concubinato">Concubinato</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label>Dirección</label>
+                    <input type="text" id="ni_p_direccion">
+                  </div>
+                </div>
+
+                <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border);">
+                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Representante Legal</div>
+                  <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-bottom:var(--space-4);">
+                    ¿Quién es el representante legal del estudiante?
+                  </p>
+                  <div class="rep-selector">
+                    <label class="rep-option">
+                      <input type="radio" name="ni_representante_es" value="MADRE" checked>
+                      La Madre
+                    </label>
+                    <label class="rep-option">
+                      <input type="radio" name="ni_representante_es" value="PADRE">
+                      El Padre
+                    </label>
+                    <label class="rep-option">
+                      <input type="radio" name="ni_representante_es" value="OTRO">
+                      Otra Persona
+                    </label>
+                  </div>
+
+                  <div id="seccionRepOtro">
+                    <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-bottom:var(--space-4);">
+                      Complete los datos de la tercera persona que fungirá como representante legal:
+                    </p>
+                    <div class="form-row-3">
+                      <div class="form-group">
+                        <label>Cédula *</label>
+                        <div class="cedula-search">
+                          <input type="text" id="ni_r_cedula" placeholder="Ej: 12345678">
+                          <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersonaInsc('rep')">Buscar</button>
+                        </div>
+                        <div id="ni_r_status"></div>
+                      </div>
+                      <div class="form-group">
+                        <label>Nacionalidad</label>
+                        <select id="ni_r_nacionalidad">
+                          <option value="V">V</option>
+                          <option value="E">E</option>
+                        </select>
+                      </div>
+                      <div class="form-group">
+                        <label>Fecha Nac.</label>
+                        <input type="date" id="ni_r_fecha_nacimiento">
+                      </div>
+                    </div>
+                    <div class="form-row">
+                      <div class="form-group">
+                        <label>Apellidos *</label>
+                        <input type="text" id="ni_r_apellidos">
+                      </div>
+                      <div class="form-group">
+                        <label>Nombres *</label>
+                        <input type="text" id="ni_r_nombres">
+                      </div>
+                    </div>
+                    <div class="form-row-3">
+                      <div class="form-group">
+                        <label>Profesión</label>
+                        <input type="text" id="ni_r_profesion">
+                      </div>
+                      <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="text" id="ni_r_telefono">
+                      </div>
+                      <div class="form-group">
+                        <label>Parentesco</label>
+                        <input type="text" id="ni_r_parentesco">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Dirección</label>
+                      <input type="text" id="ni_r_direccion">
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 2: Año, Grado, Sección, Profesor -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo"><span class="seccion-num">2</span> ASIGNACI�N</div>
+            <div class="planilla-seccion-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Año Escolar *</label>
+                  <select id="insc_anio" required onchange="cargarSeccionesModal()"></select>
+                </div>
+                <div class="form-group">
+                  <label>Grado y Sección *</label>
+                  <select id="insc_seccion" required></select>
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Fecha de Inscripción *</label>
+                  <input type="date" id="insc_fecha" required>
+                </div>
+                <div class="form-group">
+                  <label>Modalidad *</label>
+                  <select id="insc_modalidad" required>
+                    <option value="NUEVO_INGRESO">Nuevo Ingreso</option>
+                    <option value="REGULAR" selected>Regular</option>
+                    <option value="REPITIENTE">Repitiente</option>
+                    <option value="TRASLADO">Traslado</option>
+                    <option value="PROSECUCION">Prosecución</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Literal</label>
+                  <select id="insc_literal">
+                    <option value="">� Sin asignar �</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="E">E</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 3: Documentos Consignados -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo"><span class="seccion-num">3</span> DOCUMENTOS CONSIGNADOS</div>
+            <div class="planilla-seccion-body">
+              <div class="docs-grid">
+                <label class="doc-check"><input type="checkbox" id="doc_partida"> Partida de Nacimiento</label>
+                <label class="doc-check"><input type="checkbox" id="doc_boleta"> Boleta de Promoción</label>
+                <label class="doc-check"><input type="checkbox" id="doc_ci_madre"> Copia C.I. Madre</label>
+                <label class="doc-check"><input type="checkbox" id="doc_ci_padre"> Copia C.I. Padre</label>
+                <label class="doc-check"><input type="checkbox" id="doc_foto_est"> Foto del Estudiante</label>
+                <label class="doc-check"><input type="checkbox" id="doc_foto_rep"> Foto del Representante</label>
+                <label class="doc-check"><input type="checkbox" id="doc_carpeta"> Carpeta Marrón</label>
+                <label class="doc-check"><input type="checkbox" id="doc_acta"> Acta de Compromiso</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 4: Datos Variables -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo"><span class="seccion-num">4</span> DATOS VARIABLES (Actualizables)</div>
+            <div class="planilla-seccion-body">
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Teléfono (Residencial o Celular)</label>
+                  <input type="text" id="insc_telefono" placeholder="Ej: 0412-1234567">
+                </div>
+                <div class="form-group">
+                  <label>Correo Electrónico</label>
+                  <input type="email" id="insc_correo_electronico" placeholder="ejemplo@correo.com">
+                </div>
+                <div class="form-group">
+                  <label>Dirección Actual</label>
+                  <input type="text" id="insc_direccion">
+                </div>
+              </div>
+              <div class="form-row-4">
+                <div class="form-group"><label>Talla (Estatura)</label><input type="text" id="insc_talla" placeholder="Ej: 1.20"></div>
+                <div class="form-group"><label>Peso (Kg)</label><input type="text" id="insc_peso" placeholder="Ej: 25"></div>
+                <div class="form-group"><label>Talla Camisa</label><input type="text" id="insc_talla_camisa" placeholder="Ej: 12"></div>
+                <div class="form-group"><label>Talla Pantalón</label><input type="text" id="insc_talla_pantalon" placeholder="Ej: 12"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group" style="max-width: 25%;"><label>Talla Zapato</label><input type="text" id="insc_talla_zapato" placeholder="Ej: 36"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 5: Procedencia -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo"><span class="seccion-num">5</span> PROCEDENCIA</div>
+            <div class="planilla-seccion-body">
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>¿Viene de la misma institución?</label>
+                  <select id="insc_misma_institucion">
+                    <option value="true">Sí</option>
+                    <option value="false">No, de otra</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Institución de Procedencia</label>
+                  <input type="text" id="insc_institucion_procedencia" placeholder="Si es de otra...">
+                </div>
+                <div class="form-group">
+                  <label>Motivo de Retiro (Procedencia)</label>
+                  <input type="text" id="insc_motivo_retiro_procedencia">
+                </div>
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>¿Con quién vive el estudiante?</label>
+                  <select id="insc_con_quien_vive">
+                    <option value="">- Seleccionar -</option>
+                    <option value="MADRE">Madre</option>
+                    <option value="PADRE">Padre</option>
+                    <option value="AMBOS">Ambos</option>
+                    <option value="OTROS_FAMILIARES">Otros familiares</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿Tiene hermanos en la institución?</label>
+                  <select id="insc_tiene_hermanos">
+                    <option value="false">No</option>
+                    <option value="true">Sí</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿Cuántos hermanos?</label>
+                  <input type="number" id="insc_cantidad_hermanos" min="0" step="1">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 6: Datos Socioeconómicos -->
+          <div class="planilla-seccion">
+            <div class="planilla-seccion-titulo"><span class="seccion-num">6</span> DATOS SOCIOECONÓMICOS</div>
+            <div class="planilla-seccion-body">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Tipo de Vivienda</label>
+                  <select id="insc_tipo_vivienda">
+                    <option value="">- Seleccionar -</option>
+                    <option value="CASA">Casa</option>
+                    <option value="APARTAMENTO">Apartamento</option>
+                    <option value="HABITACION">Habitación</option>
+                    <option value="MATERIAL_IMPROVISADO">Material Improvisado</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Condición de Infraestructura</label>
+                  <select id="insc_condicion_infraestructura">
+                    <option value="">- Seleccionar -</option>
+                    <option value="BUENA">Buena</option>
+                    <option value="REGULAR">Regular</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 7: Información Médica y Social -->
+          <div class="planilla-seccion" id="seccion_medica_social">
+            <div class="planilla-seccion-titulo"><span class="seccion-num">7</span> INFORMACIÓN MÉDICA E INTEGRACIÓN SOCIAL</div>
+            <div class="planilla-seccion-body">
+              <div id="seccion_solo_inicial" style="background:var(--primary-bg); padding:1rem; border-radius:var(--radius); margin-bottom:1rem;">
+                <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--primary-dark);">Datos del Parto (Solo Inicial)</div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label>Condición del parto</label>
+                    <select id="insc_tipo_parto">
+                      <option value="">- Seleccionar -</option>
+                      <option value="NORMAL">Normal</option>
+                      <option value="CESAREA">Cesárea</option>
+                      <option value="FORCEPS">Fórceps</option>
+                      <option value="PREMATURO">Prematuro</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Meses (Si prematuro)</label>
+                    <input type="number" id="insc_meses_prematuro" min="1" max="9">
+                  </div>
+                  <div class="form-group">
+                    <label>Apreciación del Médico</label>
+                    <select id="insc_apreciacion_medico">
+                      <option value="">- Seleccionar -</option>
+                      <option value="Todo bien">Todo bien</option>
+                      <option value="Algo Mal">Algo Mal</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Especifique (si algo mal)</label>
+                  <input type="text" id="insc_apreciacion_detalle">
+                </div>
+              </div>
+
+              <div style="font-weight:600; margin-bottom:var(--space-3);">Aspectos Físicos y Médicos (Para ambas fichas)</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>¿Posee todas las vacunas?</label>
+                  <select id="insc_vacunas_completas">
+                    <option value="true">Sí</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Vacunas faltantes</label>
+                  <input type="text" id="insc_vacunas_faltantes" placeholder="Especifique...">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>¿Es alérgico?</label>
+                  <select id="insc_alergico">
+                    <option value="false">No</option>
+                    <option value="true">Sí</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿A qué?</label>
+                  <input type="text" id="insc_alergico_detalle" placeholder="Especifique...">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>¿Recibe tratamiento médico/psicológico?</label>
+                  <select id="insc_tratamiento">
+                    <option value="false">No</option>
+                    <option value="true">Sí</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Especifique</label>
+                  <input type="text" id="insc_tratamiento_detalle" placeholder="Especifique...">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Enfermedades padecidas</label>
+                <input type="text" id="insc_enfermedades">
+              </div>
+
+              <div style="font-weight:600; margin-top:var(--space-4); margin-bottom:var(--space-3);">Integración Social</div>
+              <div class="docs-grid">
+                <label class="doc-check"><input type="checkbox" id="insc_int_pasivo"> Pasivo</label>
+                <label class="doc-check"><input type="checkbox" id="insc_int_inquieto"> Inquieto</label>
+                <label class="doc-check"><input type="checkbox" id="insc_int_tierno"> Tierno</label>
+                <label class="doc-check"><input type="checkbox" id="insc_int_sensible"> Sensible</label>
+              </div>
+              <div class="form-group" style="margin-top:var(--space-3);">
+                <label>Habilidad</label>
+                <input type="text" id="insc_habilidades" placeholder="Ej: Beisbol, dibujo...">
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-insc-footer">
+          <button type="button" class="btn btn-secondary" onclick="cerrarModalInscripcion()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Inscribir Estudiante</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/inscripciones.js"></script>
+</body>
+</html>
+

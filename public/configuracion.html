@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración � Sistema de Gestión Escolar</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Tab System Styles */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: var(--space-6);
+      gap: var(--space-6);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: var(--space-3) 0;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+    }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+    .tab-panel {
+      display: none;
+    }
+    .tab-panel.active {
+      display: block;
+    }
+    
+    /* Layout para los paneles */
+    .config-grid {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: var(--space-6);
+      align-items: start;
+    }
+    .config-form-card {
+      background: var(--bg-white);
+      padding: var(--space-6);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+    
+    /* Badges y Pills */
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 100px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-inactive { background: var(--border); color: var(--text-muted); }
+    .badge-primary { background: var(--primary-bg); color: var(--primary-dark); }
+    
+    .seccion-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+      border-radius: 100px;
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      margin-right: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+    .seccion-pill .btn-delete-seccion {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+    }
+    .seccion-pill .btn-delete-seccion:hover {
+      background: var(--error-bg);
+      color: var(--error);
+    }
+    
+    /* Formulario de Escuela a dos columnas */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .actions-cell {
+      display: flex;
+      gap: var(--space-2);
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Gestión Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
+    </div>
+        <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="/personas.html" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">Personas</span>
+      </a>
+      <a href="/estudiantes.html" class="nav-item">
+        <span class="nav-icon">🎓</span>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a href="/inscripciones.html" class="nav-item">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Inscripciones</span>
+      </a>
+      <a href="/profesores.html" class="nav-item">
+        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/reportes.html" class="nav-item">
+        <span class="nav-icon">📄</span>
+        <span class="nav-text">Reportes y PDFs</span>
+      </a>
+      <a href="/configuracion.html" class="nav-item active">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Configuración</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>v1.0 � Servicio Comunitario UNEFA</p>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="main-header">
+      <button class="menu-toggle" id="menuToggle">�ܰ</button>
+      <div class="header-info">
+        <span class="header-year" id="headerYear">Año Escolar: �</span>
+      </div>
+      <div class="header-user">
+        <span id="headerUserName">�</span>
+        <span class="header-role" id="headerUserRole">�</span>
+        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent">
+      <div class="welcome-section">
+        <h1>Configuración del Sistema</h1>
+        <p class="welcome-text">Administre los parámetros básicos de la escuela, grados y secciones.</p>
+      </div>
+      
+      <div id="alertConfig" class="alert" style="display: none;"></div>
+
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-anios">Años Escolares</button>
+        <button class="tab-btn" data-tab="tab-grados">Grados</button>
+        <button class="tab-btn" data-tab="tab-secciones">Secciones</button>
+        <button class="tab-btn" data-tab="tab-escuela">Datos de la Escuela</button>
+      </div>
+
+      <!-- TAB 1: Años Escolares -->
+      <div id="tab-anios" class="tab-panel active">
+        <div class="config-grid">
+          <div class="config-form-card">
+            <h3>Nuevo Año Escolar</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Ejemplo: 2026-2027</p>
+            <form id="formAnioEscolar">
+              <div class="form-group">
+                <label>Nombre del Año Escolar *</label>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                  <select id="ae_nombre_inicio" required style="flex: 1;" onchange="actualizarAnioFin()"></select>
+                  <span> - </span>
+                  <select id="ae_nombre_fin" required style="flex: 1;" disabled></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Fecha de Inicio (Opcional)</label>
+                <input type="date" id="ae_inicio">
+              </div>
+              <div class="form-group">
+                <label>Fecha de Fin (Opcional)</label>
+                <input type="date" id="ae_fin">
+              </div>
+              <button type="submit" class="btn btn-primary btn-full">Crear Año Escolar</button>
+            </form>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Fechas</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyAnios">
+                <!-- Data loaded via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Grados -->
+      <div id="tab-grados" class="tab-panel">
+        <div class="config-grid">
+          <div class="config-form-card">
+            <h3>Nuevo Grado</h3>
+            <form id="formGrado">
+              <div class="form-group">
+                <label>Nivel de Educación *</label>
+                <select id="g_nivel_select" required onchange="mostrarOpcionesGrado()">
+                  <option value="">� Seleccionar Nivel �</option>
+                  <option value="INICIAL">Educación Inicial (Preescolar)</option>
+                  <option value="PRIMARIA">Educación Primaria</option>
+                </select>
+              </div>
+              <div class="form-group" id="g_grado_container" style="display:none;">
+                <label>Grado *</label>
+                <select id="g_nombre" required>
+                  <option value="">� Seleccionar �</option>
+                </select>
+              </div>
+              <input type="hidden" id="g_nivel">
+              <input type="hidden" id="g_orden">
+              <div class="form-group" id="g_info_nivel" style="display:none;">
+                <label>Nivel</label>
+                <input type="text" id="g_nivel_display" disabled>
+              </div>
+              <div class="form-group" id="g_info_orden" style="display:none;">
+                <label>Orden</label>
+                <input type="text" id="g_orden_display" disabled>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full">Crear Grado</button>
+            </form>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Orden</th>
+                  <th>Nombre</th>
+                  <th>Nivel</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyGrados">
+                <!-- Data loaded via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: Secciones -->
+      <div id="tab-secciones" class="tab-panel">
+        <div class="form-group" style="max-width: 300px; margin-bottom: 2rem;">
+          <label>Filtro por Año Escolar</label>
+          <select id="s_filtro_anio"></select>
+        </div>
+        
+        <div class="config-grid">
+          <div class="config-form-card">
+            <h3>Agregar Sección</h3>
+            <form id="formSeccion">
+              <div class="form-group">
+                <label>Año Escolar *</label>
+                <select id="s_anio" required></select>
+              </div>
+              <div class="form-group">
+                <label>Grado *</label>
+                <select id="s_grado" required></select>
+              </div>
+              <div class="form-group">
+                <label>Profesores (Solo los que no tienen sección asignada este año)</label>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <input type="text" id="s_prof_search" placeholder="Buscar por nombre o cédula...">
+                  <div style="display: flex; gap: 0.5rem;">
+                    <select id="s_prof_results" style="flex: 1; max-width: 100%;">
+                      <option value="">� Sin resultados �</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addProfesorSeccion()" style="white-space: nowrap;">+ Añadir</button>
+                  </div>
+                </div>
+                <!-- Div donde se mostrarán las pastillitas (tags) de los profesores agregados -->
+                <div id="s_profesores_list" style="display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 40px; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color);">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary btn-full">Agregar Sección</button>
+            </form>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Grado</th>
+                  <th>Nivel</th>
+                  <th>Secciones (Clic en la X para eliminar)</th>
+                </tr>
+              </thead>
+              <tbody id="tbodySecciones">
+                <!-- Data loaded via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: Datos de la Escuela -->
+      <div id="tab-escuela" class="tab-panel">
+        <div class="config-form-card" style="max-width: 800px;">
+          <h3>Datos Institucionales</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Estos datos se utilizarán para generar las planillas, constancias y reportes.</p>
+          <form id="formEscuela" class="form-grid">
+            <div class="form-group full-width">
+              <label>Logo de la Institución (Opcional, PNG/JPG)</label>
+              <input type="file" id="cfg_logo" accept="image/png, image/jpeg">
+              <small style="color:var(--text-muted);">El logo se mostrará en las planillas de inscripción.</small>
+            </div>
+            <div class="form-group full-width">
+              <label>Nombre de la Escuela</label>
+              <input type="text" id="cfg_nombre_escuela">
+            </div>
+            <div class="form-group">
+              <label>Código del Plantel (DEA)</label>
+              <input type="text" id="cfg_codigo_plantel">
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="text" id="cfg_telefono">
+            </div>
+            <div class="form-group">
+              <label>Estado</label>
+              <input type="text" id="cfg_estado" value="Lara">
+            </div>
+            <div class="form-group">
+              <label>Municipio</label>
+              <input type="text" id="cfg_municipio">
+            </div>
+            <div class="form-group">
+              <label>Parroquia</label>
+              <input type="text" id="cfg_parroquia">
+            </div>
+            <div class="form-group">
+              <label>Nombre del Director/a</label>
+              <input type="text" id="cfg_director">
+            </div>
+            <div class="form-group full-width">
+              <label>Dirección Completa</label>
+              <input type="text" id="cfg_direccion">
+            </div>
+            <div class="form-group full-width">
+              <label>Texto del Membrete del Ministerio</label>
+              <textarea id="cfg_membrete" rows="3"></textarea>
+            </div>
+            <div class="full-width">
+              <button type="submit" class="btn btn-primary">Guardar Datos de la Escuela</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal Añadir Profesor a Sección Ya Creada -->
+  <div class="modal" id="modalAddProfesorSeccion">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 id="modalAddProfesorSeccionTitulo">Añadir Profesor</h3>
+        <button class="close-btn" onclick="cerrarModalAddProfesorSeccion()">&times;</button>
+      </div>
+      <form id="formAddProfesorSeccion">
+        <input type="hidden" id="modal_seccion_id">
+        <input type="hidden" id="modal_anio_id">
+        <div class="form-group">
+          <label>Buscar Profesor (Libres en este año escolar)</label>
+          <input type="text" id="modal_prof_search" placeholder="Nombre o cédula...">
+        </div>
+        <div class="form-group">
+          <select id="modal_prof_results" required class="full-width" style="padding: 0.5rem;">
+            <option value="">� Cargando �</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Asignar a la Sección</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/configuracion.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profesores � Sistema de Gestión Escolar</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-6);
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+    .search-bar {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+    }
+    .search-bar input {
+      width: 280px;
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: var(--font-size-sm);
+      outline: none;
+    }
+    .search-bar input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px hsla(215, 60%, 45%, 0.15);
+    }
+    .badge-activo {
+      display: inline-block;
+      padding: 0.15rem 0.6rem;
+      border-radius: 100px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+    .badge-activo-si { background: var(--success-bg); color: var(--success); }
+    .badge-activo-no { background: hsl(0, 50%, 93%); color: hsl(0, 50%, 45%); }
+    .badge-sexo {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+    }
+    .badge-sexo-m { background: hsl(215, 50%, 92%); color: hsl(215, 60%, 40%); }
+    .badge-sexo-f { background: hsl(330, 50%, 92%); color: hsl(330, 60%, 40%); }
+    .actions-cell { display: flex; gap: var(--space-2); }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--space-4);
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Gestión Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
+    </div>
+        <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="/personas.html" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">Personas</span>
+      </a>
+      <a href="/estudiantes.html" class="nav-item">
+        <span class="nav-icon">🎓</span>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a href="/inscripciones.html" class="nav-item">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Inscripciones</span>
+      </a>
+      <a href="/profesores.html" class="nav-item active">
+        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/reportes.html" class="nav-item">
+        <span class="nav-icon">📄</span>
+        <span class="nav-text">Reportes y PDFs</span>
+      </a>
+      <a href="/configuracion.html" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Configuración</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer"><p>v1.0 � Servicio Comunitario UNEFA</p></div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="main-header">
+      <button class="menu-toggle" id="menuToggle">�ܰ</button>
+      <div class="header-info"><span class="header-year" id="headerYear">Año Escolar: �</span></div>
+      <div class="header-user">
+        <span id="headerUserName">�</span>
+        <span class="header-role" id="headerUserRole">�</span>
+        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent">
+      <div class="page-header">
+        <div>
+          <h1>Profesores</h1>
+          <p class="welcome-text">Docentes de la institución educativa.</p>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+          <div class="search-bar">
+            <input type="text" id="inputBuscar" placeholder="Buscar por nombre, apellido o cédula...">
+            <button class="btn btn-primary btn-sm" onclick="buscarProfesores()">Buscar</button>
+          </div>
+          <button class="btn btn-primary" onclick="abrirModal()">+ Nuevo Profesor</button>
+        </div>
+      </div>
+
+      <div id="alertProfesores" class="alert" style="display: none;"></div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Cédula</th>
+              <th>Apellidos y Nombres</th>
+              <th>Sexo</th>
+              <th>Teléfono</th>
+              <th>Email</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyProfesores"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Crear/Editar Profesor -->
+  <div class="modal" id="modalProfesor">
+    <div class="modal-content">
+      <h2 id="modalTitulo" style="margin-bottom:1rem;">Nuevo Profesor</h2>
+      <div id="alertModal" class="alert" style="display: none;"></div>
+      <form id="formProfesor">
+        <input type="hidden" id="prof_id">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nacionalidad</label>
+            <select id="prof_nacionalidad">
+              <option value="V">V - Venezolano/a</option>
+              <option value="E">E - Extranjero/a</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cédula *</label>
+            <input type="text" id="prof_cedula" required placeholder="Ej: 12345678">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellidos *</label>
+            <input type="text" id="prof_apellidos" required>
+          </div>
+          <div class="form-group">
+            <label>Nombres *</label>
+            <input type="text" id="prof_nombres" required>
+          </div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Sexo</label>
+            <select id="prof_sexo">
+              <option value="">� Seleccionar �</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fecha de Nacimiento</label>
+            <input type="date" id="prof_fecha_nacimiento">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" id="prof_telefono" placeholder="0412-1234567">
+          </div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Correo Electrónico</label>
+            <input type="email" id="prof_email" placeholder="profesor@correo.com">
+          </div>
+          <div class="form-group">
+            <label>Lugar de Nacimiento</label>
+            <input type="text" id="prof_lugar_nacimiento">
+          </div>
+          <div class="form-group">
+            <label>Estado de Nacimiento</label>
+            <input type="text" id="prof_estado_nacimiento">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:var(--space-4);">
+          <label>Dirección</label>
+          <input type="text" id="prof_direccion">
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Título</label>
+            <input type="text" id="prof_titulo">
+          </div>
+          <div class="form-group">
+            <label>Nivel de Instrucción</label>
+            <select id="prof_nivel_instruccion">
+              <option value="">- Seleccionar -</option>
+              <option value="Bachiller">Bachiller</option>
+              <option value="TSU">TSU</option>
+              <option value="Licenciado">Licenciado / Profesor</option>
+              <option value="Especialista">Especialista</option>
+              <option value="Magister">Magíster</option>
+              <option value="Doctor">Doctor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Grado Académico</label>
+            <input type="text" id="prof_grado_academico" placeholder="Ej: Especialista en Educación...">
+          </div>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Tipo de Cargo</label>
+            <select id="prof_tipo_cargo">
+              <option value="">- Seleccionar -</option>
+              <option value="Titular">Titular</option>
+              <option value="Interino">Interino</option>
+              <option value="Contratado">Contratado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Condición de Trabajo</label>
+            <select id="prof_condicion_trabajo">
+              <option value="">- Seleccionar -</option>
+              <option value="Activo">Activo</option>
+              <option value="Suplente">Suplente</option>
+              <option value="Permiso">De Permiso</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Años de Servicio</label>
+            <input type="number" id="prof_anos_servicio" min="0" step="1">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/profesores.js"></script>
+</body>
+</html>
+

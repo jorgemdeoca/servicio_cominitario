@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Principal - Sistema de Gestión Escolar</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body class="dashboard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Gestión Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
+    </div>
+        <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item active">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="/personas.html" class="nav-item">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">Personas</span>
+      </a>
+      <a href="/estudiantes.html" class="nav-item">
+        <span class="nav-icon">🎓</span>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a href="/inscripciones.html" class="nav-item">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Inscripciones</span>
+      </a>
+      <a href="/profesores.html" class="nav-item">
+        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/reportes.html" class="nav-item">
+        <span class="nav-icon">📄</span>
+        <span class="nav-text">Reportes y PDFs</span>
+      </a>
+      <a href="/configuracion.html" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Configuración</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>v1.0 � Servicio Comunitario UNEFA</p>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="main-header">
+      <button class="menu-toggle" id="menuToggle">�ܰ</button>
+      <div class="header-info">
+        <span class="header-year" id="headerYear">Año Escolar: �</span>
+      </div>
+      <div class="header-user">
+        <span id="headerUserName">�</span>
+        <span class="header-role" id="headerUserRole">�</span>
+        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent">
+      <div class="welcome-section">
+        <h1>Bienvenido al Sistema de Gestión Escolar</h1>
+        <p class="welcome-text">Seleccione una opción del menú lateral para comenzar.</p>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">�x�</div>
+          <div class="stat-info">
+            <span class="stat-number" id="statEstudiantes">�</span>
+            <span class="stat-label">Estudiantes</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">�x�</div>
+          <div class="stat-info">
+            <span class="stat-number" id="statPersonas">�</span>
+            <span class="stat-label">Personas</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">�x�</div>
+          <div class="stat-info">
+            <span class="stat-number" id="statInscripciones">�</span>
+            <span class="stat-label">Inscripciones</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">�x�⬍�x��</div>
+          <div class="stat-info">
+            <span class="stat-number" id="statProfesores">�</span>
+            <span class="stat-label">Profesores</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>
+

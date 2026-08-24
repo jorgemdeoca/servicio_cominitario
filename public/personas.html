@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personas � Sistema de Gestión Escolar</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--space-6);
+      flex-wrap: wrap;
+      gap: var(--space-4);
+    }
+    .search-bar {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+    }
+    .search-bar input {
+      width: 300px;
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: var(--font-size-sm);
+      outline: none;
+    }
+    .search-bar input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px hsla(215, 60%, 45%, 0.15);
+    }
+    .badge-nacionalidad {
+      display: inline-block;
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      background: var(--primary-bg);
+      color: var(--primary-dark);
+    }
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-3);
+      margin-top: var(--space-6);
+    }
+    .pagination button {
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--border);
+      background: var(--bg-white);
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: var(--font-size-sm);
+    }
+    .pagination button:hover:not(:disabled) {
+      background: var(--primary-bg);
+    }
+    .pagination button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .pagination span {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+    .actions-cell {
+      display: flex;
+      gap: var(--space-2);
+    }
+  </style>
+</head>
+<body class="dashboard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Gestión Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
+    </div>
+        <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="/personas.html" class="nav-item active">
+        <span class="nav-icon">👥</span>
+        <span class="nav-text">Personas</span>
+      </a>
+      <a href="/estudiantes.html" class="nav-item">
+        <span class="nav-icon">🎓</span>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a href="/inscripciones.html" class="nav-item">
+        <span class="nav-icon">📝</span>
+        <span class="nav-text">Inscripciones</span>
+      </a>
+      <a href="/profesores.html" class="nav-item">
+        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/reportes.html" class="nav-item">
+        <span class="nav-icon">📄</span>
+        <span class="nav-text">Reportes y PDFs</span>
+      </a>
+      <a href="/configuracion.html" class="nav-item">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Configuración</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>v1.0 � Servicio Comunitario UNEFA</p>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="main-header">
+      <button class="menu-toggle" id="menuToggle">�ܰ</button>
+      <div class="header-info">
+        <span class="header-year" id="headerYear">Año Escolar: �</span>
+      </div>
+      <div class="header-user">
+        <span id="headerUserName">�</span>
+        <span class="header-role" id="headerUserRole">�</span>
+        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent">
+      <div class="page-header">
+        <div>
+          <h1>Personas</h1>
+          <p class="welcome-text">Madres, padres, representantes y terceras personas.</p>
+        </div>
+        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+          <div class="search-bar">
+            <input type="text" id="inputBuscar" placeholder="Buscar por nombre, apellido o cédula...">
+            <button class="btn btn-primary btn-sm" onclick="buscarPersonas()">Buscar</button>
+          </div>
+          <button class="btn btn-primary" onclick="abrirModal()">+ Nueva Persona</button>
+        </div>
+      </div>
+
+      <div id="alertPersonas" class="alert" style="display: none;"></div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Cédula</th>
+              <th>Apellidos y Nombres</th>
+              <th>Teléfono</th>
+              <th>Profesión</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPersonas"></tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="paginacion"></div>
+    </main>
+  </div>
+
+  <!-- Modal Crear/Editar Persona -->
+  <div class="modal" id="modalPersona">
+    <div class="modal-content">
+      <h2 id="modalTitulo" style="margin-bottom:1rem;">Nueva Persona</h2>
+      <div id="alertModal" class="alert" style="display: none;"></div>
+      <form id="formPersona">
+        <input type="hidden" id="p_id">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nacionalidad *</label>
+            <select id="p_nacionalidad" required>
+              <option value="V">V - Venezolano/a</option>
+              <option value="E">E - Extranjero/a</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cédula *</label>
+            <input type="text" id="p_cedula" required placeholder="Ej: 12345678">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Apellidos *</label>
+            <input type="text" id="p_apellidos" required placeholder="Apellidos completos">
+          </div>
+          <div class="form-group">
+            <label>Nombres *</label>
+            <input type="text" id="p_nombres" required placeholder="Nombres completos">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Fecha de Nacimiento</label>
+            <input type="date" id="p_fecha_nacimiento">
+          </div>
+          <div class="form-group">
+            <label>Estado Civil</label>
+            <select id="p_estado_civil">
+              <option value="">� Seleccionar �</option>
+              <option value="Soltero/a">Soltero/a</option>
+              <option value="Casado/a">Casado/a</option>
+              <option value="Divorciado/a">Divorciado/a</option>
+              <option value="Viudo/a">Viudo/a</option>
+              <option value="Concubinato">Concubinato</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Profesión u Oficio</label>
+            <input type="text" id="p_profesion" placeholder="Ej: Docente, Comerciante...">
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" id="p_telefono" placeholder="Ej: 0412-1234567">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Dirección</label>
+          <textarea id="p_direccion" rows="2" style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:var(--font-size-base);resize:vertical;outline:none;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Observaciones</label>
+          <textarea id="p_observaciones" rows="2" style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:var(--font-size-base);resize:vertical;outline:none;"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/personas.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,375 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// TABLA 1: USUARIOS (login y roles)
+// ============================================
+model usuarios {
+  id             Int      @id @default(autoincrement())
+  nombre_usuario String   @unique @db.VarChar(50)
+  password_hash  String   @db.VarChar(255)
+  rol            usuarios_rol
+  creado_en      DateTime @default(now())
+}
+
+enum usuarios_rol {
+  SUPER_ADMIN
+  ADMIN
+}
+
+// ============================================
+// TABLA 2: CONFIGURACIÓN (datos de la escuela)
+// ============================================
+model configuracion {
+  id    Int    @id @default(autoincrement())
+  clave String @unique @db.VarChar(100)
+  valor String? @db.Text
+}
+
+// ============================================
+// TABLA 3: GRADOS
+// ============================================
+model grados {
+  id     Int          @id @default(autoincrement())
+  nombre String       @db.VarChar(50)
+  orden  Int
+  nivel  grados_nivel
+
+  // Relaciones
+  secciones secciones[]
+}
+
+enum grados_nivel {
+  INICIAL
+  PRIMARIA
+}
+
+// ============================================
+// TABLA 4: AÑOS ESCOLARES
+// ============================================
+model anios_escolares {
+  id           Int      @id @default(autoincrement())
+  nombre       String   @db.VarChar(20)
+  fecha_inicio DateTime? @db.Date
+  fecha_fin    DateTime? @db.Date
+  activo       Boolean  @default(false)
+
+  // Relaciones
+  secciones     secciones[]
+  inscripciones inscripciones[]
+}
+
+// ============================================
+// TABLA 5: SECCIONES (por grado, por año)
+// ============================================
+model secciones {
+  id              Int @id @default(autoincrement())
+  letra           String @db.VarChar(5)
+  grado_id        Int
+  anio_escolar_id Int
+
+  // Relaciones
+  grado        grados          @relation(fields: [grado_id], references: [id])
+  anio_escolar anios_escolares @relation(fields: [anio_escolar_id], references: [id])
+  inscripciones inscripciones[]
+  profesores    profesores_secciones[]
+
+  // Índices
+  @@index([grado_id])
+  @@index([anio_escolar_id])
+  @@unique([grado_id, anio_escolar_id, letra]) // No puede haber dos secciones "A" del mismo grado en el mismo año
+}
+
+// ============================================
+// TABLA 6: PERSONAS (madre, padre, representante)
+// ============================================
+model personas {
+  id               Int      @id @default(autoincrement())
+  apellidos        String   @db.VarChar(200)
+  nombres          String   @db.VarChar(200)
+  cedula           String   @unique @db.VarChar(20)
+  nacionalidad     personas_nacionalidad
+  fecha_nacimiento DateTime? @db.Date
+  profesion_oficio String?  @db.VarChar(100)
+  estado_civil     String?  @db.VarChar(30)
+  telefono         String?  @db.VarChar(20)
+  direccion        String?  @db.Text
+  observaciones    String?  @db.Text
+
+  // Borrado lógico
+  eliminado Boolean @default(false)
+
+  // Relaciones inversas (una persona puede ser madre/padre/representante de varios estudiantes)
+  estudiantes_como_madre         estudiantes[] @relation("MadreEstudiante")
+  estudiantes_como_padre         estudiantes[] @relation("PadreEstudiante")
+  estudiantes_como_representante estudiantes[] @relation("RepresentanteEstudiante")
+
+  // Índices para consultas rápidas
+  @@index([apellidos])
+  @@index([nombres])
+  @@index([eliminado])
+}
+
+enum personas_nacionalidad {
+  V
+  E
+}
+
+// ============================================
+// TABLA 7: ESTUDIANTES
+// ============================================
+model estudiantes {
+  id                     Int      @id @default(autoincrement())
+  primer_apellido        String   @db.VarChar(100)
+  segundo_apellido       String?  @db.VarChar(100)
+  primer_nombre          String   @db.VarChar(100)
+  segundo_nombre         String?  @db.VarChar(100)
+  nacionalidad           estudiantes_nacionalidad
+  codigo_escolar         String?  @unique @db.VarChar(30)
+  lateralidad            String?  @db.VarChar(20)
+  sexo                   estudiantes_sexo
+  fecha_nacimiento       DateTime @db.Date
+  lugar_nacimiento       String?  @db.VarChar(100)
+  estado_nacimiento      String?  @db.VarChar(100)
+  tipo_sangre            String?  @db.VarChar(10)
+
+  // --- Datos médicos (solo relevantes para Educación Inicial) ---
+  tipo_parto             estudiantes_tipo_parto?
+  meses_prematuro        Int?
+  apreciacion_medico     String?  @db.VarChar(20)
+  apreciacion_detalle    String?  @db.Text
+  enfermedades_padecidas String?  @db.Text
+  hospitalizado          Boolean? @default(false)
+  hospitalizado_detalle  String?  @db.Text
+  alergico               Boolean? @default(false)
+  alergico_detalle       String?  @db.VarChar(200)
+  limitacion_motora      Boolean  @default(false)
+  limitacion_visual      Boolean  @default(false)
+  limitacion_crecimiento Boolean  @default(false)
+  limitacion_auditiva    Boolean  @default(false)
+  limitacion_genetica    Boolean  @default(false)
+  vacunas_completas      Boolean? @default(true)
+  vacunas_faltantes      String?  @db.VarChar(200)
+  tratamiento_medico     Boolean? @default(false)
+  tratamiento_detalle    String?  @db.Text
+  numero_hermanos        Int?
+  lugar_entre_hermanos   Int?
+
+  // --- Relaciones con personas ---
+  madre_id         Int?
+  padre_id         Int?
+  representante_id Int
+
+  madre         personas?  @relation("MadreEstudiante", fields: [madre_id], references: [id])
+  padre         personas?  @relation("PadreEstudiante", fields: [padre_id], references: [id])
+  representante personas   @relation("RepresentanteEstudiante", fields: [representante_id], references: [id])
+
+  // Relación con inscripciones
+  inscripciones inscripciones[]
+
+  // Borrado lógico
+  eliminado Boolean @default(false)
+
+  // Índices para consultas rápidas
+  @@index([madre_id])
+  @@index([padre_id])
+  @@index([representante_id])
+  @@index([primer_apellido])
+  @@index([eliminado])
+}
+
+enum estudiantes_nacionalidad {
+  V
+  E
+}
+
+enum estudiantes_sexo {
+  M
+  F
+}
+
+enum estudiantes_tipo_parto {
+  NORMAL
+  CESAREA
+  FORCEPS
+  PREMATURO
+}
+
+// ============================================
+// TABLA 8: PROFESORES
+// ============================================
+model profesores {
+  id               Int      @id @default(autoincrement())
+  nombres          String   @db.VarChar(100)
+  apellidos        String   @db.VarChar(100)
+  cedula           String   @unique @db.VarChar(20)
+  nacionalidad     profesores_nacionalidad @default(V)
+  sexo             profesores_sexo?
+  fecha_nacimiento DateTime? @db.Date
+  telefono         String?  @db.VarChar(20)
+  email            String?  @db.VarChar(150)
+  direccion        String?  @db.Text
+  titulo           String?  @db.VarChar(100)
+  nivel_instruccion String? @db.VarChar(50)
+  grado_academico  String?  @db.VarChar(50)
+  tipo_cargo       String?  @db.VarChar(50)
+  condicion_trabajo String? @db.VarChar(50)
+  anos_servicio    Int?
+  lugar_nacimiento String?  @db.VarChar(100)
+  estado_nacimiento String? @db.VarChar(100)
+  activo           Boolean  @default(true)
+
+  // Relaciones
+  secciones profesores_secciones[]
+
+  // Índices
+  @@index([apellidos])
+  @@index([activo])
+}
+
+enum profesores_nacionalidad {
+  V
+  E
+}
+
+enum profesores_sexo {
+  M
+  F
+}
+
+// ============================================
+// TABLA 9: INSCRIPCIONES (la tabla más grande)
+// ============================================
+model inscripciones {
+  id                Int      @id @default(autoincrement())
+  estudiante_id     Int
+  seccion_id        Int
+  anio_escolar_id   Int
+  fecha_inscripcion DateTime @db.Date
+  literal           inscripciones_literal?
+  estado            inscripciones_estado   @default(ACTIVO)
+  modalidad         inscripciones_modalidad @default(REGULAR)
+
+  // --- Datos variables por año (Sección 2 de la ficha) ---
+  direccion          String? @db.Text
+  telefono           String? @db.VarChar(20)
+  correo_electronico String? @db.VarChar(150)
+  talla              String? @db.VarChar(10)
+  peso               String? @db.VarChar(10)
+  talla_camisa       String? @db.VarChar(10)
+  talla_pantalon     String? @db.VarChar(10)
+  talla_zapato       String? @db.VarChar(10)
+
+  // --- Sección 1: Documentos consignados ---
+  doc_partida_nacimiento Boolean @default(false)
+  doc_boleta_promocion   Boolean @default(false)
+  doc_ci_madre           Boolean @default(false)
+  doc_ci_padre           Boolean @default(false)
+  doc_foto_estudiante    Boolean @default(false)
+  doc_foto_representante Boolean @default(false)
+  doc_carpeta_marron     Boolean @default(false)
+  doc_acta_compromiso    Boolean @default(false)
+
+  // --- Sección 3: Datos de procedencia ---
+  misma_institucion          Boolean? @default(true)
+  institucion_procedencia    String?  @db.VarChar(200)
+  motivo_retiro_procedencia  String?  @db.VarChar(200)
+  con_quien_vive             inscripciones_con_quien_vive?
+  tiene_hermanos_institucion Boolean? @default(false)
+  cantidad_hermanos          Int?
+
+  // --- Sección 5: Datos socioeconómicos ---
+  tipo_vivienda             inscripciones_tipo_vivienda?
+  condicion_infraestructura inscripciones_condicion_infra?
+
+  // --- Sección 7: Integración social (solo Inicial) ---
+  integracion_pasivo    Boolean @default(false)
+  integracion_inquieto  Boolean @default(false)
+  integracion_tierno    Boolean @default(false)
+  integracion_sensible  Boolean @default(false)
+  habilidades           String? @db.Text
+  observaciones_generales String? @db.Text
+
+  // --- Retiro ---
+  motivo_retiro_saliente String?   @db.VarChar(200)
+  fecha_retiro           DateTime? @db.Date
+
+  // Borrado lógico
+  eliminado Boolean @default(false)
+
+  // --- Relaciones ---
+  estudiante   estudiantes     @relation(fields: [estudiante_id], references: [id])
+  seccion      secciones       @relation(fields: [seccion_id], references: [id])
+  anio_escolar anios_escolares @relation(fields: [anio_escolar_id], references: [id])
+
+  // Índices para consultas rápidas
+  @@index([estudiante_id])
+  @@index([seccion_id])
+  @@index([anio_escolar_id])
+  @@index([estado])
+  @@index([eliminado])
+  @@unique([estudiante_id, anio_escolar_id]) // Un estudiante no puede inscribirse dos veces en el mismo año
+}
+
+enum inscripciones_literal {
+  A
+  B
+  C
+  D
+  E
+}
+
+enum inscripciones_estado {
+  ACTIVO
+  APROBADO
+  REPROBADO
+  RETIRADO
+}
+
+enum inscripciones_modalidad {
+  NUEVO_INGRESO
+  REGULAR
+  REPITIENTE
+  TRASLADO
+  PROSECUCION
+}
+
+enum inscripciones_con_quien_vive {
+  MADRE
+  PADRE
+  AMBOS
+  OTROS_FAMILIARES
+}
+
+enum inscripciones_tipo_vivienda {
+  CASA
+  APARTAMENTO
+  HABITACION
+  MATERIAL_IMPROVISADO
+}
+
+enum inscripciones_condicion_infra {
+  BUENA
+  REGULAR
+}
+
+// ============================================
+// TABLA DE RELACION: PROFESORES_SECCIONES
+// ============================================
+model profesores_secciones {
+  profesor_id Int
+  seccion_id  Int
+  profesor    profesores @relation(fields: [profesor_id], references: [id], onDelete: Cascade)
+  seccion     secciones  @relation(fields: [seccion_id], references: [id], onDelete: Cascade)
+
+  @@id([profesor_id, seccion_id])
+}

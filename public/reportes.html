@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reportes - Sistema de Gesti&#243;n Escolar</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .report-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); }
+    .report-card h3 { font-size: var(--font-size-lg); margin-bottom: var(--space-4); border-bottom: 2px solid var(--primary-bg); padding-bottom: var(--space-2); }
+    .report-form-row { display: flex; gap: var(--space-4); align-items: flex-end; flex-wrap: wrap; margin-bottom: var(--space-5); }
+    .report-form-row > .form-group { flex: 1; min-width: 200px; }
+    
+    .stats-table { width: 100%; border-collapse: collapse; margin-top: var(--space-4); }
+    .stats-table th, .stats-table td { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); text-align: center; }
+    .stats-table th { background: var(--bg); font-weight: 600; }
+    .stats-table .grado-row { background: var(--primary-bg); font-weight: 600; text-align: left; }
+    .stats-table .total-row { font-weight: bold; background: hsl(215, 80%, 95%); }
+  </style>
+</head>
+<body class="dashboard-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Gesti&#243;n Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Ju&#225;res"</p>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item">
+        <span class="nav-icon">&#x1F4CA;</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="/personas.html" class="nav-item">
+        <span class="nav-icon">&#x1F465;</span>
+        <span class="nav-text">Personas</span>
+      </a>
+      <a href="/estudiantes.html" class="nav-item">
+        <span class="nav-icon">&#x1F393;</span>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a href="/inscripciones.html" class="nav-item">
+        <span class="nav-icon">&#x1F4DD;</span>
+        <span class="nav-text">Inscripciones</span>
+      </a>
+      <a href="/profesores.html" class="nav-item">
+        <span class="nav-icon">&#x1F468;&#x200D;&#x1F3EB;</span>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/reportes.html" class="nav-item active">
+        <span class="nav-icon">&#x1F4C4;</span>
+        <span class="nav-text">Reportes y PDFs</span>
+      </a>
+      <a href="/configuracion.html" class="nav-item">
+        <span class="nav-icon">&#x2699;&#xFE0F;</span>
+        <span class="nav-text">Configuraci&#243;n</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>v1.0 - Servicio Comunitario UNEFA</p>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="main-header">
+      <button class="menu-toggle" id="menuToggle">&#x2630;</button>
+      <div class="header-info">
+        <span class="header-year" id="headerYear">A&#241;o Escolar: ...</span>
+      </div>
+      <div class="header-user">
+        <span id="headerUserName">...</span>
+        <span id="headerUserRole" class="badge-role">...</span>
+        <button class="btn btn-sm btn-logout" onclick="logout()">Cerrar Sesi&#243;n</button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <h1 class="page-title">Reportes y PDFs</h1>
+      <p class="page-subtitle">Genera documentos PDF y visualiza estad&#237;sticas de matr&#237;cula</p>
+
+      <div id="alertReportes" class="alert" style="display:none; margin-bottom:var(--space-4);"></div>
+
+      <!-- 1. Matricula Inicial -->
+      <div class="report-card">
+        <h3>PDF Matr&#237;cula Inicial (Formato Ministerio)</h3>
+        <p style="color:var(--text-muted); margin-bottom:var(--space-4); font-size:var(--font-size-sm);">Genera la planilla oficial con los estudiantes activos de una secci&#243;n seleccionada.</p>
+
+        <div class="report-form-row">
+          <div class="form-group">
+            <label>A&#241;o Escolar:</label>
+            <select id="selAnioMatricula" class="form-control"></select>
+          </div>
+          <div class="form-group">
+            <label>Secci&#243;n:</label>
+            <select id="selSeccionMatricula" class="form-control">
+              <option value="">Seleccione un a&#241;o escolar primero...</option>
+            </select>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="generarMatricula()">Generar PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Ficha de Inscripcion -->
+      <div class="report-card">
+        <h3>PDF Fichas de Inscripci&#243;n</h3>
+        <p style="color:var(--text-muted); margin-bottom:var(--space-4); font-size:var(--font-size-sm);">Busca una inscripci&#243;n y genera su ficha (Educaci&#243;n Inicial o Primaria).</p>
+
+        <div class="report-form-row">
+          <div class="form-group" style="flex:2;">
+            <label>Buscar (C&#233;dula o Apellidos del Estudiante):</label>
+            <div style="display:flex; gap:var(--space-2);">
+              <input type="text" id="inputBuscarInscripcion" class="form-control" placeholder="Ej. Perez o 11222333">
+              <button class="btn btn-secondary" onclick="buscarInscripciones()">Buscar</button>
+            </div>
+          </div>
+          <div class="form-group" style="flex:3;">
+            <label>Seleccionar Inscripci&#243;n:</label>
+            <select id="selInscripcionFicha" class="form-control">
+              <option value="">Escriba y busque para ver resultados...</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:var(--space-3);">
+          <button class="btn btn-primary" onclick="generarFicha('INICIAL')">Ficha Inicial (7 secciones)</button>
+          <button class="btn btn-secondary" onclick="generarFicha('PRIMARIA')">Ficha Primaria (5 secciones)</button>
+        </div>
+      </div>
+
+      <!-- 3. Estadisticas -->
+      <div class="report-card">
+        <h3>Estad&#237;sticas de Matr&#237;cula (En pantalla)</h3>
+        <p style="color:var(--text-muted); margin-bottom:var(--space-4); font-size:var(--font-size-sm);">Resumen total de varones y hembras por grado y secci&#243;n.</p>
+
+        <div class="report-form-row">
+          <div class="form-group">
+            <label>A&#241;o Escolar:</label>
+            <select id="selAnioEstadisticas" class="form-control"></select>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="cargarEstadisticas()">Cargar Resumen</button>
+          </div>
+        </div>
+
+        <div id="tablaEstadisticasContainer" style="display:none; overflow-x:auto;">
+          <table class="stats-table">
+            <thead>
+              <tr>
+                <th>Grado / Secci&#243;n</th>
+                <th>Varones</th>
+                <th>Hembras</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyEstadisticas"></tbody>
+            <tfoot>
+              <tr class="total-row">
+                <td>TOTAL GENERAL</td>
+                <td id="totVarones">0</td>
+                <td id="totHembras">0</td>
+                <td id="totTotal">0</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Librerias jsPDF desde CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/pdf-generator.js"></script>
+  <script src="/js/reportes.js"></script>
+</body>
+</html>
