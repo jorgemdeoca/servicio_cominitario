@@ -51,11 +51,9 @@ router.get('/:id', async (req, res) => {
     const profesor = await req.prisma.profesores.findUnique({
       where: { id: parseInt(req.params.id) },
       include: {
-        inscripciones: {
-          where: { eliminado: false },
+        secciones: {
           include: {
-            seccion: { include: { grado: true } },
-            anio_escolar: true,
+            seccion: { include: { grado: true, anio_escolar: true } }
           }
         }
       }
