@@ -122,6 +122,11 @@ async function editarProfesor(id) {
   try {
     const res = await apiFetch(`/api/profesores/${id}`);
     if (!res) return;
+    if (!res.ok) {
+      const err = await res.json();
+      showAlert('alertProfesores', err.error || 'Error al cargar datos del profesor', 'error');
+      return;
+    }
     const profesor = await res.json();
     abrirModal(profesor);
   } catch (error) {
