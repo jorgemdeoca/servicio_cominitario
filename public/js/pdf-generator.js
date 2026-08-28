@@ -29,59 +29,113 @@ async function generarPDFMatriculaInicial(datos) {
   // Cargar logo
   var logoMppe = await loadImageDataUrl('/img/logo_MPPE.png');
   if (logoMppe) {
-    doc.addImage(logoMppe, 'PNG', 40, 25, 70, 70); // x, y, width, height
+    doc.addImage(logoMppe, 'PNG', 40, 25, 35, 35); // Reducido a 35x35
   }
 
-  doc.setFontSize(10);
-  var textX = logoMppe ? 120 : 40;
-  doc.text('REPUBLICA BOLIVARIANA DE VENEZUELA', textX, 40);
-  doc.text('MINISTERIO DEL PODER POPULAR PARA LA EDUCACION', textX, 55);
-  doc.text('DESPACHO DEL VICEMINISTERIO DE EDUCACION', textX, 70);
-  doc.text('DIRECCION GENERAL DE REGISTRO Y CONTROL ACADEMICO', textX, 85);
+  // Líneas verticales del membrete
+  doc.setLineWidth(0.5);
+  doc.line(85, 25, 85, 60);
+  doc.line(235, 25, 235, 60);
 
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  var titulo = 'INSCRIPCION INICIAL ANO ESCOLAR ' + datos.anio_escolar.nombre;
-  doc.text(titulo, pageW / 2, 115, { align: 'center' });
-
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  var textTotales = 'Total Matricula: V=' + datos.totales.varones + ' H=' + datos.totales.hembras + ' T=' + datos.totales.total;
-  doc.text(textTotales, pageW - 40, 115, { align: 'right' });
+  doc.text('Despacho del', 95, 38);
+  doc.text('Viceministerio de Educación', 95, 52);
+  
+  doc.text('Dirección general de', 245, 38);
+  doc.text('Registro y Control Académico', 245, 52);
+
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  var anioEscolar = datos.anio_escolar ? datos.anio_escolar.nombre : '';
+  var titulo = 'INSCRIPCIÓN INICIAL AÑO ESCOLAR ' + anioEscolar;
+  doc.text(titulo, pageW / 2, 85, { align: 'center' });
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'bold');
+  var textTotales = 'Total Matrícula: V=' + datos.totales.varones + ' H=' + datos.totales.hembras + ' T=' + datos.totales.total;
+  doc.text(textTotales, pageW - 40, 85, { align: 'right' });
 
   var config = datos.config || {};
-  var nombreInst = config.nombre_escuela || 'U.E.E. "General Aquilino Juares"';
-  doc.text('INSTITUCION: ' + nombreInst, 40, 140);
+  var nombreInst = config.nombre_escuela || 'U.E.E. "General Aquilino Juáres"';
+  doc.setFont('helvetica', 'normal');
+  doc.text('INSTITUCIÓN: ' + nombreInst, 40, 110);
 
-  doc.text('Grado: ' + datos.grado.nombre + '    Seccion: "' + datos.seccion.letra + '"', 40, 155);
-  doc.text('Parroquia: ' + (config.parroquia || ''), pageW / 2, 155);
+  var gradoNombre = datos.grado ? datos.grado.nombre : '';
+  var seccionLetra = datos.seccion ? datos.seccion.letra : '';
+  doc.text('Grado: ' + gradoNombre, 40, 125);
+  doc.text('Sección: "' + seccionLetra + '"', 180, 125);
+  doc.text('Parroquia: ' + (config.parroquia || ''), 350, 125);
 
-  var docenteNombre = datos.profesor ? datos.profesor.nombre : '';
-  var docenteCI = datos.profesor ? datos.profesor.cedula : '';
-  doc.text('Docente: ' + docenteNombre, 40, 170);
-  doc.text('C.I. No.: ' + docenteCI, 250, 170);
-  doc.text('Municipio: ' + (config.municipio || ''), pageW / 2, 170);
-  doc.text('Direccion: ' + (config.direccion || ''), 40, 185);
+  var prof1 = datos.profesores && datos.profesores.length > 0 ? datos.profesores[0] : null;
+  var prof2 = datos.profesores && datos.profesores.length > 1 ? datos.profesores[1] : null;
+  
+  if (prof1) {
+    doc.text('Docente: ' + prof1.nombre, 40, 140);
+    doc.text('C.I: ' + prof1.cedula, 180, 140);
+  } else {
+    doc.text('Docente: NO ASIGNADO', 40, 140);
+  }
+  doc.text('Municipio: ' + (config.municipio || ''), 350, 140);
+  
+  if (prof2) {
+    doc.text('Docente: ' + prof2.nombre, 40, 155);
+    doc.text('C.I: ' + prof2.cedula, 180, 155);
+  }
+  doc.text('Dirección: ' + (config.direccion || ''), 350, 155);
 
-  var headers = [['N', 'Cod. Escolar', 'Apellidos y Nombres', 'Lugar Nac.', 'F. Nac.', 'Edad', 'Sexo', 'Representante', 'C.I. Rep.', 'Direccion', 'Telefono']];
+  var head = [
+    [
+      { content: 'N°', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'Código Escolar', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'Apellidos y Nombres', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'Lugar de Nacimiento', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'Fecha de Nacimiento', colSpan: 3, styles: { halign: 'center' } },
+      { content: 'E\nd\na\nd', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'S\ne\nx\no', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'Representante', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'Cédula de Identidad', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'Dirección', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } },
+      { content: 'Teléfono', rowSpan: 2, styles: { halign: 'center', valign: 'middle' } }
+    ],
+    [
+      { content: 'Día', styles: { halign: 'center' } },
+      { content: 'Mes', styles: { halign: 'center' } },
+      { content: 'Año', styles: { halign: 'center' } }
+    ]
+  ];
+
   var data = datos.estudiantes.map(function(e) {
-    return [e.numero, e.codigo_escolar, e.apellidos_nombres, e.lugar_nacimiento, e.fecha_nacimiento, e.edad, e.sexo, e.representante, e.ci_representante, e.direccion, e.telefono];
+    var fn = (e.fecha_nacimiento || '//').split('/');
+    var d = fn[0] || '';
+    var m = fn[1] || '';
+    var a = fn[2] || '';
+    return [
+      e.numero, 
+      e.codigo_escolar, 
+      e.apellidos_nombres, 
+      e.lugar_nacimiento, 
+      d, m, a, 
+      e.edad, 
+      e.sexo, 
+      e.representante, 
+      e.ci_representante, 
+      e.direccion, 
+      e.telefono
+    ];
   });
 
   doc.autoTable({
-    startY: 200,
-    head: headers,
+    startY: 170,
+    head: head,
     body: data,
     theme: 'grid',
-    styles: { fontSize: 8, cellPadding: 3 },
-    headStyles: { fillColor: [40, 60, 100], textColor: 255 }
+    styles: { fontSize: 7, cellPadding: 2 },
+    headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], lineWidth: 0.1, lineColor: [0,0,0] },
+    bodyStyles: { lineWidth: 0.1, lineColor: [0,0,0] }
   });
 
-  var finalY = doc.lastAutoTable.finalY + 40;
-  doc.text('Firma del Docente ___________________', 40, finalY);
-  doc.text(textTotales, pageW - 40, finalY, { align: 'right' });
-
-  var filename = 'Matricula_' + datos.grado.nombre.replace(/\s+/g, '_') + '_Sec_' + datos.seccion.letra + '_' + datos.anio_escolar.nombre + '.pdf';
+  var filename = 'Matricula_' + (datos.grado ? datos.grado.nombre.replace(/\s+/g, '_') : 'X') + '_Sec_' + (datos.seccion ? datos.seccion.letra : 'X') + '_' + anioEscolar + '.pdf';
   doc.save(filename);
 }
 
