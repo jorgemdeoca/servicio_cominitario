@@ -34,7 +34,7 @@ router.get('/matricula', async (req, res) => {
         estudiante: {
           include: {
             representante: {
-              select: { nombres: true, apellidos: true, cedula: true, nacionalidad: true }
+              select: { nombres: true, apellidos: true, cedula: true, nacionalidad: true, telefono: true }
             }
           }
         }
@@ -77,21 +77,21 @@ router.get('/matricula', async (req, res) => {
         representante: rep ? `${rep.apellidos}, ${rep.nombres}` : '',
         ci_representante: rep ? `${rep.nacionalidad}-${rep.cedula}` : '',
         direccion: insc.direccion || '',
-        telefono: insc.telefono || ''
+        telefono: (rep && rep.telefono) ? rep.telefono : (insc.telefono || '')
       };
     });
 
-    const profesorPrincipal = seccion.profesores.length > 0 ? seccion.profesores[0].profesor : null;
+    const profesoresArray = seccion.profesores.map(p => ({
+      nombre: `${p.profesor.nombres.split(' ')[0]} ${p.profesor.apellidos.split(' ')[0]}`,
+      cedula: `${p.profesor.nacionalidad || 'V'}-${p.profesor.cedula}`
+    })).slice(0, 2); // Max 2 profesores
 
     res.json({
       config,
       anio_escolar: seccion.anio_escolar,
       grado: seccion.grado,
       seccion: { id: seccion.id, letra: seccion.letra },
-      profesor: profesorPrincipal ? {
-        nombre: `${profesorPrincipal.nombres} ${profesorPrincipal.apellidos}`,
-        cedula: `${profesorPrincipal.nacionalidad || 'V'}-${profesorPrincipal.cedula}`
-      } : null,
+      profesores: profesoresArray,
       estudiantes: estudiantesFormateados,
       totales: { varones, hembras, total: varones + hembras }
     });
