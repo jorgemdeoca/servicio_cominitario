@@ -1,7 +1,8 @@
 const express = require('express');
+const { soloSuperAdmin } = require('../middleware/auth');
 const router = express.Router();
 
-// GET /api/anios-escolares - Listar todos los años escolares
+// GET /api/anios-escolares - Listar todos los aÃ±os escolares
 router.get('/', async (req, res) => {
   try {
     const anios = await req.prisma.anios_escolares.findMany({
@@ -9,18 +10,18 @@ router.get('/', async (req, res) => {
     });
     res.json(anios);
   } catch (error) {
-    console.error('Error al listar años escolares:', error);
+    console.error('Error al listar aÃ±os escolares:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
 
-// POST /api/anios-escolares - Crear un nuevo año escolar
-router.post('/', async (req, res) => {
+// POST /api/anios-escolares - Crear un nuevo aÃ±o escolar
+router.post('/', soloSuperAdmin, async (req, res) => {
   try {
     const { nombre, fecha_inicio, fecha_fin } = req.body;
 
     if (!nombre) {
-      return res.status(400).json({ error: 'El nombre del año escolar es obligatorio.' });
+      return res.status(400).json({ error: 'El nombre del aÃ±o escolar es obligatorio.' });
     }
 
     // Verificar que no exista
@@ -28,7 +29,7 @@ router.post('/', async (req, res) => {
       where: { nombre }
     });
     if (existente) {
-      return res.status(400).json({ error: `El año escolar "${nombre}" ya existe.` });
+      return res.status(400).json({ error: `El aÃ±o escolar "${nombre}" ya existe.` });
     }
 
     const anio = await req.prisma.anios_escolares.create({
@@ -41,13 +42,13 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(anio);
   } catch (error) {
-    console.error('Error al crear año escolar:', error);
+    console.error('Error al crear aÃ±o escolar:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
 
-// PUT /api/anios-escolares/:id - Actualizar un año escolar
-router.put('/:id', async (req, res) => {
+// PUT /api/anios-escolares/:id - Actualizar un aÃ±o escolar
+router.put('/:id', soloSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { nombre, fecha_inicio, fecha_fin } = req.body;
@@ -64,17 +65,17 @@ router.put('/:id', async (req, res) => {
 
     res.json(anio);
   } catch (error) {
-    console.error('Error al actualizar año escolar:', error);
+    console.error('Error al actualizar aÃ±o escolar:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
 
-// PUT /api/anios-escolares/:id/activar - Activar un año escolar (desactiva los demás)
+// PUT /api/anios-escolares/:id/activar - Activar un aÃ±o escolar (desactiva los demÃ¡s)
 router.put('/:id/activar', async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Usar transacción: desactivar todos, luego activar el seleccionado
+    // Usar transacciÃ³n: desactivar todos, luego activar el seleccionado
     const anio = await req.prisma.$transaction(async (prisma) => {
       await prisma.anios_escolares.updateMany({
         data: { activo: false }
@@ -85,14 +86,14 @@ router.put('/:id/activar', async (req, res) => {
       });
     });
 
-    res.json({ mensaje: `Año escolar "${anio.nombre}" activado.`, anio });
+    res.json({ mensaje: `AÃ±o escolar "${anio.nombre}" activado.`, anio });
   } catch (error) {
-    console.error('Error al activar año escolar:', error);
+    console.error('Error al activar aÃ±o escolar:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
 
-// PUT /api/anios-escolares/:id/finalizar - Finalizar un año escolar
+// PUT /api/anios-escolares/:id/finalizar - Finalizar un aÃ±o escolar
 router.put('/:id/finalizar', async (req, res) => {
   try {
     const { id } = req.params;
@@ -100,15 +101,15 @@ router.put('/:id/finalizar', async (req, res) => {
       where: { id: parseInt(id) },
       data: { activo: false }
     });
-    res.json({ mensaje: `Año escolar "${anio.nombre}" finalizado.`, anio });
+    res.json({ mensaje: `AÃ±o escolar "${anio.nombre}" finalizado.`, anio });
   } catch (error) {
-    console.error('Error al finalizar año escolar:', error);
+    console.error('Error al finalizar aÃ±o escolar:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
 
-// DELETE /api/anios-escolares/:id - Eliminar un año escolar
-router.delete('/:id', async (req, res) => {
+// DELETE /api/anios-escolares/:id - Eliminar un aÃ±o escolar
+router.delete('/:id', soloSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const idInt = parseInt(id);
@@ -133,11 +134,12 @@ router.delete('/:id', async (req, res) => {
       where: { id: idInt }
     });
 
-    res.json({ mensaje: 'Año escolar eliminado.' });
+    res.json({ mensaje: 'AÃ±o escolar eliminado.' });
   } catch (error) {
-    console.error('Error al eliminar año escolar:', error);
+    console.error('Error al eliminar aÃ±o escolar:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
 
 module.exports = router;
+

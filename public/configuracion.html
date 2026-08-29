@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configuración � Sistema de Gestión Escolar</title>
+  <title>Configuración — Sistema de Gestión Escolar</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     /* Tab System Styles */
@@ -132,7 +132,7 @@
         <span class="nav-text">Estudiantes</span>
       </a>
       <a href="/inscripciones.html" class="nav-item">
-        <span class="nav-icon">📝</span>
+        <span class="nav-icon">📋</span>
         <span class="nav-text">Inscripciones</span>
       </a>
       <a href="/profesores.html" class="nav-item">
@@ -149,19 +149,19 @@
       </a>
     </nav>
     <div class="sidebar-footer">
-      <p>v1.0 � Servicio Comunitario UNEFA</p>
+      <p>v1.0 — Servicio Comunitario UNEFA</p>
     </div>
   </aside>
 
   <div class="main-wrapper">
     <header class="main-header">
-      <button class="menu-toggle" id="menuToggle">�ܰ</button>
+      <button class="menu-toggle" id="menuToggle">☰</button>
       <div class="header-info">
-        <span class="header-year" id="headerYear">Año Escolar: �</span>
+        <span class="header-year" id="headerYear">Año Escolar: —</span>
       </div>
       <div class="header-user">
-        <span id="headerUserName">�</span>
-        <span class="header-role" id="headerUserRole">�</span>
+        <span id="headerUserName">—</span>
+        <span class="header-role" id="headerUserRole">—</span>
         <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
       </div>
     </header>
@@ -179,6 +179,7 @@
         <button class="tab-btn" data-tab="tab-grados">Grados</button>
         <button class="tab-btn" data-tab="tab-secciones">Secciones</button>
         <button class="tab-btn" data-tab="tab-escuela">Datos de la Escuela</button>
+        <button class="tab-btn" data-tab="tab-usuarios">Usuarios</button>
       </div>
 
       <!-- TAB 1: Años Escolares -->
@@ -234,7 +235,7 @@
               <div class="form-group">
                 <label>Nivel de Educación *</label>
                 <select id="g_nivel_select" required onchange="mostrarOpcionesGrado()">
-                  <option value="">� Seleccionar Nivel �</option>
+                  <option value="">— Seleccionar Nivel —</option>
                   <option value="INICIAL">Educación Inicial (Preescolar)</option>
                   <option value="PRIMARIA">Educación Primaria</option>
                 </select>
@@ -242,7 +243,7 @@
               <div class="form-group" id="g_grado_container" style="display:none;">
                 <label>Grado *</label>
                 <select id="g_nombre" required>
-                  <option value="">� Seleccionar �</option>
+                  <option value="">— Seleccionar —</option>
                 </select>
               </div>
               <input type="hidden" id="g_nivel">
@@ -301,7 +302,7 @@
                   <input type="text" id="s_prof_search" placeholder="Buscar por nombre o cédula...">
                   <div style="display: flex; gap: 0.5rem;">
                     <select id="s_prof_results" style="flex: 1; max-width: 100%;">
-                      <option value="">� Sin resultados �</option>
+                      <option value="">— Sin resultados —</option>
                     </select>
                     <button type="button" class="btn btn-sm btn-primary" onclick="addProfesorSeccion()" style="white-space: nowrap;">+ Añadir</button>
                   </div>
@@ -383,7 +384,56 @@
           </form>
         </div>
       </div>
-
+      <!-- TAB 5: Usuarios -->
+      <div id="tab-usuarios" class="tab-panel">
+        <div class="config-grid">
+          <div class="config-form-card">
+            <h3 id="formUsuarioTitle">Nuevo Usuario</h3>
+            <form id="formUsuario">
+              <input type="hidden" id="usuario_id">
+              <div class="form-group">
+                <label>Nombre de Usuario *</label>
+                <input type="text" id="usu_nombre" required>
+              </div>
+              <div class="form-group">
+                <label>Rol *</label>
+                <select id="usu_rol" required>
+                  <option value="ADMIN">Administrador (Puede inscribir, editar reportes)</option>
+                  <option value="SUPER_ADMIN">Súper Administrador (Acceso total)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Contraseña *</label>
+                <input type="password" id="usu_password" placeholder="Mínimo 6 caracteres" minlength="6">
+                <small id="usu_pwd_hint" style="color:var(--text-muted); display:none;">Deje en blanco para mantener la actual</small>
+              </div>
+              <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn btn-primary" id="btnSubmitUsuario">Guardar Usuario</button>
+                <button type="button" class="btn btn-secondary" id="btnCancelUsuario" style="display:none;">Cancelar</button>
+              </div>
+            </form>
+          </div>
+          
+          <div class="config-list-card">
+            <h3>Usuarios Registrados</h3>
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Creación</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tbodyUsuarios">
+                  <!-- Data loaded via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -403,7 +453,7 @@
         </div>
         <div class="form-group">
           <select id="modal_prof_results" required class="full-width" style="padding: 0.5rem;">
-            <option value="">� Cargando �</option>
+            <option value="">— Cargando —</option>
           </select>
         </div>
         <button type="submit" class="btn btn-primary btn-full">Asignar a la Sección</button>
@@ -416,4 +466,5 @@
   <script src="/js/configuracion.js"></script>
 </body>
 </html>
+
 

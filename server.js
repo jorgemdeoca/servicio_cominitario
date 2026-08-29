@@ -38,7 +38,27 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Rutas de auth (login/logout) - ANTES del middleware global
 app.use('/api/auth', authRoutes);
 
-// ⚠️ MIDDLEWARE GLOBAL - protege todo /api/* excepto /api/auth
+// Endpoint público para configuración básica (nombre escuela, año activo)
+app.get('/api/config-publica', async (req, res) => {
+  try {
+    const configs = await prisma.configuracion.findMany({
+      where: { clave: { in: ['nombre_escuela'] } }
+    });
+    const anioActivo = await prisma.anios_escolares.findFirst({
+      where: { activo: true }
+    });
+    
+    const configData = {};
+    configs.forEach(c => { configData[c.clave] = c.valor; });
+    if (anioActivo) { configData.anio_escolar = anioActivo.nombre; }
+    
+    res.json(configData);
+  } catch (error) {
+    res.json({});
+  }
+});
+
+// ⚠️ MIDDLEWARE GLOBAL - protege todo /api/* excepto /api/auth y /api/config-publica
 app.use('/api', requireAuth);
 
 // Rutas de la API (protegidas por el middleware global)
@@ -51,6 +71,7 @@ const estudiantesRoutes = require('./routes/estudiantes');
 const profesoresRoutes = require('./routes/profesores');
 const inscripcionesRoutes = require('./routes/inscripciones');
 const reportesRoutes = require('./routes/reportes');
+const usuariosRoutes = require('./routes/usuarios');
 
 app.use('/api/anios-escolares', aniosEscolaresRoutes);
 app.use('/api/grados', gradosRoutes);
@@ -61,6 +82,7 @@ app.use('/api/estudiantes', estudiantesRoutes);
 app.use('/api/profesores', profesoresRoutes);
 app.use('/api/inscripciones', inscripcionesRoutes);
 app.use('/api/reportes', reportesRoutes);
+app.use('/api/usuarios', usuariosRoutes);
 
 // Endpoint para verificar sesión
 app.get('/api/me', (req, res) => {

@@ -1,7 +1,8 @@
 const express = require('express');
+const { soloSuperAdmin } = require('../middleware/auth');
 const router = express.Router();
 
-// GET /api/profesores - Listar profesores (con búsqueda)
+// GET /api/profesores - Listar profesores (con bÃºsqueda)
 router.get('/', async (req, res) => {
   try {
     const { buscar, solo_activos } = req.query;
@@ -21,7 +22,7 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    // Filtrar profesores que NO tengan secciones asignadas en un año específico
+    // Filtrar profesores que NO tengan secciones asignadas en un aÃ±o especÃ­fico
     const { anio_escolar_libre_id } = req.query;
     if (anio_escolar_libre_id) {
       where.secciones = {
@@ -80,13 +81,13 @@ router.post('/', async (req, res) => {
             lugar_nacimiento, estado_nacimiento } = req.body;
 
     if (!nombres || !apellidos || !cedula) {
-      return res.status(400).json({ error: 'Nombres, apellidos y cédula son obligatorios.' });
+      return res.status(400).json({ error: 'Nombres, apellidos y cÃ©dula son obligatorios.' });
     }
 
-    // Verificar cédula única
+    // Verificar cÃ©dula Ãºnica
     const existente = await req.prisma.profesores.findUnique({ where: { cedula } });
     if (existente) {
-      return res.status(400).json({ error: `Ya existe un profesor con la cédula ${cedula}.` });
+      return res.status(400).json({ error: `Ya existe un profesor con la cÃ©dula ${cedula}.` });
     }
 
     const profesor = await req.prisma.profesores.create({
@@ -154,7 +155,7 @@ router.put('/:id', async (req, res) => {
     res.json(profesor);
   } catch (error) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Ya existe otro profesor con esa cédula.' });
+      return res.status(400).json({ error: 'Ya existe otro profesor con esa cÃ©dula.' });
     }
     console.error('Error al actualizar profesor:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
@@ -162,7 +163,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // DELETE /api/profesores/:id - Desactivar profesor
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', soloSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const idInt = parseInt(id);
@@ -190,3 +191,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 module.exports = router;
+
