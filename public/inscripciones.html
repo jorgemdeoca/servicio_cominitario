@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Inscripciones � Sistema de Gestión Escolar</title>
+  <title>Inscripciones — Sistema de Gestión Escolar</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-6); flex-wrap:wrap; gap:var(--space-4); }
@@ -127,16 +127,16 @@
         <span class="nav-text">Configuración</span>
       </a>
     </nav>
-    <div class="sidebar-footer"><p>v1.0 � Servicio Comunitario UNEFA</p></div>
+    <div class="sidebar-footer"><p>v1.0 — Servicio Comunitario UNEFA</p></div>
   </aside>
 
   <div class="main-wrapper">
     <header class="main-header">
-      <button class="menu-toggle" id="menuToggle">�ܰ</button>
-      <div class="header-info"><span class="header-year" id="headerYear">Año Escolar: �</span></div>
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <div class="header-info"><span class="header-year" id="headerYear">Año Escolar: —</span></div>
       <div class="header-user">
-        <span id="headerUserName">�</span>
-        <span class="header-role" id="headerUserRole">�</span>
+        <span id="headerUserName">—</span>
+        <span class="header-role" id="headerUserRole">—</span>
         <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
       </div>
     </header>
@@ -193,7 +193,7 @@
             <tr>
               <th>#</th>
               <th>Estudiante</th>
-              <th>Grado � Sección</th>
+              <th>Grado — Sección</th>
               <th>Modalidad</th>
               <th>Fecha</th>
               <th>Estado</th>
@@ -207,12 +207,12 @@
     </main>
   </div>
 
-  <!-- MODAL NUEVA INSCRIPCI�N -->
+  <!-- MODAL NUEVA INSCRIPCIÓN -->
   <div class="modal-overlay" id="modalInscripcion">
     <div class="modal-insc">
       <div class="modal-insc-header">
-        <h2 id="modalInscTitulo">�x� Nueva Inscripción</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalInscripcion()">�S"</button>
+        <h2 id="modalInscTitulo">📋 Nueva Inscripción</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalInscripcion()">×</button>
       </div>
       <form id="formInscripcion">
         <input type="hidden" id="insc_id">
@@ -243,7 +243,7 @@
               <div id="modoRegistroEstudiante">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4);">
                   <div class="form-inline-title">Registro de Nuevo Estudiante</div>
-                  <button type="button" class="btn btn-sm btn-secondary" onclick="volverBusquedaEstudiante()">� � Volver a Búsqueda</button>
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="volverBusquedaEstudiante()">⬅️ Volver a Búsqueda</button>
                 </div>
                 
                 <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
@@ -372,7 +372,7 @@
                     <div class="form-group">
                       <label>Estado Civil</label>
                       <select id="ni_m_estado_civil">
-                        <option value="">�</option>
+                        <option value="">—</option>
                         <option value="Soltero/a">Soltero/a</option>
                         <option value="Casado/a">Casado/a</option>
                         <option value="Divorciado/a">Divorciado/a</option>
@@ -432,7 +432,7 @@
                     <div class="form-group">
                       <label>Estado Civil</label>
                       <select id="ni_p_estado_civil">
-                        <option value="">�</option>
+                        <option value="">—</option>
                         <option value="Soltero/a">Soltero/a</option>
                         <option value="Casado/a">Casado/a</option>
                         <option value="Divorciado/a">Divorciado/a</option>
@@ -529,7 +529,7 @@
 
           <!-- Sección 2: Año, Grado, Sección, Profesor -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">2</span> ASIGNACI�N</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">2</span> ASIGNACIÓN</div>
             <div class="planilla-seccion-body">
               <div class="form-row">
                 <div class="form-group">
@@ -559,7 +559,7 @@
                 <div class="form-group">
                   <label>Literal</label>
                   <select id="insc_literal">
-                    <option value="">� Sin asignar �</option>
+                    <option value="">— Sin asignar —</option>
                     <option value="A">A</option>
                     <option value="B">B</option>
                     <option value="C">C</option>

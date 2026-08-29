@@ -1,4 +1,4 @@
-let busquedaActual = '';
+﻿let busquedaActual = '';
 let searchTimeout = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -63,7 +63,7 @@ async function loadProfesores() {
         <td>${activoBadge}</td>
         <td class="actions-cell">
           <button class="btn btn-sm" onclick="editarProfesor(${p.id})">Editar</button>
-          <button class="btn btn-sm btn-logout" onclick="toggleEstadoProfesor(${p.id}, ${!p.activo})">
+          <button class="btn btn-sm btn-logout btn-delete-profesor" onclick="toggleEstadoProfesor(${p.id}, ${!p.activo})">
             ${p.activo ? 'Desactivar' : 'Activar'}
           </button>
         </td>

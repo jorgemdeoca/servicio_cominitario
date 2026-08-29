@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadAniosEscolares();
   loadGrados();
   loadConfiguracion();
+  loadUsuarios();
 
   // Listeners de formularios
   document.getElementById('formAnioEscolar').addEventListener('submit', createAnioEscolar);
@@ -29,6 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('formSeccion').addEventListener('submit', createSeccion);
   document.getElementById('s_filtro_anio').addEventListener('change', loadSecciones);
   document.getElementById('formEscuela').addEventListener('submit', saveConfiguracion);
+  if (document.getElementById('formUsuario')) {
+    document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
+    document.getElementById('btnCancelUsuario').addEventListener('click', resetUsuarioForm);
+  }
 
   // Búsqueda de profesores al escribir
   document.getElementById('s_prof_search').addEventListener('input', function() {
@@ -723,3 +728,121 @@ async function removerProfesorDeSeccion(seccionId, profesorId) {
     console.error(error);
   }
 }
+
+// === GESTIÓN DE USUARIOS ===
+async function loadUsuarios() {
+  try {
+    const res = await apiFetch('/api/usuarios');
+    const usuarios = await res.json();
+    const tbody = document.getElementById('tbodyUsuarios');
+    tbody.innerHTML = '';
+    if (usuarios.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay usuarios</td></tr>';
+      return;
+    }
+
+    usuarios.forEach(u => {
+      const tr = document.createElement('tr');
+      const d = new Date(u.creado_en).toLocaleDateString('es-VE');
+      
+      const roleBadge = u.rol === 'SUPER_ADMIN' 
+        ? '<span class="status-badge" style="background:#4f46e5;color:white;">Super Admin</span>' 
+        : '<span class="status-badge" style="background:#10b981;color:white;">Admin</span>';
+
+      tr.innerHTML = `
+        <td>${u.nombre_usuario}</td>
+        <td>${roleBadge}</td>
+        <td>${d}</td>
+        <td>
+          <button class="btn-icon" title="Editar" onclick="editUsuario(${u.id}, '${u.nombre_usuario}', '${u.rol}')">✏️</button>
+          <button class="btn-icon text-danger" title="Eliminar" onclick="deleteUsuario(${u.id})">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error('Error cargando usuarios:', error);
+  }
+}
+
+async function submitUsuario(e) {
+  e.preventDefault();
+  const id = document.getElementById('usuario_id').value;
+  const nombre_usuario = document.getElementById('usu_nombre').value.trim();
+  const rol = document.getElementById('usu_rol').value;
+  const password = document.getElementById('usu_password').value;
+
+  const payload = { nombre_usuario, rol };
+  if (password) payload.password = password;
+
+  if (!id && !password) {
+    showAlert('alertConfig', 'La contraseña es obligatoria para usuarios nuevos', 'error');
+    return;
+  }
+
+  try {
+    const url = id ? `/api/usuarios/${id}` : '/api/usuarios';
+    const method = id ? 'PUT' : 'POST';
+    
+    const res = await apiFetch(url, {
+      method,
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      showAlert('alertConfig', data.mensaje, 'success');
+      resetUsuarioForm();
+      loadUsuarios();
+    } else {
+      showAlert('alertConfig', data.error || 'Error al guardar', 'error');
+    }
+  } catch (error) {
+    showAlert('alertConfig', 'Error de conexión', 'error');
+  }
+}
+
+function editUsuario(id, nombre, rol) {
+  document.getElementById('formUsuarioTitle').textContent = 'Editar Usuario';
+  document.getElementById('usuario_id').value = id;
+  document.getElementById('usu_nombre').value = nombre;
+  document.getElementById('usu_nombre').disabled = true; // No permitir cambiar username
+  document.getElementById('usu_rol').value = rol;
+  
+  const pwdInput = document.getElementById('usu_password');
+  pwdInput.required = false;
+  pwdInput.value = '';
+  document.getElementById('usu_pwd_hint').style.display = 'block';
+  
+  document.getElementById('btnCancelUsuario').style.display = 'inline-block';
+  document.getElementById('btnSubmitUsuario').textContent = 'Actualizar Usuario';
+}
+
+function resetUsuarioForm() {
+  document.getElementById('formUsuario').reset();
+  document.getElementById('formUsuarioTitle').textContent = 'Nuevo Usuario';
+  document.getElementById('usuario_id').value = '';
+  document.getElementById('usu_nombre').disabled = false;
+  document.getElementById('usu_password').required = true;
+  document.getElementById('usu_pwd_hint').style.display = 'none';
+  document.getElementById('btnCancelUsuario').style.display = 'none';
+  document.getElementById('btnSubmitUsuario').textContent = 'Guardar Usuario';
+}
+
+async function deleteUsuario(id) {
+  if (!confirm('¿Estás seguro de que deseas eliminar este usuario?')) return;
+  try {
+    const res = await apiFetch(`/api/usuarios/${id}`, { method: 'DELETE' });
+    const data = await res.json();
+    if (res.ok) {
+      showAlert('alertConfig', data.mensaje, 'success');
+      loadUsuarios();
+    } else {
+      showAlert('alertConfig', data.error || 'Error al eliminar', 'error');
+    }
+  } catch (error) {
+    showAlert('alertConfig', 'Error de conexión', 'error');
+  }
+}
+
+

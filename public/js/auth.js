@@ -16,8 +16,29 @@ async function checkSession() {
   }
 }
 
-// === PÁGINA DE LOGIN ===
+// Obtener configuración pública (nombre escuela, año activo)
+async function fetchConfigPublica() {
+  try {
+    const res = await fetch('/api/config-publica');
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    console.error('Error cargando configuración:', e);
+  }
+  return {};
+}
+
+// === PÃ GINA DE LOGIN ===
 if (document.getElementById('loginForm')) {
+  // Cargar nombre de escuela dinámicamente
+  fetchConfigPublica().then(config => {
+    const h1 = document.querySelector('.login-header h1');
+    if (h1) {
+      h1.textContent = config.nombre_escuela ? config.nombre_escuela : '""';
+    }
+  });
+
   // Si ya tiene sesión → redirigir al dashboard
   checkSession().then(usuario => {
     if (usuario) {
@@ -66,6 +87,18 @@ if (document.getElementById('loginForm')) {
 
 // === PÁGINAS PROTEGIDAS (dashboard, etc.) ===
 if (!document.getElementById('loginForm')) {
+  // Cargar configuración de UI
+  fetchConfigPublica().then(config => {
+    const yearEl = document.getElementById('headerYear');
+    if (yearEl) {
+      yearEl.textContent = `Año Escolar: ${config.anio_escolar || '—'}`;
+    }
+    const schoolNameEl = document.querySelector('.sidebar-school-name');
+    if (schoolNameEl) {
+      schoolNameEl.textContent = config.nombre_escuela ? config.nombre_escuela : '""';
+    }
+  });
+
   // Verificar sesión → si no hay, redirigir al login
   checkSession().then(usuario => {
     if (!usuario) {
@@ -78,6 +111,25 @@ if (!document.getElementById('loginForm')) {
     const roleEl = document.getElementById('headerUserRole');
     if (nameEl) nameEl.textContent = usuario.nombre_usuario;
     if (roleEl) roleEl.textContent = typeof formatRol === 'function' ? formatRol(usuario.rol) : usuario.rol;
+
+    // Lógica de roles
+    if (usuario.rol !== 'SUPER_ADMIN') {
+      // Ocultar items de menú de configuración
+      const configNavs = document.querySelectorAll('a[href="/configuracion.html"]');
+      configNavs.forEach(el => el.style.display = 'none');
+      
+      // Bloquear acceso a la página de configuración
+      if (window.location.pathname.endsWith('/configuracion.html')) {
+        window.location.href = '/dashboard.html';
+      }
+
+      // Ocultar botones de eliminar en profesores si existen
+      if (window.location.pathname.endsWith('/profesores.html')) {
+        const style = document.createElement('style');
+        style.innerHTML = '.btn-delete-profesor { display: none !important; }';
+        document.head.appendChild(style);
+      }
+    }
   });
 
   // Botón de logout
@@ -100,3 +152,4 @@ if (!document.getElementById('loginForm')) {
     });
   }
 }
+

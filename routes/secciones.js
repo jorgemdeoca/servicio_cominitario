@@ -1,4 +1,5 @@
 const express = require('express');
+const { soloSuperAdmin } = require('../middleware/auth');
 const router = express.Router();
 
 // GET /api/secciones - Listar secciones (requiere anio_escolar_id)
@@ -7,7 +8,7 @@ router.get('/', async (req, res) => {
     const { anio_escolar_id, grado_id } = req.query;
 
     if (!anio_escolar_id) {
-      return res.status(400).json({ error: 'El parámetro anio_escolar_id es obligatorio.' });
+      return res.status(400).json({ error: 'El parÃ¡metro anio_escolar_id es obligatorio.' });
     }
 
     const where = { anio_escolar_id: parseInt(anio_escolar_id) };
@@ -39,17 +40,17 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/secciones - Crear una nueva sección
-router.post('/', async (req, res) => {
+// POST /api/secciones - Crear una nueva secciÃ³n
+router.post('/', soloSuperAdmin, async (req, res) => {
   try {
     const { grado_id, anio_escolar_id, profesores_ids } = req.body;
 
     if (!grado_id || !anio_escolar_id) {
-      return res.status(400).json({ error: 'Grado y año escolar son obligatorios.' });
+      return res.status(400).json({ error: 'Grado y aÃ±o escolar son obligatorios.' });
     }
 
     if (profesores_ids && profesores_ids.length > 0) {
-      // Validar que los profesores no estén asignados a OTRA sección en este MISMO año escolar
+      // Validar que los profesores no estÃ©n asignados a OTRA secciÃ³n en este MISMO aÃ±o escolar
       for (const pid of profesores_ids) {
         const profesorEnEsteAnio = await req.prisma.profesores_secciones.findFirst({
           where: {
@@ -64,13 +65,13 @@ router.post('/', async (req, res) => {
         if (profesorEnEsteAnio) {
           const prof = await req.prisma.profesores.findUnique({ where: { id: parseInt(pid) } });
           return res.status(400).json({ 
-            error: `El profesor ${prof.nombres} ${prof.apellidos} ya está asignado a la sección "${profesorEnEsteAnio.seccion.letra}" de ${profesorEnEsteAnio.seccion.grado.nombre} en este año escolar.` 
+            error: `El profesor ${prof.nombres} ${prof.apellidos} ya estÃ¡ asignado a la secciÃ³n "${profesorEnEsteAnio.seccion.letra}" de ${profesorEnEsteAnio.seccion.grado.nombre} en este aÃ±o escolar.` 
           });
         }
       }
     }
 
-    // Determinar la letra automáticamente
+    // Determinar la letra automÃ¡ticamente
     const seccionesExistentes = await req.prisma.secciones.findMany({
       where: {
         grado_id: parseInt(grado_id),
@@ -82,14 +83,14 @@ router.post('/', async (req, res) => {
     let nuevaLetra = 'U';
 
     if (seccionesExistentes.length === 1 && seccionesExistentes[0].letra === 'U') {
-      // Si hay una única sección 'U', la cambiamos a 'A' y la nueva será 'B'
+      // Si hay una Ãºnica secciÃ³n 'U', la cambiamos a 'A' y la nueva serÃ¡ 'B'
       await req.prisma.secciones.update({
         where: { id: seccionesExistentes[0].id },
         data: { letra: 'A' }
       });
       nuevaLetra = 'B';
     } else if (seccionesExistentes.length > 0) {
-      // Si ya hay A, B, C... buscar la última letra en orden alfabético
+      // Si ya hay A, B, C... buscar la Ãºltima letra en orden alfabÃ©tico
       const letras = seccionesExistentes.map(s => s.letra).filter(l => l !== 'U');
       if (letras.length > 0) {
         letras.sort();
@@ -119,15 +120,15 @@ router.post('/', async (req, res) => {
     res.status(201).json(seccion);
   } catch (error) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Ya existe una sección con esa letra para ese grado y año escolar.' });
+      return res.status(400).json({ error: 'Ya existe una secciÃ³n con esa letra para ese grado y aÃ±o escolar.' });
     }
-    console.error('Error al crear sección:', error);
+    console.error('Error al crear secciÃ³n:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
 
-// PUT /api/secciones/:id - Actualizar sección
-router.put('/:id', async (req, res) => {
+// PUT /api/secciones/:id - Actualizar secciÃ³n
+router.put('/:id', soloSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { letra, profesores_ids } = req.body;
@@ -160,13 +161,13 @@ router.put('/:id', async (req, res) => {
 
     res.json(seccion);
   } catch (error) {
-    console.error('Error al actualizar sección:', error);
+    console.error('Error al actualizar secciÃ³n:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
 
-// DELETE /api/secciones/:id - Eliminar una sección
-router.delete('/:id', async (req, res) => {
+// DELETE /api/secciones/:id - Eliminar una secciÃ³n
+router.delete('/:id', soloSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const idInt = parseInt(id);
@@ -176,7 +177,7 @@ router.delete('/:id', async (req, res) => {
       where: { id: idInt }
     });
     if (!seccionABorrar) {
-      return res.status(404).json({ error: 'Sección no encontrada.' });
+      return res.status(404).json({ error: 'SecciÃ³n no encontrada.' });
     }
 
     // Verificar que no tenga inscripciones
@@ -191,7 +192,7 @@ router.delete('/:id', async (req, res) => {
       where: { id: idInt }
     });
 
-    // Reorganizar las letras de las secciones restantes del mismo grado y año
+    // Reorganizar las letras de las secciones restantes del mismo grado y aÃ±o
     const restantes = await req.prisma.secciones.findMany({
       where: {
         grado_id: seccionABorrar.grado_id,
@@ -220,13 +221,13 @@ router.delete('/:id', async (req, res) => {
       }
     }
 
-    res.json({ mensaje: 'Sección eliminada.' });
+    res.json({ mensaje: 'SecciÃ³n eliminada.' });
   } catch (error) {
-    console.error('Error al eliminar sección:', error);
+    console.error('Error al eliminar secciÃ³n:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
-// POST /api/secciones/:id/profesor - Añadir profesor a una sección existente
+// POST /api/secciones/:id/profesor - AÃ±adir profesor a una secciÃ³n existente
 router.post('/:id/profesor', async (req, res) => {
   try {
     const { id } = req.params;
@@ -234,7 +235,7 @@ router.post('/:id/profesor', async (req, res) => {
 
     if (!profesor_id) return res.status(400).json({ error: 'Profesor requerido.' });
 
-    // Validar que el profesor no tenga otra sección en este año
+    // Validar que el profesor no tenga otra secciÃ³n en este aÃ±o
     const seccion = await req.prisma.secciones.findUnique({ where: { id: parseInt(id) } });
     
     const profEnAnio = await req.prisma.profesores_secciones.findFirst({
@@ -248,7 +249,7 @@ router.post('/:id/profesor', async (req, res) => {
     if (profEnAnio) {
       const prof = await req.prisma.profesores.findUnique({ where: { id: parseInt(profesor_id) } });
       return res.status(400).json({ 
-        error: `El profesor ${prof.nombres} ${prof.apellidos} ya está asignado a la sección "${profEnAnio.seccion.letra}" de ${profEnAnio.seccion.grado.nombre}.` 
+        error: `El profesor ${prof.nombres} ${prof.apellidos} ya estÃ¡ asignado a la secciÃ³n "${profEnAnio.seccion.letra}" de ${profEnAnio.seccion.grado.nombre}.` 
       });
     }
 
@@ -266,7 +267,7 @@ router.post('/:id/profesor', async (req, res) => {
   }
 });
 
-// DELETE /api/secciones/:id/profesor/:profesorId - Remover profesor de sección
+// DELETE /api/secciones/:id/profesor/:profesorId - Remover profesor de secciÃ³n
 router.delete('/:id/profesor/:profesorId', async (req, res) => {
   try {
     const { id, profesorId } = req.params;
@@ -286,3 +287,4 @@ router.delete('/:id/profesor/:profesorId', async (req, res) => {
 });
 
 module.exports = router;
+
