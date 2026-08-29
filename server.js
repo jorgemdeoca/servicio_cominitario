@@ -11,8 +11,8 @@ const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3000;
 
 // Body parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Sessions
 app.use(session({
