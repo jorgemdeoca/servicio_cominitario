@@ -144,66 +144,76 @@
     <main class="main-content" id="mainContent">
       <div class="page-header">
         <div>
-          <h1>Inscripciones</h1>
-          <p class="welcome-text">Gestión de inscripciones del año escolar.</p>
+          <h1>Inscripciones y Colaboraciones</h1>
+          <div style="display:flex; gap:var(--space-2); margin-top:var(--space-2);">
+            <button class="btn btn-sm btn-primary active" id="tabInscripciones" onclick="mostrarVista('inscripciones')">📋 Inscripciones</button>
+            <button class="btn btn-sm btn-secondary" id="tabColaboraciones" onclick="mostrarVista('colaboraciones')">💰 Colaboraciones</button>
+          </div>
         </div>
-        <button class="btn btn-primary" onclick="abrirModalInscripcion()">+ Nueva Inscripción</button>
+        <button class="btn btn-primary" id="btnNuevaInscripcion" onclick="abrirModalInscripcion()">+ Nueva Inscripción</button>
       </div>
 
       <div id="alertInscripciones" class="alert" style="display: none;"></div>
 
-      <!-- Filtros -->
-      <div class="filtros-bar">
-        <div>
-          <label>Año Escolar:</label>
-          <select id="filtroAnio" onchange="cargarSeccionesFiltro(); loadInscripciones();"></select>
+      <!-- VISTA INSCRIPCIONES -->
+      <div id="vistaInscripciones">
+        <!-- Filtros -->
+        <div class="filtros-bar">
+          <div>
+            <label>Año Escolar:</label>
+            <select id="filtroAnio" onchange="cargarSeccionesFiltro(); loadInscripciones();"></select>
+          </div>
+          <div>
+            <label>Grado:</label>
+            <select id="filtroGrado" onchange="cargarSeccionesFiltro(); loadInscripciones();">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div>
+            <label>Sección:</label>
+            <select id="filtroSeccion" onchange="loadInscripciones()">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div>
+            <label>Estado:</label>
+            <select id="filtroEstado" onchange="loadInscripciones()">
+              <option value="">Todos</option>
+              <option value="ACTIVO">Activo</option>
+              <option value="APROBADO">Aprobado</option>
+              <option value="REPROBADO">Reprobado</option>
+              <option value="RETIRADO">Retirado</option>
+            </select>
+          </div>
+          <div>
+            <label>Buscar:</label>
+            <input type="text" id="filtroBuscar" placeholder="Nombre o código..." onkeydown="if(event.key==='Enter')loadInscripciones()">
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="loadInscripciones()">Filtrar</button>
         </div>
-        <div>
-          <label>Grado:</label>
-          <select id="filtroGrado" onchange="cargarSeccionesFiltro(); loadInscripciones();">
-            <option value="">Todos</option>
-          </select>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Estudiante</th>
+                <th>Grado — Sección</th>
+                <th>Modalidad</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyInscripciones"></tbody>
+          </table>
         </div>
-        <div>
-          <label>Sección:</label>
-          <select id="filtroSeccion" onchange="loadInscripciones()">
-            <option value="">Todas</option>
-          </select>
-        </div>
-        <div>
-          <label>Estado:</label>
-          <select id="filtroEstado" onchange="loadInscripciones()">
-            <option value="">Todos</option>
-            <option value="ACTIVO">Activo</option>
-            <option value="APROBADO">Aprobado</option>
-            <option value="REPROBADO">Reprobado</option>
-            <option value="RETIRADO">Retirado</option>
-          </select>
-        </div>
-        <div>
-          <label>Buscar:</label>
-          <input type="text" id="filtroBuscar" placeholder="Nombre o código..." onkeydown="if(event.key==='Enter')loadInscripciones()">
-        </div>
-        <button class="btn btn-sm btn-primary" onclick="loadInscripciones()">Filtrar</button>
+        <div class="pagination" id="paginacion"></div>
       </div>
 
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Estudiante</th>
-              <th>Grado — Sección</th>
-              <th>Modalidad</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyInscripciones"></tbody>
-        </table>
-      </div>
-      <div class="pagination" id="paginacion"></div>
+      <!-- VISTA COLABORACIONES (se llena dinámicamente con JS) -->
+      <div id="vistaColaboraciones" style="display:none;"></div>
+
     </main>
   </div>
 
@@ -571,9 +581,71 @@
             </div>
           </div>
 
-          <!-- Sección 3: Documentos Consignados -->
+          <!-- Sección 3: Colaboración del Representante -->
+          <div class="planilla-seccion" id="seccion_colaboracion">
+            <div class="planilla-seccion-titulo"><span class="seccion-num">3</span> COLABORACIÓN DEL REPRESENTANTE</div>
+            <div class="planilla-seccion-body" style="max-width:680px;">
+              <div id="infoHijosRepresentante" class="alert" style="display:none;"></div>
+              <div class="form-group">
+                <label>Producto(s) aportados</label>
+                <input type="text" id="colab_producto" placeholder="Ej: Cloro, cepillo de barrer, jabón...">
+              </div>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Monto Total a Pagar (Bs)</label>
+                  <input type="number" id="colab_monto_total" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label>Tipo de Pago</label>
+                  <select id="colab_tipo_pago" onchange="toggleReferenciaPago()">
+                    <option value="">— Sin pago inicial —</option>
+                    <option value="EFECTIVO">Efectivo</option>
+                    <option value="PAGO_MOVIL">Pago Móvil</option>
+                  </select>
+                </div>
+                <div class="form-group" id="grupoMontoPago">
+                  <label>Monto del Pago (Bs)</label>
+                  <input type="number" id="colab_monto_pago" step="0.01" min="0" placeholder="0.00">
+                </div>
+              </div>
+              <div class="form-row" id="grupoReferencia" style="display:none;">
+                <div class="form-group">
+                  <label>Referencia de Pago Móvil</label>
+                  <input type="text" id="colab_referencia" placeholder="N° de referencia">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Observaciones</label>
+                <input type="text" id="colab_observaciones" placeholder="Notas adicionales...">
+              </div>
+
+              <!-- Tabla de pagos existentes (solo visible en edición) -->
+              <div id="colabPagosExistentes" style="display:none; margin-top: var(--space-4);">
+                <div style="font-weight:600; margin-bottom:var(--space-3); display:flex; justify-content:space-between; align-items:center;">
+                  <span>Pagos Registrados</span>
+                  <button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNuevoPago()">+ Registrar Pago</button>
+                </div>
+                <table style="width:100%; font-size: var(--font-size-sm);">
+                  <thead>
+                    <tr><th>Fecha</th><th>Monto (Bs)</th><th>Tipo</th><th>Referencia</th><th></th></tr>
+                  </thead>
+                  <tbody id="tbodyColabPagos"></tbody>
+                  <tfoot>
+                    <tr style="font-weight:700; border-top:2px solid var(--border);">
+                      <td>TOTAL ABONADO</td><td id="colabTotalAbonado">Bs 0.00</td><td colspan="3"></td>
+                    </tr>
+                    <tr style="font-weight:700; color: var(--error);">
+                      <td>PENDIENTE</td><td id="colabTotalPendiente">Bs 0.00</td><td colspan="3"></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sección 4: Documentos Consignados -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">3</span> DOCUMENTOS CONSIGNADOS</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">4</span> DOCUMENTOS CONSIGNADOS</div>
             <div class="planilla-seccion-body">
               <div class="docs-grid">
                 <label class="doc-check"><input type="checkbox" id="doc_partida"> Partida de Nacimiento</label>
@@ -588,9 +660,9 @@
             </div>
           </div>
 
-          <!-- Sección 4: Datos Variables -->
+          <!-- Sección 5: Datos Variables -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">4</span> DATOS VARIABLES (Actualizables)</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">5</span> DATOS VARIABLES (Actualizables)</div>
             <div class="planilla-seccion-body">
               <div class="form-row">
                 <div class="form-group">
@@ -614,9 +686,9 @@
             </div>
           </div>
 
-          <!-- Sección 5: Procedencia -->
+          <!-- Sección 6: Procedencia -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">5</span> PROCEDENCIA</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">6</span> PROCEDENCIA</div>
             <div class="planilla-seccion-body">
               <div class="form-row-3">
                 <div class="form-group">
@@ -661,9 +733,9 @@
             </div>
           </div>
 
-          <!-- Sección 6: Datos Socioeconómicos -->
+          <!-- Sección 7: Datos Socioeconómicos -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">6</span> DATOS SOCIOECONÓMICOS</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">7</span> DATOS SOCIOECONÓMICOS</div>
             <div class="planilla-seccion-body">
               <div class="form-row">
                 <div class="form-group">
@@ -688,9 +760,9 @@
             </div>
           </div>
 
-          <!-- Sección 7: Información Médica y Social -->
+          <!-- Sección 8: Información Médica y Social -->
           <div class="planilla-seccion" id="seccion_medica_social">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">7</span> INFORMACIÓN MÉDICA E INTEGRACIÓN SOCIAL</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">8</span> INFORMACIÓN MÉDICA E INTEGRACIÓN SOCIAL</div>
             <div class="planilla-seccion-body">
               <div id="seccion_solo_inicial" style="background:var(--primary-bg); padding:1rem; border-radius:var(--radius); margin-bottom:1rem;">
                 <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--primary-dark);">Datos del Parto (Solo Inicial)</div>
@@ -789,6 +861,38 @@
           <button type="submit" class="btn btn-primary">Inscribir Estudiante</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- MODAL NUEVO PAGO (para pagos parciales) -->
+  <div class="modal-overlay" id="modalNuevoPago">
+    <div class="modal-insc" style="max-width:450px;">
+      <div class="modal-insc-header">
+        <h2>💰 Registrar Pago</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalNuevoPago()">×</button>
+      </div>
+      <div class="modal-insc-body">
+        <div id="alertPago" class="alert" style="display:none;"></div>
+        <div class="form-group">
+          <label>Monto (Bs) *</label>
+          <input type="number" id="np_monto" step="0.01" min="0.01" required>
+        </div>
+        <div class="form-group">
+          <label>Tipo de Pago *</label>
+          <select id="np_tipo_pago" onchange="document.getElementById('np_grupo_ref').style.display = this.value === 'PAGO_MOVIL' ? 'block' : 'none'">
+            <option value="EFECTIVO">Efectivo</option>
+            <option value="PAGO_MOVIL">Pago Móvil</option>
+          </select>
+        </div>
+        <div class="form-group" id="np_grupo_ref" style="display:none;">
+          <label>Referencia de Pago</label>
+          <input type="text" id="np_referencia" placeholder="N° de referencia">
+        </div>
+      </div>
+      <div class="modal-insc-footer">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalNuevoPago()">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarNuevoPago()">Guardar Pago</button>
+      </div>
     </div>
   </div>
 

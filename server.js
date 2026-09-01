@@ -32,7 +32,18 @@ app.use((req, res, next) => {
   next();
 });
 
-// Archivos estáticos (sin autenticación)
+// Proteger acceso directo a configuración HTML
+app.get('/configuracion.html', (req, res, next) => {
+  if (!req.session || !req.session.usuario) {
+    return res.redirect('/index.html');
+  }
+  if (req.session.usuario.rol !== 'SUPER_ADMIN') {
+    return res.redirect('/dashboard.html');
+  }
+  next();
+});
+
+// Archivos estáticos (sin autenticación global, excepto las reglas específicas arriba)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Rutas de auth (login/logout) - ANTES del middleware global
@@ -72,6 +83,7 @@ const profesoresRoutes = require('./routes/profesores');
 const inscripcionesRoutes = require('./routes/inscripciones');
 const reportesRoutes = require('./routes/reportes');
 const usuariosRoutes = require('./routes/usuarios');
+const colaboracionesRoutes = require('./routes/colaboraciones');
 
 app.use('/api/anios-escolares', aniosEscolaresRoutes);
 app.use('/api/grados', gradosRoutes);
@@ -83,6 +95,7 @@ app.use('/api/profesores', profesoresRoutes);
 app.use('/api/inscripciones', inscripcionesRoutes);
 app.use('/api/reportes', reportesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
+app.use('/api/colaboraciones', colaboracionesRoutes);
 
 // Endpoint para verificar sesión
 app.get('/api/me', (req, res) => {

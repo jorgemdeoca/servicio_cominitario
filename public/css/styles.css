@@ -649,3 +649,92 @@ tbody tr:last-child td {
 .btn-secondary:hover {
   background: var(--border);
 }
+
+/* Ocultar Configuración por defecto - JS lo muestra para SUPER_ADMIN */
+a.nav-item[href="/configuracion.html"] {
+  display: none !important;
+}
+a.nav-item[href="/configuracion.html"].visible {
+  display: flex !important;
+}
+
+/* ========================================
+   ACORDEÓN COLAPSABLE (Modal Inscripción)
+   ======================================== */
+.planilla-seccion.collapsed .planilla-seccion-body {
+  display: none;
+}
+
+.planilla-seccion-titulo {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+  position: relative;
+  padding-right: 2.5rem;
+}
+.planilla-seccion-titulo:hover {
+  background: var(--primary-bg);
+}
+
+.planilla-seccion-titulo::after {
+  content: '▼';
+  position: absolute;
+  right: var(--space-5);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  transition: transform 0.2s;
+}
+.planilla-seccion.collapsed .planilla-seccion-titulo::after {
+  transform: rotate(-90deg);
+}
+
+/* Indicador de sección completada */
+.planilla-seccion-titulo .seccion-check {
+  color: var(--success);
+  margin-left: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+
+/* ========================================
+   TABS (Inscripciones / Colaboraciones)
+   ======================================== */
+.btn.active {
+  opacity: 1;
+}
+.btn:not(.active).btn-secondary {
+  opacity: 0.7;
+}
+
+/* ========================================
+   TABLAS DE RESUMEN DE COLABORACIONES
+   ======================================== */
+#vistaColaboraciones table {
+  border-collapse: collapse;
+  width: 100%;
+}
+#vistaColaboraciones th,
+#vistaColaboraciones td {
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+#vistaColaboraciones th {
+  background: var(--bg);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+#vistaColaboraciones tbody tr:hover {
+  background: var(--primary-bg);
+}
+
+/* Alerta informativa */
+.alert-info {
+  background: hsl(215, 60%, 95%);
+  color: hsl(215, 60%, 35%);
+  border: 1px solid hsl(215, 60%, 85%);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  font-size: var(--font-size-sm);
+}

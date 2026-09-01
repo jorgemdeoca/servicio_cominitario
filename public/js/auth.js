@@ -113,14 +113,15 @@ if (!document.getElementById('loginForm')) {
     if (roleEl) roleEl.textContent = typeof formatRol === 'function' ? formatRol(usuario.rol) : usuario.rol;
 
     // Lógica de roles
-    if (usuario.rol !== 'SUPER_ADMIN') {
-      // Ocultar items de menú de configuración
+    if (usuario.rol === 'SUPER_ADMIN') {
+      // Mostrar items de menú de configuración (ocultos por CSS por defecto)
       const configNavs = document.querySelectorAll('a[href="/configuracion.html"]');
-      configNavs.forEach(el => el.style.display = 'none');
-      
-      // Bloquear acceso a la página de configuración
+      configNavs.forEach(el => el.classList.add('visible'));
+    } else {
+      // Bloquear acceso directo a la página de configuración
       if (window.location.pathname.endsWith('/configuracion.html')) {
         window.location.href = '/dashboard.html';
+        return;
       }
 
       // Ocultar botones de eliminar en profesores si existen

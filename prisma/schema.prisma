@@ -112,6 +112,7 @@ model personas {
   estudiantes_como_madre         estudiantes[] @relation("MadreEstudiante")
   estudiantes_como_padre         estudiantes[] @relation("PadreEstudiante")
   estudiantes_como_representante estudiantes[] @relation("RepresentanteEstudiante")
+  colaboraciones                 colaboraciones[]
 
   // Índices para consultas rápidas
   @@index([apellidos])
@@ -310,6 +311,7 @@ model inscripciones {
   estudiante   estudiantes     @relation(fields: [estudiante_id], references: [id])
   seccion      secciones       @relation(fields: [seccion_id], references: [id])
   anio_escolar anios_escolares @relation(fields: [anio_escolar_id], references: [id])
+  colaboracion colaboraciones?
 
   // Índices para consultas rápidas
   @@index([estudiante_id])
@@ -372,4 +374,50 @@ model profesores_secciones {
   seccion     secciones  @relation(fields: [seccion_id], references: [id], onDelete: Cascade)
 
   @@id([profesor_id, seccion_id])
+}
+
+// ============================================
+// TABLA 10: COLABORACIONES (una por inscripción)
+// ============================================
+model colaboraciones {
+  id                     Int      @id @default(autoincrement())
+  inscripcion_id         Int      @unique
+  representante_id       Int
+  estudiante_nombre      String   @db.VarChar(200) // "Apellido, Nombre" desnormalizado
+  hijos_inscritos        Int      @default(1)
+  colaboraciones_requeridas Int   @default(1)      // Calculado según regla de descuento
+  monto_total            Decimal  @db.Decimal(10,2) @default(0)
+  producto               String?  @db.Text         // "Cloro, escoba, jabón..."
+  observaciones          String?  @db.Text
+  fecha_registro         DateTime @default(now())
+
+  // Relaciones
+  inscripcion   inscripciones @relation(fields: [inscripcion_id], references: [id])
+  representante personas      @relation(fields: [representante_id], references: [id])
+  pagos         colaboracion_pagos[]
+
+  @@index([inscripcion_id])
+  @@index([representante_id])
+}
+
+// ============================================
+// TABLA 11: PAGOS DE COLABORACIÓN (múltiples por colaboración)
+// ============================================
+model colaboracion_pagos {
+  id               Int      @id @default(autoincrement())
+  colaboracion_id  Int
+  monto            Decimal  @db.Decimal(10,2)
+  tipo_pago        colaboracion_pagos_tipo
+  referencia_pago  String?  @db.VarChar(50) // Solo para PAGO_MOVIL
+  fecha_pago       DateTime @default(now())
+
+  // Relación
+  colaboracion colaboraciones @relation(fields: [colaboracion_id], references: [id], onDelete: Cascade)
+
+  @@index([colaboracion_id])
+}
+
+enum colaboracion_pagos_tipo {
+  EFECTIVO
+  PAGO_MOVIL
 }

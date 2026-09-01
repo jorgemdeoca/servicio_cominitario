@@ -227,8 +227,8 @@ router.delete('/:id', soloSuperAdmin, async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
-// POST /api/secciones/:id/profesor - AÃ±adir profesor a una secciÃ³n existente
-router.post('/:id/profesor', async (req, res) => {
+// POST /api/secciones/:id/profesor - Añadir profesor a una sección existente
+router.post('/:id/profesor', soloSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { profesor_id } = req.body;
@@ -267,8 +267,8 @@ router.post('/:id/profesor', async (req, res) => {
   }
 });
 
-// DELETE /api/secciones/:id/profesor/:profesorId - Remover profesor de secciÃ³n
-router.delete('/:id/profesor/:profesorId', async (req, res) => {
+// DELETE /api/secciones/:id/profesor/:profesorId - Remover profesor de sección
+router.delete('/:id/profesor/:profesorId', soloSuperAdmin, async (req, res) => {
   try {
     const { id, profesorId } = req.params;
     await req.prisma.profesores_secciones.delete({
