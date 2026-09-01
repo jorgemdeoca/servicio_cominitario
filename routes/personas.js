@@ -50,7 +50,7 @@ router.get('/buscar-cedula/:cedula', async (req, res) => {
     });
 
     if (!persona || persona.eliminado) {
-      return res.status(404).json({ error: 'Persona no encontrada.' });
+      return res.json(null);
     }
 
     res.json(persona);

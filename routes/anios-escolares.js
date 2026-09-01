@@ -70,8 +70,8 @@ router.put('/:id', soloSuperAdmin, async (req, res) => {
   }
 });
 
-// PUT /api/anios-escolares/:id/activar - Activar un aÃ±o escolar (desactiva los demÃ¡s)
-router.put('/:id/activar', async (req, res) => {
+// PUT /api/anios-escolares/:id/activar - Activar un año escolar (desactiva los demás)
+router.put('/:id/activar', soloSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -93,8 +93,8 @@ router.put('/:id/activar', async (req, res) => {
   }
 });
 
-// PUT /api/anios-escolares/:id/finalizar - Finalizar un aÃ±o escolar
-router.put('/:id/finalizar', async (req, res) => {
+// PUT /api/anios-escolares/:id/finalizar - Finalizar un año escolar
+router.put('/:id/finalizar', soloSuperAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const anio = await req.prisma.anios_escolares.update({

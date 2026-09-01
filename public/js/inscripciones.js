@@ -13,6 +13,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   configurarBusquedaEnTiempoReal('ni_m_cedula', 5, () => buscarPersonaInsc('madre'));
   configurarBusquedaEnTiempoReal('ni_p_cedula', 5, () => buscarPersonaInsc('padre'));
   configurarBusquedaEnTiempoReal('ni_r_cedula', 5, () => buscarPersonaInsc('rep'));
+
+  // === ACORDEÓN: Secciones colapsables en el modal ===
+  document.querySelectorAll('.planilla-seccion-titulo').forEach((titulo, index) => {
+    // Colapsar secciones 2-8 por defecto (índice 1 en adelante)
+    if (index > 0) {
+      titulo.closest('.planilla-seccion').classList.add('collapsed');
+    }
+    // Click para expandir/colapsar
+    titulo.addEventListener('click', () => {
+      titulo.closest('.planilla-seccion').classList.toggle('collapsed');
+    });
+  });
 });
 
 function configurarBusquedaEnTiempoReal(inputId, minLength, searchFn) {
@@ -301,6 +313,7 @@ function abrirModalInscripcion() {
   document.getElementById('estudianteSeleccionado').style.display = 'none';
   document.getElementById('insc_fecha').value = new Date().toISOString().substring(0, 10);
   hideAlert('alertModal');
+  limpiarCamposColaboracion();
 
   document.getElementById('modalInscTitulo').textContent = '📝 Nueva Inscripción';
   
@@ -369,21 +382,26 @@ async function buscarPersonaInsc(tipo) {
     const res = await apiFetch(`/api/personas/buscar-cedula/${cedula}`);
     if (res && res.ok) {
       const persona = await res.json();
-      document.getElementById(`${prefix}_apellidos`).value = persona.apellidos;
-      document.getElementById(`${prefix}_nombres`).value = persona.nombres;
-      document.getElementById(`${prefix}_nacionalidad`).value = persona.nacionalidad;
-      if (persona.fecha_nacimiento) {
-        document.getElementById(`${prefix}_fecha_nacimiento`).value = persona.fecha_nacimiento.substring(0, 10);
+      if (persona) {
+        document.getElementById(`${prefix}_apellidos`).value = persona.apellidos;
+        document.getElementById(`${prefix}_nombres`).value = persona.nombres;
+        document.getElementById(`${prefix}_nacionalidad`).value = persona.nacionalidad;
+        if (persona.fecha_nacimiento) {
+          document.getElementById(`${prefix}_fecha_nacimiento`).value = persona.fecha_nacimiento.substring(0, 10);
+        }
+        document.getElementById(`${prefix}_profesion`).value = persona.profesion_oficio || '';
+        document.getElementById(`${prefix}_telefono`).value = persona.telefono || '';
+        if (document.getElementById(`${prefix}_estado_civil`)) {
+          document.getElementById(`${prefix}_estado_civil`).value = persona.estado_civil || '';
+        }
+        if (document.getElementById(`${prefix}_direccion`)) {
+          document.getElementById(`${prefix}_direccion`).value = persona.direccion || '';
+        }
+        statusDiv.innerHTML = `<div class="persona-found">✓ Persona encontrada: ${persona.apellidos}, ${persona.nombres}.</div>`;
+      } else {
+        limpiarCamposPersonaInsc(prefix);
+        statusDiv.innerHTML = '<div class="persona-not-found">No encontrada. Complete los datos.</div>';
       }
-      document.getElementById(`${prefix}_profesion`).value = persona.profesion_oficio || '';
-      document.getElementById(`${prefix}_telefono`).value = persona.telefono || '';
-      if (document.getElementById(`${prefix}_estado_civil`)) {
-        document.getElementById(`${prefix}_estado_civil`).value = persona.estado_civil || '';
-      }
-      if (document.getElementById(`${prefix}_direccion`)) {
-        document.getElementById(`${prefix}_direccion`).value = persona.direccion || '';
-      }
-      statusDiv.innerHTML = `<div class="persona-found">✓ Persona encontrada: ${persona.apellidos}, ${persona.nombres}.</div>`;
     } else {
       limpiarCamposPersonaInsc(prefix);
       statusDiv.innerHTML = '<div class="persona-not-found">No encontrada. Complete los datos.</div>';
@@ -552,6 +570,68 @@ async function guardarInscripcion(e) {
     const res = await apiFetch(url, { method, body: JSON.stringify(bodyInsc) });
 
     if (res && res.ok) {
+      const inscResult = await res.json();
+
+      // === PASO 3: GUARDAR COLABORACIÓN (si hay datos) ===
+      const colabProducto = document.getElementById('colab_producto')?.value.trim();
+      const colabMontoTotal = document.getElementById('colab_monto_total')?.value;
+      const colabTipoPago = document.getElementById('colab_tipo_pago')?.value;
+      const colabMontoPago = document.getElementById('colab_monto_pago')?.value;
+      const colabReferencia = document.getElementById('colab_referencia')?.value.trim();
+      const colabObs = document.getElementById('colab_observaciones')?.value.trim();
+
+      if (colabProducto || (colabMontoTotal && parseFloat(colabMontoTotal) > 0)) {
+        try {
+          // Obtener datos del estudiante para nombre desnormalizado
+          const estRes = await apiFetch(`/api/estudiantes/${inscResult.estudiante_id || estudianteId}`);
+          let estudianteNombre = '';
+          let representanteId = null;
+          if (estRes && estRes.ok) {
+            const estData = await estRes.json();
+            estudianteNombre = [estData.primer_apellido, estData.primer_nombre].filter(Boolean).join(', ');
+            representanteId = estData.representante_id;
+          }
+
+          if (representanteId) {
+            // Consultar hijos inscritos para calcular descuento
+            const anioId = document.getElementById('insc_anio').value;
+            const hijosRes = await apiFetch(`/api/colaboraciones/hijos-representante/${representanteId}?anio_escolar_id=${anioId}`);
+            let hijosData = { hijos_inscritos: 1, colaboraciones_requeridas: 1 };
+            if (hijosRes && hijosRes.ok) {
+              hijosData = await hijosRes.json();
+            }
+
+            const colabBody = {
+              inscripcion_id: inscResult.id,
+              representante_id: representanteId,
+              estudiante_nombre: estudianteNombre,
+              hijos_inscritos: hijosData.hijos_inscritos,
+              colaboraciones_requeridas: hijosData.colaboraciones_requeridas,
+              monto_total: parseFloat(colabMontoTotal) || 0,
+              producto: colabProducto || null,
+              observaciones: colabObs || null
+            };
+
+            // Si hay un pago inicial
+            if (colabTipoPago && colabMontoPago && parseFloat(colabMontoPago) > 0) {
+              colabBody.pago = {
+                monto: parseFloat(colabMontoPago),
+                tipo_pago: colabTipoPago,
+                referencia_pago: colabTipoPago === 'PAGO_MOVIL' ? colabReferencia : null
+              };
+            }
+
+            await apiFetch('/api/colaboraciones', {
+              method: 'POST',
+              body: JSON.stringify(colabBody)
+            });
+          }
+        } catch (colabError) {
+          console.error('Error al guardar colaboración:', colabError);
+          // No bloquear la inscripción si falla la colaboración
+        }
+      }
+
       cerrarModalInscripcion();
       showAlert('alertInscripciones', 'Inscripción registrada exitosamente', 'success');
       loadInscripciones();
@@ -617,4 +697,405 @@ async function retirarEstudiante(id) {
   } catch (error) {
     showAlert('alertInscripciones', 'Error de conexión', 'error');
   }
+}
+
+// ==========================================
+// COLABORACIONES — Funciones auxiliares
+// ==========================================
+
+// Variable para almacenar el ID de la colaboración activa en edición
+let colaboracionActualId = null;
+
+// Toggle campo de referencia (solo para Pago Móvil)
+function toggleReferenciaPago() {
+  const tipo = document.getElementById('colab_tipo_pago').value;
+  document.getElementById('grupoReferencia').style.display = tipo === 'PAGO_MOVIL' ? 'block' : 'none';
+}
+
+// Limpiar campos de colaboración al abrir modal nuevo
+function limpiarCamposColaboracion() {
+  colaboracionActualId = null;
+  document.getElementById('colab_producto').value = '';
+  document.getElementById('colab_monto_total').value = '';
+  document.getElementById('colab_tipo_pago').value = '';
+  document.getElementById('colab_monto_pago').value = '';
+  document.getElementById('colab_referencia').value = '';
+  document.getElementById('colab_observaciones').value = '';
+  document.getElementById('grupoReferencia').style.display = 'none';
+  document.getElementById('colabPagosExistentes').style.display = 'none';
+  document.getElementById('infoHijosRepresentante').style.display = 'none';
+  document.getElementById('tbodyColabPagos').innerHTML = '';
+}
+
+// Cargar datos de colaboración existente al editar inscripción
+async function cargarColaboracionExistente(inscripcionId) {
+  try {
+    const res = await apiFetch(`/api/colaboraciones/inscripcion/${inscripcionId}`);
+    if (!res || !res.ok) return;
+    const colab = await res.json();
+    if (!colab) return; // No tiene colaboración asociada
+
+    colaboracionActualId = colab.id;
+    document.getElementById('colab_producto').value = colab.producto || '';
+    document.getElementById('colab_monto_total').value = colab.monto_total || '';
+    document.getElementById('colab_observaciones').value = colab.observaciones || '';
+
+    // Mostrar info de hijos
+    const infoDiv = document.getElementById('infoHijosRepresentante');
+    infoDiv.style.display = 'block';
+    infoDiv.className = 'alert alert-info';
+    infoDiv.innerHTML = `ℹ️ El representante tiene <strong>${colab.hijos_inscritos}</strong> hijo(s) inscrito(s). Debe pagar <strong>${colab.colaboraciones_requeridas}</strong> colaboración(es).`;
+
+    // Ocultar campos de pago inicial (ya se manejan con la tabla de pagos)
+    document.getElementById('colab_tipo_pago').value = '';
+    document.getElementById('colab_monto_pago').value = '';
+
+    // Mostrar tabla de pagos existentes
+    renderPagosExistentes(colab.pagos, colab.monto_total, colab.monto_abonado);
+  } catch (error) {
+    console.error('Error al cargar colaboración:', error);
+  }
+}
+
+// Renderizar tabla de pagos existentes
+function renderPagosExistentes(pagos, montoTotal, montoAbonado) {
+  const container = document.getElementById('colabPagosExistentes');
+  const tbody = document.getElementById('tbodyColabPagos');
+  tbody.innerHTML = '';
+
+  if (!pagos || pagos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:1rem;">Sin pagos registrados</td></tr>';
+  } else {
+    pagos.forEach(p => {
+      const fecha = new Date(p.fecha_pago).toLocaleDateString('es-VE');
+      const tipo = p.tipo_pago === 'PAGO_MOVIL' ? 'Pago Móvil' : 'Efectivo';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${fecha}</td>
+        <td>${formatBs(p.monto)}</td>
+        <td>${tipo}</td>
+        <td>${p.referencia_pago || '—'}</td>
+        <td><button type="button" class="btn btn-sm btn-logout" onclick="eliminarPago(${colaboracionActualId}, ${p.id})">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  const total = parseFloat(montoTotal) || 0;
+  const abonado = parseFloat(montoAbonado) || pagos.reduce((s, p) => s + parseFloat(p.monto), 0);
+  const pendiente = total - abonado;
+
+  document.getElementById('colabTotalAbonado').textContent = formatBs(abonado);
+  document.getElementById('colabTotalPendiente').textContent = formatBs(pendiente);
+  document.getElementById('colabTotalPendiente').style.color = pendiente <= 0 ? 'var(--success)' : 'var(--error)';
+
+  container.style.display = 'block';
+}
+
+// ==========================================
+// MODAL NUEVO PAGO (pagos parciales)
+// ==========================================
+function abrirModalNuevoPago() {
+  if (!colaboracionActualId) {
+    showAlert('alertModal', 'Primero guarde la inscripción para registrar pagos adicionales.', 'error');
+    return;
+  }
+  document.getElementById('np_monto').value = '';
+  document.getElementById('np_tipo_pago').value = 'EFECTIVO';
+  document.getElementById('np_referencia').value = '';
+  document.getElementById('np_grupo_ref').style.display = 'none';
+  hideAlert('alertPago');
+  document.getElementById('modalNuevoPago').classList.add('active');
+}
+
+function cerrarModalNuevoPago() {
+  document.getElementById('modalNuevoPago').classList.remove('active');
+}
+
+async function guardarNuevoPago() {
+  const monto = document.getElementById('np_monto').value;
+  const tipoPago = document.getElementById('np_tipo_pago').value;
+  const referencia = document.getElementById('np_referencia').value.trim();
+
+  if (!monto || parseFloat(monto) <= 0) {
+    showAlert('alertPago', 'El monto debe ser mayor a 0.', 'error');
+    return;
+  }
+
+  try {
+    const res = await apiFetch(`/api/colaboraciones/${colaboracionActualId}/pagos`, {
+      method: 'POST',
+      body: JSON.stringify({
+        monto: parseFloat(monto),
+        tipo_pago: tipoPago,
+        referencia_pago: tipoPago === 'PAGO_MOVIL' ? referencia : null
+      })
+    });
+
+    if (res && res.ok) {
+      const data = await res.json();
+      cerrarModalNuevoPago();
+      // Actualizar tabla de pagos
+      renderPagosExistentes(
+        data.colaboracion.pagos,
+        data.colaboracion.monto_total,
+        data.colaboracion.monto_abonado
+      );
+    } else if (res) {
+      const err = await res.json();
+      showAlert('alertPago', err.error || 'Error al registrar pago', 'error');
+    }
+  } catch (error) {
+    showAlert('alertPago', 'Error de conexión', 'error');
+  }
+}
+
+async function eliminarPago(colaboracionId, pagoId) {
+  if (!confirm('¿Eliminar este pago?')) return;
+  try {
+    const res = await apiFetch(`/api/colaboraciones/${colaboracionId}/pagos/${pagoId}`, {
+      method: 'DELETE'
+    });
+    if (res && res.ok) {
+      // Recargar datos de la colaboración
+      const colabRes = await apiFetch(`/api/colaboraciones/inscripcion/${document.getElementById('insc_id').value}`);
+      if (colabRes && colabRes.ok) {
+        const colab = await colabRes.json();
+        if (colab) {
+          renderPagosExistentes(colab.pagos, colab.monto_total, colab.monto_abonado);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error al eliminar pago:', error);
+  }
+}
+
+// ==========================================
+// VISTA DE RESUMEN DE COLABORACIONES
+// ==========================================
+async function cargarResumenColaboraciones() {
+  const container = document.getElementById('vistaColaboraciones');
+  if (!container) return;
+  container.innerHTML = '<p style="text-align:center; padding:2rem;">Cargando resumen de colaboraciones...</p>';
+  
+  try {
+    const anioId = document.getElementById('filtroAnio').value;
+    if (!anioId) {
+      container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:2rem;">Seleccione un año escolar.</p>';
+      return;
+    }
+
+    const res = await apiFetch(`/api/colaboraciones/resumen?anio_escolar_id=${anioId}`);
+    if (!res.ok) {
+      throw new Error('Error de red');
+    }
+    const data = await res.json();
+
+    if (data.grados.length === 0) {
+      container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:2rem;">No hay colaboraciones registradas para este año escolar.</p>';
+      return;
+    }
+
+    let html = `
+      <div style="display: flex; justify-content: flex-end; margin-bottom: var(--space-4);">
+        <div style="background:var(--sidebar-bg); color:white; padding:0.6rem 1.2rem; border-radius:var(--radius); text-align:center; font-size:var(--font-size-sm); font-weight:700; min-width: 170px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          TOTAL RECAUDADO<br>
+          <span style="font-size: 1.2em; color: var(--success); display: inline-block; margin-top: 3px;">${formatBs(data.total_global)}</span>
+        </div>
+      </div>
+      <div class="filtros-bar" style="margin-bottom: var(--space-4); background: white; padding: var(--space-3); border-radius: var(--radius); border: 1px solid var(--border);">
+        <div style="flex:1;">
+          <label>Grado:</label>
+          <select id="filtroColabGrado" onchange="actualizarSelectSeccionesColab()">
+            <option value="">Todos</option>
+            ${data.grados.map(g => `<option value="${g.grado_id}">${g.grado_nombre}</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label>Sección:</label>
+          <select id="filtroColabSeccion" onchange="aplicarFiltrosColaboraciones()">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div style="flex:2;">
+          <label>Buscar Representante:</label>
+          <input type="text" id="filtroColabBuscar" placeholder="Nombre o apellido..." oninput="aplicarFiltrosColaboraciones()">
+        </div>
+      </div>
+      <div id="colaboracionesContenedorTablas"></div>
+    `;
+    
+    container.innerHTML = html;
+    
+    // Guardamos la data global para filtrar
+    window.colaboracionesDataGlobal = data;
+    
+    // Inicializamos select de secciones y renderizamos
+    actualizarSelectSeccionesColab();
+
+  } catch (error) {
+    console.error('Error al cargar resumen:', error);
+    container.innerHTML = '<p style="text-align:center; color:var(--error);">Error de conexión.</p>';
+  }
+}
+
+// Función para aplicar filtros y re-renderizar solo el contenedor de tablas
+// Función para actualizar dinámicamente las secciones según el grado seleccionado
+function actualizarSelectSeccionesColab() {
+  const data = window.colaboracionesDataGlobal;
+  if (!data) return;
+  
+  const fGrado = document.getElementById('filtroColabGrado')?.value;
+  const selectSeccion = document.getElementById('filtroColabSeccion');
+  const valorAnterior = selectSeccion.value;
+
+  let letrasUnicas = new Set();
+  data.grados.forEach(grado => {
+    if (fGrado && grado.grado_id.toString() !== fGrado) return;
+    grado.secciones.forEach(s => letrasUnicas.add(s.seccion_letra));
+  });
+
+  let opcionesHtml = '<option value="">Todas</option>';
+  Array.from(letrasUnicas).sort().forEach(letra => {
+    opcionesHtml += `<option value="${letra}">${letra}</option>`;
+  });
+
+  selectSeccion.innerHTML = opcionesHtml;
+  if (letrasUnicas.has(valorAnterior)) {
+    selectSeccion.value = valorAnterior;
+  }
+  
+  aplicarFiltrosColaboraciones();
+}
+
+function aplicarFiltrosColaboraciones() {
+  const data = window.colaboracionesDataGlobal;
+  const container = document.getElementById('colaboracionesContenedorTablas');
+  if (!data || !container) return;
+
+  const fGrado = document.getElementById('filtroColabGrado')?.value;
+  const fSeccion = document.getElementById('filtroColabSeccion')?.value;
+  const fBuscar = document.getElementById('filtroColabBuscar')?.value.toLowerCase();
+
+  let html = '';
+
+  data.grados.forEach(grado => {
+    if (fGrado && grado.grado_id.toString() !== fGrado) return;
+
+    let seccionesFiltradas = grado.secciones.filter(s => {
+      if (fSeccion && s.seccion_letra !== fSeccion) return false;
+      return true;
+    });
+
+    if (seccionesFiltradas.length === 0) return;
+
+    let gradoHtml = `<div style="margin-bottom: var(--space-6);">`;
+    gradoHtml += `<h3 style="background:var(--sidebar-bg); color:white; padding:var(--space-3) var(--space-5); border-radius:var(--radius) var(--radius) 0 0; margin:0;">${grado.grado_nombre}</h3>`;
+
+    let totalGradoFiltrado = 0;
+    let hayDatosEnGrado = false;
+
+    seccionesFiltradas.forEach(seccion => {
+      let colaboracionesFiltradas = seccion.colaboraciones;
+      
+      if (fBuscar) {
+        colaboracionesFiltradas = colaboracionesFiltradas.filter(c => 
+          c.representante.toLowerCase().includes(fBuscar)
+        );
+      }
+
+      if (colaboracionesFiltradas.length === 0) return;
+      hayDatosEnGrado = true;
+
+      let subtotalSeccion = colaboracionesFiltradas.reduce((sum, c) => sum + c.monto_abonado, 0);
+      totalGradoFiltrado += subtotalSeccion;
+
+      gradoHtml += `<div style="border:1px solid var(--border); border-top:none; margin-bottom:0;">`;
+      gradoHtml += `<div style="background:var(--bg); padding:var(--space-2) var(--space-5); font-weight:600; font-size:var(--font-size-sm); border-bottom:1px solid var(--border);">Sección "${seccion.seccion_letra}"</div>`;
+      gradoHtml += `<div style="overflow-x:auto;">`;
+      gradoHtml += `<table style="width:100%; font-size:var(--font-size-sm);">`;
+      gradoHtml += `<thead><tr>
+        <th>Representante</th>
+        <th>Estudiante</th>
+        <th>N° Hijos</th>
+        <th>Producto</th>
+        <th>Monto Total</th>
+        <th>Abonado</th>
+        <th>Pendiente</th>
+        <th>Pagos</th>
+      </tr></thead><tbody>`;
+
+      colaboracionesFiltradas.forEach(c => {
+        const pendienteColor = c.monto_pendiente <= 0 ? 'var(--success)' : 'var(--error)';
+        const pagosDetalle = c.pagos.map(p => {
+          const tipo = p.tipo_pago === 'PAGO_MOVIL' ? 'P.M.' : 'Efect.';
+          const ref = p.referencia_pago ? ` (Ref: ${p.referencia_pago})` : '';
+          return `${formatBs(p.monto)} ${tipo}${ref}`;
+        }).join('<br>') || '—';
+
+        gradoHtml += `<tr>
+          <td>${c.representante}</td>
+          <td>${c.estudiante}</td>
+          <td style="text-align:center;">${c.hijos_inscritos}</td>
+          <td>${c.producto || '—'}</td>
+          <td>${formatBs(c.monto_total)}</td>
+          <td>${formatBs(c.monto_abonado)}</td>
+          <td style="color:${pendienteColor}; font-weight:600;">${formatBs(c.monto_pendiente)}</td>
+          <td style="font-size:var(--font-size-xs);">${pagosDetalle}</td>
+        </tr>`;
+      });
+
+      gradoHtml += `</tbody>`;
+      gradoHtml += `<tfoot><tr style="font-weight:700; background:var(--bg); border-top:2px solid var(--border);">
+        <td colspan="5" style="text-align:right;">Subtotal Sección "${seccion.seccion_letra}":</td>
+        <td colspan="3">${formatBs(subtotalSeccion)}</td>
+      </tr></tfoot>`;
+      gradoHtml += `</table></div></div>`;
+    });
+
+    if (hayDatosEnGrado) {
+      gradoHtml += `<div style="background:var(--primary-bg); padding:var(--space-3) var(--space-5); font-weight:700; font-size:var(--font-size-base); border:1px solid var(--border); border-top:2px solid var(--primary); border-radius:0 0 var(--radius) var(--radius);">
+        Total ${grado.grado_nombre}: ${formatBs(totalGradoFiltrado)}
+      </div></div>`;
+      html += gradoHtml;
+    }
+  });
+
+  if (html === '') {
+    html = '<p style="text-align:center; color:var(--text-muted); padding:2rem;">No hay resultados para esta búsqueda.</p>';
+  }
+
+  container.innerHTML = html;
+}
+
+// ==========================================
+// TABS: INSCRIPCIONES / COLABORACIONES
+// ==========================================
+function mostrarVista(vista) {
+  const vistaInsc = document.getElementById('vistaInscripciones');
+  const vistaColab = document.getElementById('vistaColaboraciones');
+  const btnInsc = document.getElementById('tabInscripciones');
+  const btnColab = document.getElementById('tabColaboraciones');
+  const btnNueva = document.getElementById('btnNuevaInscripcion');
+
+  if (vista === 'colaboraciones') {
+    if (vistaInsc) vistaInsc.style.display = 'none';
+    if (vistaColab) vistaColab.style.display = 'block';
+    if (btnInsc) { btnInsc.classList.remove('active', 'btn-primary'); btnInsc.classList.add('btn-secondary'); }
+    if (btnColab) { btnColab.classList.add('active', 'btn-primary'); btnColab.classList.remove('btn-secondary'); }
+    if (btnNueva) btnNueva.style.display = 'none';
+    cargarResumenColaboraciones();
+  } else {
+    if (vistaInsc) vistaInsc.style.display = 'block';
+    if (vistaColab) vistaColab.style.display = 'none';
+    if (btnInsc) { btnInsc.classList.add('active', 'btn-primary'); btnInsc.classList.remove('btn-secondary'); }
+    if (btnColab) { btnColab.classList.remove('active', 'btn-primary'); btnColab.classList.add('btn-secondary'); }
+    if (btnNueva) btnNueva.style.display = '';
+  }
+}
+
+function formatBs(amount) {
+  if (amount === null || amount === undefined) amount = 0;
+  return 'Bs ' + parseFloat(amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

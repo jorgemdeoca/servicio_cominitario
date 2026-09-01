@@ -2,8 +2,8 @@ const express = require('express');
 const { soloSuperAdmin } = require('../middleware/auth');
 const router = express.Router();
 
-// GET /api/configuracion - Obtener toda la configuración como objeto
-router.get('/', async (req, res) => {
+// GET /api/configuracion - Obtener toda la configuración (solo SUPER_ADMIN)
+router.get('/', soloSuperAdmin, async (req, res) => {
   try {
     const configs = await req.prisma.configuracion.findMany();
 
