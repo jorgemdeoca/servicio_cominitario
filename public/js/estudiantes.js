@@ -219,6 +219,10 @@ function abrirPlanilla(estudiante = null) {
   document.querySelectorAll('[id$="_status"]').forEach(el => el.innerHTML = '');
   hideAlert('alertPlanilla');
 
+  // Ocultar sección de datos variables por defecto
+  const seccionDV = document.getElementById('seccionDatosVariables');
+  if (seccionDV) seccionDV.style.display = 'none';
+
   if (estudiante) {
     titulo.textContent = '📋 Editar Estudiante';
     document.getElementById('e_id').value = estudiante.id;
@@ -238,6 +242,28 @@ function abrirPlanilla(estudiante = null) {
     document.getElementById('e_estado_nacimiento').value = estudiante.estado_nacimiento || '';
     document.getElementById('e_lateralidad').value = estudiante.lateralidad || '';
     document.getElementById('e_tipo_sangre').value = estudiante.tipo_sangre || '';
+
+    // Datos variables de la última inscripción
+    if (estudiante.inscripciones && estudiante.inscripciones.length > 0) {
+      const ultimaInsc = estudiante.inscripciones[0]; // Ya viene ordenada desc
+      if (seccionDV) seccionDV.style.display = '';
+      
+      const gradoSeccion = ultimaInsc.seccion 
+        ? `${ultimaInsc.seccion.grado?.nombre || ''} "${ultimaInsc.seccion.letra || ''}"` 
+        : '';
+      const anioNombre = ultimaInsc.anio_escolar?.nombre || '';
+      document.getElementById('infoDatosVariables').innerHTML = 
+        `📌 Datos de la inscripción: <strong>${gradoSeccion}</strong> — Año escolar: <strong>${anioNombre}</strong>`;
+      
+      document.getElementById('dv_inscripcion_id').value = ultimaInsc.id;
+      document.getElementById('dv_direccion').value = ultimaInsc.direccion || '';
+      document.getElementById('dv_correo').value = ultimaInsc.correo_electronico || '';
+      document.getElementById('dv_talla').value = ultimaInsc.talla || '';
+      document.getElementById('dv_peso').value = ultimaInsc.peso || '';
+      document.getElementById('dv_talla_camisa').value = ultimaInsc.talla_camisa || '';
+      document.getElementById('dv_talla_pantalon').value = ultimaInsc.talla_pantalon || '';
+      document.getElementById('dv_talla_zapato').value = ultimaInsc.talla_zapato || '';
+    }
 
     // Datos de la madre
     if (estudiante.madre) {
@@ -365,6 +391,21 @@ async function guardarEstudiante(e) {
       profesion_oficio: document.getElementById('r_profesion').value.trim() || null,
       telefono: document.getElementById('r_telefono').value.trim() || null,
       direccion: document.getElementById('r_direccion').value.trim() || null,
+    };
+  }
+
+  // Datos variables de la inscripción (solo al editar)
+  const dvInscId = document.getElementById('dv_inscripcion_id')?.value;
+  if (id && dvInscId) {
+    body.datos_variables = {
+      inscripcion_id: parseInt(dvInscId),
+      direccion: document.getElementById('dv_direccion').value.trim() || null,
+      correo_electronico: document.getElementById('dv_correo').value.trim() || null,
+      talla: document.getElementById('dv_talla').value.trim() || null,
+      peso: document.getElementById('dv_peso').value.trim() || null,
+      talla_camisa: document.getElementById('dv_talla_camisa').value.trim() || null,
+      talla_pantalon: document.getElementById('dv_talla_pantalon').value.trim() || null,
+      talla_zapato: document.getElementById('dv_talla_zapato').value.trim() || null,
     };
   }
 

@@ -94,22 +94,20 @@ async function buscarOCrearPersona(prisma, datosPersona) {
   let persona = await prisma.personas.findUnique({ where: { cedula } });
 
   if (persona) {
-    // Si estaba eliminada, reactivarla y actualizar datos
-    if (persona.eliminado) {
-      persona = await prisma.personas.update({
-        where: { id: persona.id },
-        data: {
-          nombres, apellidos,
-          nacionalidad: nacionalidad || 'V',
-          fecha_nacimiento: fecha_nacimiento ? new Date(fecha_nacimiento) : null,
-          profesion_oficio: profesion_oficio || null,
-          estado_civil: estado_civil || null,
-          telefono: telefono || null,
-          direccion: direccion || null,
-          eliminado: false
-        }
-      });
-    }
+    // Actualizar datos de la persona existente
+    persona = await prisma.personas.update({
+      where: { id: persona.id },
+      data: {
+        nombres, apellidos,
+        nacionalidad: nacionalidad || 'V',
+        fecha_nacimiento: fecha_nacimiento ? new Date(fecha_nacimiento) : null,
+        profesion_oficio: profesion_oficio || null,
+        estado_civil: estado_civil || null,
+        telefono: telefono || null,
+        direccion: direccion || null,
+        eliminado: false
+      }
+    });
     return persona;
   }
 
@@ -148,9 +146,6 @@ router.post('/', async (req, res) => {
     if (!madre || !madre.cedula || !madre.nombres || !madre.apellidos) {
       return res.status(400).json({ error: 'Los datos de la madre son obligatorios (cédula, nombres, apellidos).' });
     }
-    if (!padre || !padre.cedula || !padre.nombres || !padre.apellidos) {
-      return res.status(400).json({ error: 'Los datos del padre son obligatorios (cédula, nombres, apellidos).' });
-    }
 
     if (!representante_es) {
       return res.status(400).json({ error: 'Debe indicar quién es el representante legal.' });
@@ -171,14 +166,19 @@ router.post('/', async (req, res) => {
       // 1. Crear o encontrar a la madre
       const madreDB = await buscarOCrearPersona(prisma, madre);
 
-      // 2. Crear o encontrar al padre
-      const padreDB = await buscarOCrearPersona(prisma, padre);
+      // 2. Crear o encontrar al padre (opcional)
+      const padreDB = (padre && padre.cedula && padre.nombres && padre.apellidos)
+        ? await buscarOCrearPersona(prisma, padre)
+        : null;
 
       // 3. Determinar el representante
       let representanteId;
       if (representante_es === 'MADRE') {
         representanteId = madreDB.id;
       } else if (representante_es === 'PADRE') {
+        if (!padreDB) {
+          throw new Error('Se seleccionó al padre como representante, pero no se proporcionaron sus datos.');
+        }
         representanteId = padreDB.id;
       } else {
         // Es otra persona, crearla/buscarla
@@ -206,7 +206,7 @@ router.post('/', async (req, res) => {
           lateralidad: estudiante.lateralidad || null,
           tipo_sangre: estudiante.tipo_sangre || null,
           madre_id: madreDB.id,
-          padre_id: padreDB.id,
+          padre_id: padreDB ? padreDB.id : null,
           representante_id: representanteId,
         },
         include: {
@@ -221,7 +221,7 @@ router.post('/', async (req, res) => {
 
     res.status(201).json(resultado);
   } catch (error) {
-    if (error.message && error.message.includes('obligatorios')) {
+    if (error.message && (error.message.includes('obligatorios') || error.message.includes('representante'))) {
       return res.status(400).json({ error: error.message });
     }
     console.error('Error al crear estudiante:', error);
@@ -311,6 +311,23 @@ router.put('/:id', async (req, res) => {
           representante: { select: { id: true, nombres: true, apellidos: true, cedula: true } },
         }
       });
+
+      // Actualizar datos variables de la inscripción si vienen
+      const dv = req.body.datos_variables;
+      if (dv && dv.inscripcion_id) {
+        await prisma.inscripciones.update({
+          where: { id: dv.inscripcion_id },
+          data: {
+            direccion: dv.direccion || null,
+            correo_electronico: dv.correo_electronico || null,
+            talla: dv.talla || null,
+            peso: dv.peso || null,
+            talla_camisa: dv.talla_camisa || null,
+            talla_pantalon: dv.talla_pantalon || null,
+            talla_zapato: dv.talla_zapato || null,
+          }
+        });
+      }
 
       return actualizado;
     });

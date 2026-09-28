@@ -412,9 +412,112 @@ async function buscarPersonaInsc(tipo) {
   }
 }
 
+// ==========================================
+// VALIDACIÓN COMPLETA ANTES DE GUARDAR
+// ==========================================
+function validarFormularioInscripcion() {
+  const errores = [];
+  const esModoRegistro = document.getElementById('containerEstudiante').classList.contains('modo-registro-activo');
+  const estudianteId = document.getElementById('insc_estudiante_id').value;
+
+  // --- Sección 1: Estudiante ---
+  if (!esModoRegistro && !estudianteId) {
+    errores.push({ campo: 'insc_buscar_est', mensaje: 'Debe buscar o registrar un estudiante.', seccionIdx: 0 });
+  }
+
+  if (esModoRegistro) {
+    if (!document.getElementById('ni_e_primer_apellido').value.trim())
+      errores.push({ campo: 'ni_e_primer_apellido', mensaje: 'Primer apellido del estudiante es obligatorio.', seccionIdx: 0 });
+    if (!document.getElementById('ni_e_primer_nombre').value.trim())
+      errores.push({ campo: 'ni_e_primer_nombre', mensaje: 'Primer nombre del estudiante es obligatorio.', seccionIdx: 0 });
+    if (!document.getElementById('ni_e_fecha_nacimiento').value)
+      errores.push({ campo: 'ni_e_fecha_nacimiento', mensaje: 'Fecha de nacimiento del estudiante es obligatoria.', seccionIdx: 0 });
+
+    // Madre (obligatoria)
+    if (!document.getElementById('ni_m_cedula').value.trim())
+      errores.push({ campo: 'ni_m_cedula', mensaje: 'Cédula de la madre es obligatoria.', seccionIdx: 0 });
+    if (!document.getElementById('ni_m_apellidos').value.trim())
+      errores.push({ campo: 'ni_m_apellidos', mensaje: 'Apellidos de la madre son obligatorios.', seccionIdx: 0 });
+    if (!document.getElementById('ni_m_nombres').value.trim())
+      errores.push({ campo: 'ni_m_nombres', mensaje: 'Nombres de la madre son obligatorios.', seccionIdx: 0 });
+
+    // Representante
+    const repEs = document.querySelector('input[name="ni_representante_es"]:checked')?.value;
+    if (repEs === 'PADRE') {
+      const pCed = document.getElementById('ni_p_cedula').value.trim();
+      const pApe = document.getElementById('ni_p_apellidos').value.trim();
+      const pNom = document.getElementById('ni_p_nombres').value.trim();
+      if (!pCed || !pApe || !pNom) {
+        errores.push({ campo: 'ni_p_cedula', mensaje: 'Seleccionó al Padre como representante pero sus datos están vacíos. Llene al menos cédula, apellidos y nombres del padre.', seccionIdx: 0 });
+      }
+    }
+    if (repEs === 'OTRO') {
+      if (!document.getElementById('ni_r_cedula').value.trim())
+        errores.push({ campo: 'ni_r_cedula', mensaje: 'Cédula del representante es obligatoria.', seccionIdx: 0 });
+      if (!document.getElementById('ni_r_apellidos').value.trim())
+        errores.push({ campo: 'ni_r_apellidos', mensaje: 'Apellidos del representante son obligatorios.', seccionIdx: 0 });
+      if (!document.getElementById('ni_r_nombres').value.trim())
+        errores.push({ campo: 'ni_r_nombres', mensaje: 'Nombres del representante son obligatorios.', seccionIdx: 0 });
+    }
+  }
+
+  // --- Sección 2: Asignación ---
+  if (!document.getElementById('insc_anio').value)
+    errores.push({ campo: 'insc_anio', mensaje: 'Debe seleccionar un Año Escolar.', seccionIdx: 1 });
+  if (!document.getElementById('insc_seccion').value)
+    errores.push({ campo: 'insc_seccion', mensaje: 'Debe seleccionar un Grado y Sección.', seccionIdx: 1 });
+  if (!document.getElementById('insc_fecha').value)
+    errores.push({ campo: 'insc_fecha', mensaje: 'Fecha de inscripción es obligatoria.', seccionIdx: 1 });
+
+  // --- Sección 5: Datos Variables ---
+  if (!document.getElementById('insc_direccion')?.value.trim())
+    errores.push({ campo: 'insc_direccion', mensaje: 'La Dirección Actual es obligatoria.', seccionIdx: 4 });
+
+  return errores;
+}
+
+function mostrarErrorValidacion(error) {
+  // Limpiar errores previos
+  document.querySelectorAll('.campo-error').forEach(el => el.classList.remove('campo-error'));
+
+  // Expandir la sección colapsada donde está el campo
+  const secciones = document.querySelectorAll('#formInscripcion .planilla-seccion');
+  if (error.seccionIdx !== undefined && secciones[error.seccionIdx]) {
+    secciones[error.seccionIdx].classList.remove('collapsed');
+  }
+
+  // Resaltar el campo
+  const campo = document.getElementById(error.campo);
+  if (campo) {
+    campo.classList.add('campo-error');
+    setTimeout(() => {
+      campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      campo.focus();
+    }, 200);
+  }
+
+  showAlert('alertModal', error.mensaje, 'error');
+}
+
+function toggleTodosDocumentos() {
+  const checks = document.querySelectorAll('.docs-grid input[type="checkbox"]');
+  const todosChecked = Array.from(checks).every(c => c.checked);
+  checks.forEach(c => c.checked = !todosChecked);
+  const btn = document.getElementById('btnToggleDocs');
+  btn.textContent = todosChecked ? '☑ Seleccionar Todos' : '☐ Deseleccionar Todos';
+}
+
 async function guardarInscripcion(e) {
   e.preventDefault();
   hideAlert('alertModal');
+  document.querySelectorAll('.campo-error').forEach(el => el.classList.remove('campo-error'));
+
+  // ★ VALIDAR TODO ANTES DE CREAR NADA ★
+  const errores = validarFormularioInscripcion();
+  if (errores.length > 0) {
+    mostrarErrorValidacion(errores[0]);
+    return;
+  }
 
   const esModoRegistro = document.getElementById('containerEstudiante').classList.contains('modo-registro-activo');
   let estudianteId = document.getElementById('insc_estudiante_id').value;
@@ -499,10 +602,6 @@ async function guardarInscripcion(e) {
   }
 
   // === PASO 2: CREAR/ACTUALIZAR LA INSCRIPCIÓN ===
-  if (!estudianteId) {
-    showAlert('alertModal', 'Debe buscar o registrar un estudiante.', 'error');
-    return;
-  }
 
   const bodyInsc = {
     estudiante_id: parseInt(estudianteId),

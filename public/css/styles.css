@@ -738,3 +738,15 @@ a.nav-item[href="/configuracion.html"].visible {
   border-radius: var(--radius);
   font-size: var(--font-size-sm);
 }
+
+/* Campo con error de validación */
+.campo-error {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 3px hsla(0, 70%, 50%, 0.15) !important;
+  animation: shake 0.3s ease;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
