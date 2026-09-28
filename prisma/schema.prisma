@@ -19,6 +19,7 @@ model usuarios {
   password_hash  String   @db.VarChar(255)
   rol            usuarios_rol
   creado_en      DateTime @default(now())
+  updated_at     DateTime? @updatedAt
 }
 
 enum usuarios_rol {
@@ -108,6 +109,10 @@ model personas {
   // Borrado lógico
   eliminado Boolean @default(false)
 
+  // Auditoría
+  created_at  DateTime  @default(now())
+  updated_at  DateTime? @updatedAt
+
   // Relaciones inversas (una persona puede ser madre/padre/representante de varios estudiantes)
   estudiantes_como_madre         estudiantes[] @relation("MadreEstudiante")
   estudiantes_como_padre         estudiantes[] @relation("PadreEstudiante")
@@ -179,6 +184,10 @@ model estudiantes {
 
   // Borrado lógico
   eliminado Boolean @default(false)
+
+  // Auditoría
+  created_at  DateTime  @default(now())
+  updated_at  DateTime? @updatedAt
 
   // Índices para consultas rápidas
   @@index([madre_id])
@@ -306,6 +315,10 @@ model inscripciones {
 
   // Borrado lógico
   eliminado Boolean @default(false)
+
+  // Auditoría
+  created_at  DateTime  @default(now())
+  updated_at  DateTime? @updatedAt
 
   // --- Relaciones ---
   estudiante   estudiantes     @relation(fields: [estudiante_id], references: [id])

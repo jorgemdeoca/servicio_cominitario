@@ -413,7 +413,38 @@
             </div>
           </div>
 
-          <!-- SECCI N 2: DATOS DE LA MADRE -->
+          <!-- SECCIÓN: DATOS VARIABLES (última inscripción) - Solo visible al editar -->
+          <div class="planilla-seccion" id="seccionDatosVariables" style="display:none;">
+            <div class="planilla-seccion-titulo">
+              <span class="seccion-num" style="background:var(--success);">📋</span>
+              DATOS VARIABLES (Última Inscripción)
+            </div>
+            <div class="planilla-seccion-body">
+              <div id="infoDatosVariables" style="background:var(--primary-bg); padding:var(--space-2) var(--space-3); border-radius:var(--radius); font-size:var(--font-size-xs); margin-bottom:var(--space-4); color:var(--primary-dark);"></div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Dirección Actual *</label>
+                  <input type="text" id="dv_direccion" placeholder="Dirección donde vive el estudiante">
+                </div>
+                <div class="form-group">
+                  <label>Correo Electrónico</label>
+                  <input type="email" id="dv_correo" placeholder="ejemplo@correo.com">
+                </div>
+              </div>
+              <div class="form-row-4">
+                <div class="form-group"><label>Talla (cm)</label><input type="text" id="dv_talla" placeholder="Ej: 120"></div>
+                <div class="form-group"><label>Peso (Kg)</label><input type="text" id="dv_peso" placeholder="Ej: 25"></div>
+                <div class="form-group"><label>Talla Camisa</label><input type="text" id="dv_talla_camisa" placeholder="Ej: 12"></div>
+                <div class="form-group"><label>Talla Pantalón</label><input type="text" id="dv_talla_pantalon" placeholder="Ej: 12"></div>
+              </div>
+              <div class="form-row" style="grid-template-columns: 1fr 3fr;">
+                <div class="form-group"><label>Talla Zapato</label><input type="text" id="dv_talla_zapato" placeholder="Ej: 36"></div>
+              </div>
+              <input type="hidden" id="dv_inscripcion_id">
+            </div>
+          </div>
+
+          <!-- SECCIÓN 2: DATOS DE LA MADRE -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo">
               <span class="seccion-num">2</span>
@@ -479,25 +510,25 @@
             </div>
           </div>
 
-          <!-- SECCIÓN 3: DATOS DEL PADRE -->
+          <!-- SECCIÓN 3: DATOS DEL PADRE (Opcional) -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo">
               <span class="seccion-num">3</span>
-              DATOS DEL PADRE
+              DATOS DEL PADRE <span style="font-weight:400; font-size:var(--font-size-xs); color:var(--text-muted);">(Opcional)</span>
             </div>
             <div class="planilla-seccion-body">
               <div class="form-row-3">
                 <div class="form-group">
-                  <label>Cédula del Padre *</label>
+                  <label>Cédula del Padre</label>
                   <div class="cedula-search">
-                    <input type="text" id="p_cedula" required placeholder="Ej: 12345678">
+                    <input type="text" id="p_cedula" placeholder="Ej: 12345678">
                     <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersona('padre')">Buscar</button>
                   </div>
                   <div id="p_status"></div>
                 </div>
                 <div class="form-group">
-                  <label>Nacionalidad *</label>
-                  <select id="p_nacionalidad" required>
+                  <label>Nacionalidad</label>
+                  <select id="p_nacionalidad">
                     <option value="V">V</option>
                     <option value="E">E</option>
                   </select>
@@ -509,12 +540,12 @@
               </div>
               <div class="form-row">
                 <div class="form-group">
-                  <label>Apellidos *</label>
-                  <input type="text" id="p_apellidos" required>
+                  <label>Apellidos</label>
+                  <input type="text" id="p_apellidos">
                 </div>
                 <div class="form-group">
-                  <label>Nombres *</label>
-                  <input type="text" id="p_nombres" required>
+                  <label>Nombres</label>
+                  <input type="text" id="p_nombres">
                 </div>
               </div>
               <div class="form-row-3">

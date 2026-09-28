@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
+const os = require('os');
 const { PrismaClient } = require('@prisma/client');
 const { requireAuth } = require('./middleware/auth');
 const authRoutes = require('./routes/auth');
@@ -109,7 +110,16 @@ process.on('SIGINT', async () => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n  Servidor corriendo en:`);
+  console.log(`\n  ✅ Servidor corriendo en puerto ${PORT}`);
   console.log(`  → Local:  http://localhost:${PORT}`);
-  console.log(`  → Red:    http://[IP-DEL-SERVIDOR]:${PORT}\n`);
+
+  const interfaces = os.networkInterfaces();
+  for (const [name, addrs] of Object.entries(interfaces)) {
+    for (const addr of addrs) {
+      if (addr.family === 'IPv4' && !addr.internal) {
+        console.log(`  → Red (${name}):  http://${addr.address}:${PORT}`);
+      }
+    }
+  }
+  console.log('');
 });

@@ -41,7 +41,9 @@ router.get('/matricula', async (req, res) => {
       },
       orderBy: [
         { estudiante: { primer_apellido: 'asc' } },
-        { estudiante: { primer_nombre: 'asc' } }
+        { estudiante: { segundo_apellido: 'asc' } },
+        { estudiante: { primer_nombre: 'asc' } },
+        { estudiante: { segundo_nombre: 'asc' } }
       ]
     });
 
