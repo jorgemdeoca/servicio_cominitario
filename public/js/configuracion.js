@@ -502,6 +502,7 @@ async function loadConfiguracion() {
     if (conf.director) document.getElementById('cfg_director').value = conf.director;
     if (conf.direccion) document.getElementById('cfg_direccion').value = conf.direccion;
     if (conf.membrete) document.getElementById('cfg_membrete').value = conf.membrete;
+    if (conf.localidad) document.getElementById('cfg_localidad').value = conf.localidad;
     
   } catch (error) {
     console.error('Error al cargar config de escuela');
@@ -519,7 +520,8 @@ async function saveConfiguracion(e) {
     parroquia: document.getElementById('cfg_parroquia').value,
     director: document.getElementById('cfg_director').value,
     direccion: document.getElementById('cfg_direccion').value,
-    membrete: document.getElementById('cfg_membrete').value
+    membrete: document.getElementById('cfg_membrete').value,
+    localidad: document.getElementById('cfg_localidad').value
   };
 
   const fileInput = document.getElementById('cfg_logo');

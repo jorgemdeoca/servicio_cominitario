@@ -80,7 +80,34 @@ async function generarMatricula() {
     }
 
     await generarPDFMatriculaInicial(datos);
-    showAlert('alertReportes', 'PDF de matricula generado con exito', 'success');
+    showAlert('alertReportes', 'PDF de matricula (formato anterior) generado con exito', 'success');
+  } catch (error) {
+    console.error(error);
+    showAlert('alertReportes', 'Error al generar reporte de matricula', 'error');
+  }
+}
+
+async function generarMatriculaNuevoFormato() {
+  var anio_escolar_id = document.getElementById('selAnioMatricula').value;
+  var seccion_id = document.getElementById('selSeccionMatricula').value;
+
+  if (!anio_escolar_id || !seccion_id) {
+    showAlert('alertReportes', 'Seleccione un ano escolar y una seccion', 'error');
+    return;
+  }
+
+  try {
+    var res = await apiFetch('/api/reportes/matricula?anio_escolar_id=' + anio_escolar_id + '&seccion_id=' + seccion_id);
+    if (!res) return;
+    var datos = await res.json();
+
+    if (datos.estudiantes.length === 0) {
+      showAlert('alertReportes', 'No hay estudiantes inscritos en esta seccion', 'error');
+      return;
+    }
+
+    await generarPDFMatriculaNuevoFormato(datos);
+    showAlert('alertReportes', 'PDF de matricula (nuevo formato) generado con exito', 'success');
   } catch (error) {
     console.error(error);
     showAlert('alertReportes', 'Error al generar reporte de matricula', 'error');

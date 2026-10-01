@@ -80,8 +80,8 @@
 
       <!-- 1. Matricula Inicial -->
       <div class="report-card">
-        <h3>PDF Matr&#237;cula Inicial (Formato Ministerio)</h3>
-        <p style="color:var(--text-muted); margin-bottom:var(--space-4); font-size:var(--font-size-sm);">Genera la planilla oficial con los estudiantes activos de una secci&#243;n seleccionada.</p>
+        <h3>PDF Matr&#237;cula Inicial</h3>
+        <p style="color:var(--text-muted); margin-bottom:var(--space-4); font-size:var(--font-size-sm);">Genera la planilla de matr&#237;cula inicial con los estudiantes activos de una secci&#243;n. Seleccione el formato deseado.</p>
 
         <div class="report-form-row">
           <div class="form-group">
@@ -94,8 +94,9 @@
               <option value="">Seleccione un a&#241;o escolar primero...</option>
             </select>
           </div>
-          <div>
-            <button class="btn btn-primary" onclick="generarMatricula()">Generar PDF</button>
+          <div style="display:flex; gap:var(--space-2); align-items:end; flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="generarMatricula()" title="Membrete del Ministerio con tabla detallada (D&#237;a/Mes/A&#241;o separados)">&#128196; Formato Anterior</button>
+            <button class="btn btn-primary" onclick="generarMatriculaNuevoFormato()" title="Membrete con escudo de la instituci&#243;n + &#237;cono MPPE, tabla simplificada">&#128196; Nuevo Formato</button>
           </div>
         </div>
       </div>
