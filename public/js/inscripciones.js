@@ -507,10 +507,15 @@ function toggleTodosDocumentos() {
   btn.textContent = todosChecked ? '☑ Seleccionar Todos' : '☐ Deseleccionar Todos';
 }
 
+let guardandoInscripcion = false;
+
 async function guardarInscripcion(e) {
   e.preventDefault();
   hideAlert('alertModal');
   document.querySelectorAll('.campo-error').forEach(el => el.classList.remove('campo-error'));
+
+  // Protección contra doble-click
+  if (guardandoInscripcion) return;
 
   // ★ VALIDAR TODO ANTES DE CREAR NADA ★
   const errores = validarFormularioInscripcion();
@@ -519,159 +524,134 @@ async function guardarInscripcion(e) {
     return;
   }
 
-  const esModoRegistro = document.getElementById('containerEstudiante').classList.contains('modo-registro-activo');
-  let estudianteId = document.getElementById('insc_estudiante_id').value;
-
-  if (esModoRegistro) {
-    // === PASO 1: CREAR EL ESTUDIANTE PRIMERO ===
-    const representante_es = document.querySelector('input[name="ni_representante_es"]:checked').value;
-
-    const bodyEstudiante = {
-      estudiante: {
-        primer_apellido: document.getElementById('ni_e_primer_apellido').value.trim(),
-        segundo_apellido: document.getElementById('ni_e_segundo_apellido').value.trim() || null,
-        primer_nombre: document.getElementById('ni_e_primer_nombre').value.trim(),
-        segundo_nombre: document.getElementById('ni_e_segundo_nombre').value.trim() || null,
-        nacionalidad: document.getElementById('ni_e_nacionalidad').value,
-        sexo: document.getElementById('ni_e_sexo').value,
-        fecha_nacimiento: document.getElementById('ni_e_fecha_nacimiento').value,
-        codigo_escolar: document.getElementById('ni_e_codigo_escolar').value.trim() || null,
-        lugar_nacimiento: document.getElementById('ni_e_lugar_nacimiento').value.trim() || null,
-        estado_nacimiento: document.getElementById('ni_e_estado_nacimiento').value.trim() || null,
-        lateralidad: document.getElementById('ni_e_lateralidad').value || null,
-        tipo_sangre: document.getElementById('ni_e_tipo_sangre').value || null
-      },
-      madre: {
-        cedula: document.getElementById('ni_m_cedula').value.trim(),
-        nacionalidad: document.getElementById('ni_m_nacionalidad').value,
-        apellidos: document.getElementById('ni_m_apellidos').value.trim(),
-        nombres: document.getElementById('ni_m_nombres').value.trim(),
-        fecha_nacimiento: document.getElementById('ni_m_fecha_nacimiento').value || null,
-        profesion_oficio: document.getElementById('ni_m_profesion').value.trim() || null,
-        telefono: document.getElementById('ni_m_telefono').value.trim() || null,
-        estado_civil: document.getElementById('ni_m_estado_civil').value || null,
-        direccion: document.getElementById('ni_m_direccion').value.trim() || null
-      },
-      padre: {
-        cedula: document.getElementById('ni_p_cedula').value.trim(),
-        nacionalidad: document.getElementById('ni_p_nacionalidad').value,
-        apellidos: document.getElementById('ni_p_apellidos').value.trim(),
-        nombres: document.getElementById('ni_p_nombres').value.trim(),
-        fecha_nacimiento: document.getElementById('ni_p_fecha_nacimiento').value || null,
-        profesion_oficio: document.getElementById('ni_p_profesion').value.trim() || null,
-        telefono: document.getElementById('ni_p_telefono').value.trim() || null,
-        estado_civil: document.getElementById('ni_p_estado_civil').value || null,
-        direccion: document.getElementById('ni_p_direccion').value.trim() || null
-      },
-      representante_es
-    };
-
-    if (representante_es === 'OTRO') {
-      bodyEstudiante.representante = {
-        cedula: document.getElementById('ni_r_cedula').value.trim(),
-        nacionalidad: document.getElementById('ni_r_nacionalidad').value,
-        apellidos: document.getElementById('ni_r_apellidos').value.trim(),
-        nombres: document.getElementById('ni_r_nombres').value.trim(),
-        fecha_nacimiento: document.getElementById('ni_r_fecha_nacimiento').value || null,
-        profesion_oficio: document.getElementById('ni_r_profesion').value.trim() || null,
-        telefono: document.getElementById('ni_r_telefono').value.trim() || null,
-        direccion: document.getElementById('ni_r_direccion').value.trim() || null
-        // Parentesco es un campo que podríamos guardar si estuviera en el schema de personas
-      };
-    }
-
-    try {
-      const resEst = await apiFetch('/api/estudiantes', {
-        method: 'POST',
-        body: JSON.stringify(bodyEstudiante)
-      });
-
-      if (!resEst || !resEst.ok) {
-        const err = await resEst.json();
-        showAlert('alertModal', err.error || 'Error al crear estudiante', 'error');
-        return; // detener la inscripción si falla la creación del estudiante
-      }
-
-      const nuevoEst = await resEst.json();
-      estudianteId = nuevoEst.id;
-
-    } catch (error) {
-      showAlert('alertModal', 'Error de conexión al crear estudiante', 'error');
-      return;
-    }
+  guardandoInscripcion = true;
+  const btnGuardar = e.target.querySelector('button[type="submit"]');
+  const textoOriginal = btnGuardar ? btnGuardar.textContent : '';
+  if (btnGuardar) {
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
   }
 
-  // === PASO 2: CREAR/ACTUALIZAR LA INSCRIPCIÓN ===
-
-  const bodyInsc = {
-    estudiante_id: parseInt(estudianteId),
-    seccion_id: parseInt(document.getElementById('insc_seccion').value),
-    anio_escolar_id: parseInt(document.getElementById('insc_anio').value),
-    fecha_inscripcion: document.getElementById('insc_fecha').value,
-    modalidad: document.getElementById('insc_modalidad').value,
-    literal: document.getElementById('insc_literal').value || null,
-    // Documentos
-    doc_partida_nacimiento: document.getElementById('doc_partida').checked,
-    doc_boleta_promocion: document.getElementById('doc_boleta').checked,
-    doc_ci_madre: document.getElementById('doc_ci_madre').checked,
-    doc_ci_padre: document.getElementById('doc_ci_padre').checked,
-    doc_foto_estudiante: document.getElementById('doc_foto_est').checked,
-    doc_foto_representante: document.getElementById('doc_foto_rep').checked,
-    doc_carpeta_marron: document.getElementById('doc_carpeta').checked,
-    doc_acta_compromiso: document.getElementById('doc_acta').checked,
-    // Datos Variables (Sección 4)
-    telefono: document.getElementById('insc_telefono')?.value.trim() || null,
-    correo_electronico: document.getElementById('insc_correo_electronico')?.value.trim() || null,
-    direccion: document.getElementById('insc_direccion')?.value.trim() || null,
-    talla: document.getElementById('insc_talla')?.value.trim() || null,
-    peso: document.getElementById('insc_peso')?.value.trim() || null,
-    talla_camisa: document.getElementById('insc_talla_camisa')?.value.trim() || null,
-    talla_pantalon: document.getElementById('insc_talla_pantalon')?.value.trim() || null,
-    talla_zapato: document.getElementById('insc_talla_zapato')?.value.trim() || null,
-    // Procedencia (Sección 5)
-    misma_institucion: document.getElementById('insc_misma_institucion')?.value === 'true',
-    institucion_procedencia: document.getElementById('insc_institucion_procedencia')?.value.trim() || null,
-    motivo_retiro_procedencia: document.getElementById('insc_motivo_retiro_procedencia')?.value.trim() || null,
-    con_quien_vive: document.getElementById('insc_con_quien_vive')?.value || null,
-    tiene_hermanos_institucion: document.getElementById('insc_tiene_hermanos')?.value === 'true',
-    cantidad_hermanos: document.getElementById('insc_cantidad_hermanos')?.value ? parseInt(document.getElementById('insc_cantidad_hermanos').value) : null,
-    // Socioeconómico (Sección 6)
-    tipo_vivienda: document.getElementById('insc_tipo_vivienda')?.value || null,
-    condicion_infraestructura: document.getElementById('insc_condicion_infraestructura')?.value || null,
-    // EXTRA MÉDICO Y SOCIAL
-    medico: {
-      tipo_parto: document.getElementById('insc_tipo_parto')?.value || null,
-      meses_prematuro: document.getElementById('insc_meses_prematuro')?.value ? parseInt(document.getElementById('insc_meses_prematuro').value) : null,
-      apreciacion_medico: document.getElementById('insc_apreciacion_medico')?.value || null,
-      apreciacion_detalle: document.getElementById('insc_apreciacion_detalle')?.value.trim() || null,
-      vacunas_completas: document.getElementById('insc_vacunas_completas')?.value === 'true',
-      vacunas_faltantes: document.getElementById('insc_vacunas_faltantes')?.value.trim() || null,
-      alergico: document.getElementById('insc_alergico')?.value === 'true',
-      alergico_detalle: document.getElementById('insc_alergico_detalle')?.value.trim() || null,
-      tratamiento: document.getElementById('insc_tratamiento')?.value === 'true',
-      tratamiento_detalle: document.getElementById('insc_tratamiento_detalle')?.value.trim() || null,
-      enfermedades: document.getElementById('insc_enfermedades')?.value.trim() || null,
-    },
-    social: {
-      pasivo: document.getElementById('insc_int_pasivo')?.checked || false,
-      inquieto: document.getElementById('insc_int_inquieto')?.checked || false,
-      tierno: document.getElementById('insc_int_tierno')?.checked || false,
-      sensible: document.getElementById('insc_int_sensible')?.checked || false,
-      habilidades: document.getElementById('insc_habilidades')?.value.trim() || null,
-    }
-  };
-
   try {
-    const id = document.getElementById('insc_id').value;
-    const url = id ? `/api/inscripciones/${id}` : '/api/inscripciones';
-    const method = id ? 'PUT' : 'POST';
+    const esModoRegistro = document.getElementById('containerEstudiante').classList.contains('modo-registro-activo');
+    let estudianteId = document.getElementById('insc_estudiante_id').value;
 
-    const res = await apiFetch(url, { method, body: JSON.stringify(bodyInsc) });
+    // Construir datos de inscripción (comunes para ambos modos)
+    const inscData = {
+      seccion_id: parseInt(document.getElementById('insc_seccion').value),
+      anio_escolar_id: parseInt(document.getElementById('insc_anio').value),
+      fecha_inscripcion: document.getElementById('insc_fecha').value,
+      modalidad: document.getElementById('insc_modalidad').value,
+      literal: document.getElementById('insc_literal').value || null,
+      doc_partida_nacimiento: document.getElementById('doc_partida').checked,
+      doc_boleta_promocion: document.getElementById('doc_boleta').checked,
+      doc_ci_madre: document.getElementById('doc_ci_madre').checked,
+      doc_ci_padre: document.getElementById('doc_ci_padre').checked,
+      doc_foto_estudiante: document.getElementById('doc_foto_est').checked,
+      doc_foto_representante: document.getElementById('doc_foto_rep').checked,
+      doc_carpeta_marron: document.getElementById('doc_carpeta').checked,
+      doc_acta_compromiso: document.getElementById('doc_acta').checked,
+      telefono: document.getElementById('insc_telefono')?.value.trim() || null,
+      correo_electronico: document.getElementById('insc_correo_electronico')?.value.trim() || null,
+      direccion: document.getElementById('insc_direccion')?.value.trim() || null,
+      talla: document.getElementById('insc_talla')?.value.trim() || null,
+      peso: document.getElementById('insc_peso')?.value.trim() || null,
+      talla_camisa: document.getElementById('insc_talla_camisa')?.value.trim() || null,
+      talla_pantalon: document.getElementById('insc_talla_pantalon')?.value.trim() || null,
+      talla_zapato: document.getElementById('insc_talla_zapato')?.value.trim() || null,
+      misma_institucion: document.getElementById('insc_misma_institucion')?.value === 'true',
+      institucion_procedencia: document.getElementById('insc_institucion_procedencia')?.value.trim() || null,
+      motivo_retiro_procedencia: document.getElementById('insc_motivo_retiro_procedencia')?.value.trim() || null,
+      con_quien_vive: document.getElementById('insc_con_quien_vive')?.value || null,
+      tiene_hermanos_institucion: document.getElementById('insc_tiene_hermanos')?.value === 'true',
+      cantidad_hermanos: document.getElementById('insc_cantidad_hermanos')?.value ? parseInt(document.getElementById('insc_cantidad_hermanos').value) : null,
+      tipo_vivienda: document.getElementById('insc_tipo_vivienda')?.value || null,
+      condicion_infraestructura: document.getElementById('insc_condicion_infraestructura')?.value || null,
+      medico: {
+        tipo_parto: document.getElementById('insc_tipo_parto')?.value || null,
+        meses_prematuro: document.getElementById('insc_meses_prematuro')?.value ? parseInt(document.getElementById('insc_meses_prematuro').value) : null,
+        apreciacion_medico: document.getElementById('insc_apreciacion_medico')?.value || null,
+        apreciacion_detalle: document.getElementById('insc_apreciacion_detalle')?.value.trim() || null,
+        vacunas_completas: document.getElementById('insc_vacunas_completas')?.value === 'true',
+        vacunas_faltantes: document.getElementById('insc_vacunas_faltantes')?.value.trim() || null,
+        alergico: document.getElementById('insc_alergico')?.value === 'true',
+        alergico_detalle: document.getElementById('insc_alergico_detalle')?.value.trim() || null,
+        tratamiento: document.getElementById('insc_tratamiento')?.value === 'true',
+        tratamiento_detalle: document.getElementById('insc_tratamiento_detalle')?.value.trim() || null,
+        enfermedades: document.getElementById('insc_enfermedades')?.value.trim() || null,
+      },
+      social: {
+        pasivo: document.getElementById('insc_int_pasivo')?.checked || false,
+        inquieto: document.getElementById('insc_int_inquieto')?.checked || false,
+        tierno: document.getElementById('insc_int_tierno')?.checked || false,
+        sensible: document.getElementById('insc_int_sensible')?.checked || false,
+        habilidades: document.getElementById('insc_habilidades')?.value.trim() || null,
+      }
+    };
 
-    if (res && res.ok) {
-      const inscResult = await res.json();
+    if (esModoRegistro) {
+      // ========================================
+      // MODO NUEVO: Endpoint UNIFICADO /api/inscripciones/completa
+      // Personas + Estudiante + Inscripción + Colaboración en UNA sola transacción
+      // Si falla cualquier paso, se revierte TODO automáticamente
+      // ========================================
+      const representante_es = document.querySelector('input[name="ni_representante_es"]:checked').value;
 
-      // === PASO 3: GUARDAR COLABORACIÓN (si hay datos) ===
+      const bodyCompleta = {
+        estudiante: {
+          primer_apellido: document.getElementById('ni_e_primer_apellido').value.trim(),
+          segundo_apellido: document.getElementById('ni_e_segundo_apellido').value.trim() || null,
+          primer_nombre: document.getElementById('ni_e_primer_nombre').value.trim(),
+          segundo_nombre: document.getElementById('ni_e_segundo_nombre').value.trim() || null,
+          nacionalidad: document.getElementById('ni_e_nacionalidad').value,
+          sexo: document.getElementById('ni_e_sexo').value,
+          fecha_nacimiento: document.getElementById('ni_e_fecha_nacimiento').value,
+          codigo_escolar: document.getElementById('ni_e_codigo_escolar').value.trim() || null,
+          lugar_nacimiento: document.getElementById('ni_e_lugar_nacimiento').value.trim() || null,
+          estado_nacimiento: document.getElementById('ni_e_estado_nacimiento').value.trim() || null,
+          lateralidad: document.getElementById('ni_e_lateralidad').value || null,
+          tipo_sangre: document.getElementById('ni_e_tipo_sangre').value || null
+        },
+        madre: {
+          cedula: document.getElementById('ni_m_cedula').value.trim(),
+          nacionalidad: document.getElementById('ni_m_nacionalidad').value,
+          apellidos: document.getElementById('ni_m_apellidos').value.trim(),
+          nombres: document.getElementById('ni_m_nombres').value.trim(),
+          fecha_nacimiento: document.getElementById('ni_m_fecha_nacimiento').value || null,
+          profesion_oficio: document.getElementById('ni_m_profesion').value.trim() || null,
+          telefono: document.getElementById('ni_m_telefono').value.trim() || null,
+          estado_civil: document.getElementById('ni_m_estado_civil').value || null,
+          direccion: document.getElementById('ni_m_direccion').value.trim() || null
+        },
+        padre: {
+          cedula: document.getElementById('ni_p_cedula').value.trim(),
+          nacionalidad: document.getElementById('ni_p_nacionalidad').value,
+          apellidos: document.getElementById('ni_p_apellidos').value.trim(),
+          nombres: document.getElementById('ni_p_nombres').value.trim(),
+          fecha_nacimiento: document.getElementById('ni_p_fecha_nacimiento').value || null,
+          profesion_oficio: document.getElementById('ni_p_profesion').value.trim() || null,
+          telefono: document.getElementById('ni_p_telefono').value.trim() || null,
+          estado_civil: document.getElementById('ni_p_estado_civil').value || null,
+          direccion: document.getElementById('ni_p_direccion').value.trim() || null
+        },
+        representante_es,
+        inscripcion: inscData
+      };
+
+      if (representante_es === 'OTRO') {
+        bodyCompleta.representante = {
+          cedula: document.getElementById('ni_r_cedula').value.trim(),
+          nacionalidad: document.getElementById('ni_r_nacionalidad').value,
+          apellidos: document.getElementById('ni_r_apellidos').value.trim(),
+          nombres: document.getElementById('ni_r_nombres').value.trim(),
+          fecha_nacimiento: document.getElementById('ni_r_fecha_nacimiento').value || null,
+          profesion_oficio: document.getElementById('ni_r_profesion').value.trim() || null,
+          telefono: document.getElementById('ni_r_telefono').value.trim() || null,
+          direccion: document.getElementById('ni_r_direccion').value.trim() || null
+        };
+      }
+
+      // Colaboración (si hay datos)
       const colabProducto = document.getElementById('colab_producto')?.value.trim();
       const colabMontoTotal = document.getElementById('colab_monto_total')?.value;
       const colabTipoPago = document.getElementById('colab_tipo_pago')?.value;
@@ -680,68 +660,134 @@ async function guardarInscripcion(e) {
       const colabObs = document.getElementById('colab_observaciones')?.value.trim();
 
       if (colabProducto || (colabMontoTotal && parseFloat(colabMontoTotal) > 0)) {
-        try {
-          // Obtener datos del estudiante para nombre desnormalizado
-          const estRes = await apiFetch(`/api/estudiantes/${inscResult.estudiante_id || estudianteId}`);
-          let estudianteNombre = '';
-          let representanteId = null;
-          if (estRes && estRes.ok) {
-            const estData = await estRes.json();
-            estudianteNombre = [estData.primer_apellido, estData.primer_nombre].filter(Boolean).join(', ');
-            representanteId = estData.representante_id;
-          }
+        bodyCompleta.colaboracion = {
+          representante_id: 0, // Se asignará en el servidor
+          estudiante_nombre: bodyCompleta.estudiante.primer_apellido + ', ' + bodyCompleta.estudiante.primer_nombre,
+          hijos_inscritos: 1,
+          colaboraciones_requeridas: 1,
+          monto_total: parseFloat(colabMontoTotal) || 0,
+          producto: colabProducto || null,
+          observaciones: colabObs || null
+        };
 
-          if (representanteId) {
-            // Consultar hijos inscritos para calcular descuento
-            const anioId = document.getElementById('insc_anio').value;
-            const hijosRes = await apiFetch(`/api/colaboraciones/hijos-representante/${representanteId}?anio_escolar_id=${anioId}`);
-            let hijosData = { hijos_inscritos: 1, colaboraciones_requeridas: 1 };
-            if (hijosRes && hijosRes.ok) {
-              hijosData = await hijosRes.json();
-            }
-
-            const colabBody = {
-              inscripcion_id: inscResult.id,
-              representante_id: representanteId,
-              estudiante_nombre: estudianteNombre,
-              hijos_inscritos: hijosData.hijos_inscritos,
-              colaboraciones_requeridas: hijosData.colaboraciones_requeridas,
-              monto_total: parseFloat(colabMontoTotal) || 0,
-              producto: colabProducto || null,
-              observaciones: colabObs || null
-            };
-
-            // Si hay un pago inicial
-            if (colabTipoPago && colabMontoPago && parseFloat(colabMontoPago) > 0) {
-              colabBody.pago = {
-                monto: parseFloat(colabMontoPago),
-                tipo_pago: colabTipoPago,
-                referencia_pago: colabTipoPago === 'PAGO_MOVIL' ? colabReferencia : null
-              };
-            }
-
-            await apiFetch('/api/colaboraciones', {
-              method: 'POST',
-              body: JSON.stringify(colabBody)
-            });
-          }
-        } catch (colabError) {
-          console.error('Error al guardar colaboración:', colabError);
-          // No bloquear la inscripción si falla la colaboración
+        if (colabTipoPago && colabMontoPago && parseFloat(colabMontoPago) > 0) {
+          bodyCompleta.colaboracion.pago = {
+            monto: parseFloat(colabMontoPago),
+            tipo_pago: colabTipoPago,
+            referencia_pago: colabTipoPago === 'PAGO_MOVIL' ? colabReferencia : null
+          };
         }
       }
 
-      cerrarModalInscripcion();
-      showAlert('alertInscripciones', 'Inscripción registrada exitosamente', 'success');
-      loadInscripciones();
-    } else if (res) {
-      const err = await res.json();
-      showAlert('alertModal', err.error || 'Error al inscribir', 'error');
+      const res = await apiFetch('/api/inscripciones/completa', {
+        method: 'POST',
+        body: JSON.stringify(bodyCompleta)
+      });
+
+      if (res && res.ok) {
+        cerrarModalInscripcion();
+        showAlert('alertInscripciones', 'Inscripción registrada exitosamente', 'success');
+        loadInscripciones();
+      } else if (res) {
+        const err = await res.json();
+        showAlert('alertModal', err.error || 'Error al inscribir', 'error');
+      }
+
+    } else {
+      // ========================================
+      // MODO EXISTENTE: El estudiante ya existe, solo crear/actualizar inscripción
+      // ========================================
+      const bodyInsc = {
+        estudiante_id: parseInt(estudianteId),
+        ...inscData
+      };
+
+      const id = document.getElementById('insc_id').value;
+      const url = id ? `/api/inscripciones/${id}` : '/api/inscripciones';
+      const method = id ? 'PUT' : 'POST';
+
+      const res = await apiFetch(url, { method, body: JSON.stringify(bodyInsc) });
+
+      if (res && res.ok) {
+        const inscResult = await res.json();
+
+        // Colaboración (solo para nuevas inscripciones)
+        if (!id) {
+          const colabProducto = document.getElementById('colab_producto')?.value.trim();
+          const colabMontoTotal = document.getElementById('colab_monto_total')?.value;
+          const colabTipoPago = document.getElementById('colab_tipo_pago')?.value;
+          const colabMontoPago = document.getElementById('colab_monto_pago')?.value;
+          const colabReferencia = document.getElementById('colab_referencia')?.value.trim();
+          const colabObs = document.getElementById('colab_observaciones')?.value.trim();
+
+          if (colabProducto || (colabMontoTotal && parseFloat(colabMontoTotal) > 0)) {
+            try {
+              const estRes = await apiFetch(`/api/estudiantes/${inscResult.estudiante_id || estudianteId}`);
+              let estudianteNombre = '';
+              let representanteId = null;
+              if (estRes && estRes.ok) {
+                const estData = await estRes.json();
+                estudianteNombre = [estData.primer_apellido, estData.primer_nombre].filter(Boolean).join(', ');
+                representanteId = estData.representante_id;
+              }
+
+              if (representanteId) {
+                const anioId = document.getElementById('insc_anio').value;
+                const hijosRes = await apiFetch(`/api/colaboraciones/hijos-representante/${representanteId}?anio_escolar_id=${anioId}`);
+                let hijosData = { hijos_inscritos: 1, colaboraciones_requeridas: 1 };
+                if (hijosRes && hijosRes.ok) {
+                  hijosData = await hijosRes.json();
+                }
+
+                const colabBody = {
+                  inscripcion_id: inscResult.id,
+                  representante_id: representanteId,
+                  estudiante_nombre: estudianteNombre,
+                  hijos_inscritos: hijosData.hijos_inscritos,
+                  colaboraciones_requeridas: hijosData.colaboraciones_requeridas,
+                  monto_total: parseFloat(colabMontoTotal) || 0,
+                  producto: colabProducto || null,
+                  observaciones: colabObs || null
+                };
+
+                if (colabTipoPago && colabMontoPago && parseFloat(colabMontoPago) > 0) {
+                  colabBody.pago = {
+                    monto: parseFloat(colabMontoPago),
+                    tipo_pago: colabTipoPago,
+                    referencia_pago: colabTipoPago === 'PAGO_MOVIL' ? colabReferencia : null
+                  };
+                }
+
+                await apiFetch('/api/colaboraciones', {
+                  method: 'POST',
+                  body: JSON.stringify(colabBody)
+                });
+              }
+            } catch (colabError) {
+              console.error('Error al guardar colaboración:', colabError);
+            }
+          }
+        }
+
+        cerrarModalInscripcion();
+        showAlert('alertInscripciones', 'Inscripción registrada exitosamente', 'success');
+        loadInscripciones();
+      } else if (res) {
+        const err = await res.json();
+        showAlert('alertModal', err.error || 'Error al inscribir', 'error');
+      }
     }
   } catch (error) {
     showAlert('alertModal', 'Error de conexión', 'error');
+  } finally {
+    guardandoInscripcion = false;
+    if (btnGuardar) {
+      btnGuardar.disabled = false;
+      btnGuardar.textContent = textoOriginal;
+    }
   }
 }
+
 
 // ==========================================
 // VER Y RETIRAR

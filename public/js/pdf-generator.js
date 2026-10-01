@@ -165,6 +165,188 @@ async function generarPDFMatriculaInicial(datos) {
   doc.save(filename);
 }
 
+// ==================== NUEVO FORMATO ====================
+
+function drawFieldNF(doc, label, value, x, y, maxX) {
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text(label, x, y);
+  var labelW = doc.getTextWidth(label);
+  doc.setFont('helvetica', 'normal');
+  var val = (value || '').toUpperCase();
+  var valX = x + labelW + 1;
+  // Recortar texto si se pasa del margen
+  var availW = maxX ? (maxX - valX - 2) : 999;
+  if (doc.getTextWidth(val) > availW && availW > 0) {
+    while (doc.getTextWidth(val + '...') > availW && val.length > 0) {
+      val = val.slice(0, -1);
+    }
+    val = val + '...';
+  }
+  doc.text(val, valX, y);
+  var valW = doc.getTextWidth(val);
+  var lineEnd = Math.max(valX + valW, valX + 30);
+  doc.setLineWidth(0.4);
+  doc.line(valX - 1, y + 1.5, lineEnd, y + 1.5);
+  return lineEnd + 6;
+}
+
+async function generarPDFMatriculaNuevoFormato(datos) {
+  var doc = inicializarPDF(true);
+  var pageW = doc.internal.pageSize.getWidth();
+  var marginL = 15;
+  var marginR = 15;
+  var maxX = pageW - marginR;
+
+  var config = datos.config || {};
+  var anioEscolar = datos.anio_escolar ? datos.anio_escolar.nombre : '';
+
+  // ---- MEMBRETE ----
+  // Escudo de la institución (izquierda, pegado al membrete)
+  var logoEscuela = await loadImageDataUrl('/img/logo_escuela.png');
+  var centroX = pageW / 2;
+  var logoSize = 42;
+  var textoAncho = 220; // ancho estimado del bloque de texto central
+  if (logoEscuela) {
+    doc.addImage(logoEscuela, 'PNG', centroX - textoAncho / 2 - logoSize - 8, 12, logoSize, logoSize);
+  }
+
+  // Ícono MPPE (derecha, pegado al membrete)
+  var logoMppeIcono = await loadImageDataUrl('/img/logo_MPPE_icono.png');
+  if (logoMppeIcono) {
+    doc.addImage(logoMppeIcono, 'PNG', centroX + textoAncho / 2 + 8, 14, logoSize - 4, logoSize - 4);
+  }
+
+  // Texto del membrete centrado
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('República Bolivariana de Venezuela', centroX, 26, { align: 'center' });
+
+  var nombreInst = config.nombre_escuela || '';
+  doc.text(nombreInst, centroX, 37, { align: 'center' });
+
+  var localidad = config.localidad || '';
+  var municipio = config.municipio || '';
+  var ubicacion = localidad;
+  if (municipio) ubicacion += (localidad ? ' - ' : '') + 'Municipio ' + municipio;
+  doc.text(ubicacion, centroX, 48, { align: 'center' });
+
+  // ---- TÍTULO (tamaño 14) ----
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('INSCRIPCIÓN INICIAL AÑO ESCOLAR ' + anioEscolar, centroX, 66, { align: 'center' });
+
+  // ---- INFO DE LA INSTITUCIÓN ----
+  // Línea 1: INSTITUCIÓN: NOMBRE (bold + subrayado)
+  var yInfo = 80;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('INSTITUCIÓN: ', marginL, yInfo);
+  var instLabelW = doc.getTextWidth('INSTITUCIÓN: ');
+  doc.setFont('helvetica', 'bold');
+  var instName = (config.nombre_escuela || '').toUpperCase();
+  doc.text(instName, marginL + instLabelW, yInfo);
+  var nameW = doc.getTextWidth(instName);
+  doc.setLineWidth(0.4);
+  doc.line(marginL + instLabelW, yInfo + 1.5, marginL + instLabelW + nameW, yInfo + 1.5);
+
+  // Línea 2: Grado:___ Sección:___ Docente:___ C.I. No.___
+  yInfo += 14;
+  var gradoNombre = datos.grado ? datos.grado.nombre : '';
+  var seccionLetra = datos.seccion ? '"' + datos.seccion.letra + '"' : '';
+  var prof1 = datos.profesores && datos.profesores.length > 0 ? datos.profesores[0] : null;
+  var docenteNombre = prof1 ? prof1.nombre : 'NO ASIGNADO';
+  var docenteCI = prof1 ? prof1.cedula : '';
+
+  var xPos = marginL;
+  xPos = drawFieldNF(doc, 'Grado: ', gradoNombre, xPos, yInfo, maxX);
+  xPos = drawFieldNF(doc, 'Sección: ', seccionLetra, xPos, yInfo, maxX);
+  xPos = drawFieldNF(doc, 'Docente: ', docenteNombre, xPos, yInfo, maxX);
+  drawFieldNF(doc, 'C.I. No. ', docenteCI, xPos, yInfo, maxX);
+
+  // Línea 3: Municipio:___ Parroquia:___ Dirección:___
+  yInfo += 14;
+  xPos = marginL;
+  xPos = drawFieldNF(doc, 'Municipio: ', config.municipio || '', xPos, yInfo, maxX);
+  xPos = drawFieldNF(doc, 'Parroquia: ', config.parroquia || '', xPos, yInfo, maxX);
+  drawFieldNF(doc, 'Dirección: ', config.direccion || '', xPos, yInfo, maxX);
+
+  // ---- TABLA ----
+  var head = [[
+    { content: 'N°', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Código o\nCédula Escolar', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Apellidos y Nombres', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Lugar de\nNacimiento', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Fecha de\nNacimiento', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Edad', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Sexo', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Representante', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Cédula de\nIdentidad', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Dirección', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Teléfono', styles: { halign: 'center', valign: 'middle' } }
+  ]];
+
+  var data = datos.estudiantes.map(function(e) {
+    return [
+      e.numero,
+      e.codigo_escolar,
+      e.apellidos_nombres,
+      e.lugar_nacimiento,
+      e.fecha_nacimiento,
+      e.edad,
+      e.sexo,
+      e.representante,
+      e.ci_representante,
+      e.direccion,
+      e.telefono
+    ];
+  });
+
+  doc.autoTable({
+    startY: yInfo + 10,
+    head: head,
+    body: data,
+    theme: 'grid',
+    margin: { left: marginL, right: marginR },
+    styles: {
+      fontSize: 8,
+      fontStyle: 'bold',
+      cellPadding: 1.5,
+      overflow: 'linebreak',
+      lineWidth: 0.2,
+      lineColor: [0, 0, 0]
+    },
+    headStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      fontStyle: 'bold',
+      fontSize: 8,
+      cellPadding: 2
+    },
+    bodyStyles: {
+      valign: 'middle'
+    },
+    columnStyles: {
+      0: { cellWidth: 18, halign: 'center' },
+      1: { cellWidth: 60 },
+      2: { cellWidth: 132 },
+      3: { cellWidth: 58 },
+      4: { cellWidth: 48, halign: 'center' },
+      5: { cellWidth: 26, halign: 'center' },
+      6: { cellWidth: 22, halign: 'center' },
+      7: { cellWidth: 90 },
+      8: { cellWidth: 52 },
+      9: { cellWidth: 192 },
+      10: { cellWidth: 60 }
+    }
+  });
+
+  var filename = 'Matricula_NF_' + (datos.grado ? datos.grado.nombre.replace(/\s+/g, '_') : 'X') + '_Sec_' + (datos.seccion ? datos.seccion.letra : 'X') + '_' + anioEscolar + '.pdf';
+  doc.save(filename);
+}
+
+
+
 async function generarPDFFichaInscripcion(datos, tipo) {
   var doc = inicializarPDF(false);
   var pageW = doc.internal.pageSize.getWidth();
