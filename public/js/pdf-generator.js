@@ -287,18 +287,19 @@ async function generarPDFMatriculaNuevoFormato(datos) {
   ]];
 
   var data = datos.estudiantes.map(function(e) {
+    var toUpper = function(val) { return val ? String(val).toUpperCase() : ''; };
     return [
       e.numero,
-      e.codigo_escolar,
-      e.apellidos_nombres,
-      e.lugar_nacimiento,
-      e.fecha_nacimiento,
+      toUpper(e.codigo_escolar),
+      toUpper(e.apellidos_nombres),
+      toUpper(e.lugar_nacimiento),
+      toUpper(e.fecha_nacimiento),
       e.edad,
-      e.sexo,
-      e.representante,
-      e.ci_representante,
-      e.direccion,
-      e.telefono
+      toUpper(e.sexo),
+      toUpper(e.representante),
+      toUpper(e.ci_representante),
+      toUpper(e.direccion),
+      toUpper(e.telefono)
     ];
   });
 
@@ -330,13 +331,13 @@ async function generarPDFMatriculaNuevoFormato(datos) {
       0: { cellWidth: 18, halign: 'center' },
       1: { cellWidth: 60 },
       2: { cellWidth: 132 },
-      3: { cellWidth: 58 },
+      3: { cellWidth: 78 }, // Aumentado de 58 a 78
       4: { cellWidth: 48, halign: 'center' },
       5: { cellWidth: 26, halign: 'center' },
       6: { cellWidth: 22, halign: 'center' },
       7: { cellWidth: 90 },
       8: { cellWidth: 52 },
-      9: { cellWidth: 192 },
+      9: { cellWidth: 172 }, // Disminuido de 192 a 172 para compensar
       10: { cellWidth: 60 }
     }
   });
