@@ -23,16 +23,26 @@ router.get('/', async (req, res) => {
     // Búsqueda por nombre del estudiante
     if (buscar && buscar.trim()) {
       const termino = buscar.trim();
-      where.estudiante = {
-        eliminado: false,
-        OR: [
-          { primer_nombre: { contains: termino } },
-          { primer_apellido: { contains: termino } },
-          { segundo_nombre: { contains: termino } },
-          { segundo_apellido: { contains: termino } },
-          { codigo_escolar: { contains: termino } }
-        ]
-      };
+      const terminos = termino.split(/\s+/).filter(t => t.length > 0);
+      const camposBusqueda = (t) => ([
+        { primer_nombre: { contains: t } },
+        { primer_apellido: { contains: t } },
+        { segundo_nombre: { contains: t } },
+        { segundo_apellido: { contains: t } },
+        { codigo_escolar: { contains: t } }
+      ]);
+
+      if (terminos.length > 1) {
+        where.estudiante = {
+          eliminado: false,
+          AND: terminos.map(t => ({ OR: camposBusqueda(t) }))
+        };
+      } else {
+        where.estudiante = {
+          eliminado: false,
+          OR: camposBusqueda(termino)
+        };
+      }
     }
 
     const [inscripciones, total] = await Promise.all([
@@ -49,7 +59,13 @@ router.get('/', async (req, res) => {
           seccion: {
             include: { grado: { select: { id: true, nombre: true, orden: true } } }
           },
-          anio_escolar: { select: { id: true, nombre: true } }
+          anio_escolar: { select: { id: true, nombre: true } },
+          colaboracion: {
+            select: {
+              id: true, monto_total: true, producto: true,
+              pagos: { select: { monto: true } }
+            }
+          }
         },
         orderBy: [
           { seccion: { grado: { orden: 'asc' } } },
@@ -203,50 +219,97 @@ router.post('/completa', async (req, res) => {
           }
         }
       });
-      if (yaInscrito && !yaInscrito.eliminado) {
-        throw new Error('Este estudiante ya está inscrito en este año escolar.');
-      }
 
-      // 4. Crear inscripción
-      const inscripcion = await prisma.inscripciones.create({
-        data: {
-          estudiante_id: nuevoEstudiante.id,
-          seccion_id: parseInt(inscData.seccion_id),
-          anio_escolar_id: parseInt(inscData.anio_escolar_id),
-          fecha_inscripcion: new Date(inscData.fecha_inscripcion),
-          modalidad: inscData.modalidad || 'REGULAR',
-          estado: 'ACTIVO',
-          direccion: inscData.direccion || null,
-          telefono: inscData.telefono || null,
-          correo_electronico: inscData.correo_electronico || null,
-          talla: inscData.talla || null,
-          peso: inscData.peso || null,
-          talla_camisa: inscData.talla_camisa || null,
-          talla_pantalon: inscData.talla_pantalon || null,
-          talla_zapato: inscData.talla_zapato || null,
-          doc_partida_nacimiento: inscData.doc_partida_nacimiento || false,
-          doc_boleta_promocion: inscData.doc_boleta_promocion || false,
-          doc_ci_madre: inscData.doc_ci_madre || false,
-          doc_ci_padre: inscData.doc_ci_padre || false,
-          doc_foto_estudiante: inscData.doc_foto_estudiante || false,
-          doc_foto_representante: inscData.doc_foto_representante || false,
-          doc_carpeta_marron: inscData.doc_carpeta_marron || false,
-          doc_acta_compromiso: inscData.doc_acta_compromiso || false,
-          misma_institucion: inscData.misma_institucion !== undefined ? inscData.misma_institucion : true,
-          institucion_procedencia: inscData.institucion_procedencia || null,
-          motivo_retiro_procedencia: inscData.motivo_retiro_procedencia || null,
-          con_quien_vive: inscData.con_quien_vive || null,
-          tiene_hermanos_institucion: inscData.tiene_hermanos_institucion || false,
-          cantidad_hermanos: inscData.cantidad_hermanos ? parseInt(inscData.cantidad_hermanos) : null,
-          tipo_vivienda: inscData.tipo_vivienda || null,
-          condicion_infraestructura: inscData.condicion_infraestructura || null,
-          integracion_pasivo: inscData.social ? inscData.social.pasivo : false,
-          integracion_inquieto: inscData.social ? inscData.social.inquieto : false,
-          integracion_tierno: inscData.social ? inscData.social.tierno : false,
-          integracion_sensible: inscData.social ? inscData.social.sensible : false,
-          habilidades: inscData.social ? inscData.social.habilidades : null,
+      let inscripcion;
+
+      if (yaInscrito && !yaInscrito.eliminado) {
+        if (yaInscrito.estado === 'RETIRADO') {
+          // Reactivar inscripción existente con nuevos datos
+          inscripcion = await prisma.inscripciones.update({
+            where: { id: yaInscrito.id },
+            data: {
+              seccion_id: parseInt(inscData.seccion_id),
+              fecha_inscripcion: new Date(inscData.fecha_inscripcion),
+              modalidad: inscData.modalidad || 'REGULAR',
+              estado: 'ACTIVO',
+              motivo_retiro_saliente: null,
+              fecha_retiro: null,
+              direccion: inscData.direccion || null,
+              telefono: inscData.telefono || null,
+              correo_electronico: inscData.correo_electronico || null,
+              talla: inscData.talla || null,
+              peso: inscData.peso || null,
+              talla_camisa: inscData.talla_camisa || null,
+              talla_pantalon: inscData.talla_pantalon || null,
+              talla_zapato: inscData.talla_zapato || null,
+              doc_partida_nacimiento: inscData.doc_partida_nacimiento || false,
+              doc_boleta_promocion: inscData.doc_boleta_promocion || false,
+              doc_ci_madre: inscData.doc_ci_madre || false,
+              doc_ci_padre: inscData.doc_ci_padre || false,
+              doc_foto_estudiante: inscData.doc_foto_estudiante || false,
+              doc_foto_representante: inscData.doc_foto_representante || false,
+              doc_carpeta_marron: inscData.doc_carpeta_marron || false,
+              doc_acta_compromiso: inscData.doc_acta_compromiso || false,
+              misma_institucion: inscData.misma_institucion !== undefined ? inscData.misma_institucion : true,
+              institucion_procedencia: inscData.institucion_procedencia || null,
+              motivo_retiro_procedencia: inscData.motivo_retiro_procedencia || null,
+              con_quien_vive: inscData.con_quien_vive || null,
+              tiene_hermanos_institucion: inscData.tiene_hermanos_institucion || false,
+              cantidad_hermanos: inscData.cantidad_hermanos ? parseInt(inscData.cantidad_hermanos) : null,
+              tipo_vivienda: inscData.tipo_vivienda || null,
+              condicion_infraestructura: inscData.condicion_infraestructura || null,
+              integracion_pasivo: inscData.social ? inscData.social.pasivo : false,
+              integracion_inquieto: inscData.social ? inscData.social.inquieto : false,
+              integracion_tierno: inscData.social ? inscData.social.tierno : false,
+              integracion_sensible: inscData.social ? inscData.social.sensible : false,
+              habilidades: inscData.social ? inscData.social.habilidades : null,
+            }
+          });
+        } else {
+          throw new Error('Este estudiante ya está inscrito en este año escolar.');
         }
-      });
+      } else {
+        // 4. Crear inscripción nueva
+        inscripcion = await prisma.inscripciones.create({
+          data: {
+            estudiante_id: nuevoEstudiante.id,
+            seccion_id: parseInt(inscData.seccion_id),
+            anio_escolar_id: parseInt(inscData.anio_escolar_id),
+            fecha_inscripcion: new Date(inscData.fecha_inscripcion),
+            modalidad: inscData.modalidad || 'REGULAR',
+            estado: 'ACTIVO',
+            direccion: inscData.direccion || null,
+            telefono: inscData.telefono || null,
+            correo_electronico: inscData.correo_electronico || null,
+            talla: inscData.talla || null,
+            peso: inscData.peso || null,
+            talla_camisa: inscData.talla_camisa || null,
+            talla_pantalon: inscData.talla_pantalon || null,
+            talla_zapato: inscData.talla_zapato || null,
+            doc_partida_nacimiento: inscData.doc_partida_nacimiento || false,
+            doc_boleta_promocion: inscData.doc_boleta_promocion || false,
+            doc_ci_madre: inscData.doc_ci_madre || false,
+            doc_ci_padre: inscData.doc_ci_padre || false,
+            doc_foto_estudiante: inscData.doc_foto_estudiante || false,
+            doc_foto_representante: inscData.doc_foto_representante || false,
+            doc_carpeta_marron: inscData.doc_carpeta_marron || false,
+            doc_acta_compromiso: inscData.doc_acta_compromiso || false,
+            misma_institucion: inscData.misma_institucion !== undefined ? inscData.misma_institucion : true,
+            institucion_procedencia: inscData.institucion_procedencia || null,
+            motivo_retiro_procedencia: inscData.motivo_retiro_procedencia || null,
+            con_quien_vive: inscData.con_quien_vive || null,
+            tiene_hermanos_institucion: inscData.tiene_hermanos_institucion || false,
+            cantidad_hermanos: inscData.cantidad_hermanos ? parseInt(inscData.cantidad_hermanos) : null,
+            tipo_vivienda: inscData.tipo_vivienda || null,
+            condicion_infraestructura: inscData.condicion_infraestructura || null,
+            integracion_pasivo: inscData.social ? inscData.social.pasivo : false,
+            integracion_inquieto: inscData.social ? inscData.social.inquieto : false,
+            integracion_tierno: inscData.social ? inscData.social.tierno : false,
+            integracion_sensible: inscData.social ? inscData.social.sensible : false,
+            habilidades: inscData.social ? inscData.social.habilidades : null,
+          }
+        });
+      }
 
       // 5. Datos médicos del estudiante (si vienen)
       if (inscData.medico) {
@@ -358,61 +421,114 @@ router.post('/', async (req, res) => {
       }
     });
     if (yaInscrito && !yaInscrito.eliminado) {
-      return res.status(400).json({
-        error: 'Este estudiante ya está inscrito en este año escolar.'
-      });
+      if (yaInscrito.estado !== 'RETIRADO') {
+        return res.status(400).json({
+          error: 'Este estudiante ya está inscrito en este año escolar.'
+        });
+      }
     }
 
     const inscripcion = await req.prisma.$transaction(async (prisma) => {
-      const insc = await prisma.inscripciones.create({
-        data: {
-          estudiante_id: parseInt(estudiante_id),
-          seccion_id: parseInt(seccion_id),
-          anio_escolar_id: parseInt(anio_escolar_id),
-          fecha_inscripcion: new Date(fecha_inscripcion),
-          modalidad: modalidad || 'REGULAR',
-          estado: 'ACTIVO',
-          // Datos variables
-          direccion: direccion || null,
-          telefono: telefono || null,
-          correo_electronico: correo_electronico || null,
-          talla: talla || null,
-          peso: peso || null,
-          talla_camisa: talla_camisa || null,
-          talla_pantalon: talla_pantalon || null,
-          talla_zapato: talla_zapato || null,
-          // Documentos
-          doc_partida_nacimiento: doc_partida_nacimiento || false,
-          doc_boleta_promocion: doc_boleta_promocion || false,
-          doc_ci_madre: doc_ci_madre || false,
-          doc_ci_padre: doc_ci_padre || false,
-          doc_foto_estudiante: doc_foto_estudiante || false,
-          doc_foto_representante: doc_foto_representante || false,
-          doc_carpeta_marron: doc_carpeta_marron || false,
-          doc_acta_compromiso: doc_acta_compromiso || false,
-          // Procedencia
-          misma_institucion: misma_institucion !== undefined ? misma_institucion : true,
-          institucion_procedencia: institucion_procedencia || null,
-          motivo_retiro_procedencia: motivo_retiro_procedencia || null,
-          con_quien_vive: con_quien_vive || null,
-          tiene_hermanos_institucion: tiene_hermanos_institucion || false,
-          cantidad_hermanos: cantidad_hermanos ? parseInt(cantidad_hermanos) : null,
-          // Socioeconómicos
-          tipo_vivienda: tipo_vivienda || null,
-          condicion_infraestructura: condicion_infraestructura || null,
-          // Social (Solo inicial)
-          integracion_pasivo: social ? social.pasivo : false,
-          integracion_inquieto: social ? social.inquieto : false,
-          integracion_tierno: social ? social.tierno : false,
-          integracion_sensible: social ? social.sensible : false,
-          habilidades: social ? social.habilidades : null,
-        },
-        include: {
-          estudiante: { select: { primer_nombre: true, primer_apellido: true } },
-          seccion: { include: { grado: true } },
-          anio_escolar: true,
-        }
-      });
+      let insc;
+
+      if (yaInscrito && yaInscrito.estado === 'RETIRADO') {
+        // Reactivar inscripción existente
+        insc = await prisma.inscripciones.update({
+          where: { id: yaInscrito.id },
+          data: {
+            seccion_id: parseInt(seccion_id),
+            fecha_inscripcion: new Date(fecha_inscripcion),
+            modalidad: modalidad || 'REGULAR',
+            estado: 'ACTIVO',
+            motivo_retiro_saliente: null,
+            fecha_retiro: null,
+            direccion: direccion || null,
+            telefono: telefono || null,
+            correo_electronico: correo_electronico || null,
+            talla: talla || null,
+            peso: peso || null,
+            talla_camisa: talla_camisa || null,
+            talla_pantalon: talla_pantalon || null,
+            talla_zapato: talla_zapato || null,
+            doc_partida_nacimiento: doc_partida_nacimiento || false,
+            doc_boleta_promocion: doc_boleta_promocion || false,
+            doc_ci_madre: doc_ci_madre || false,
+            doc_ci_padre: doc_ci_padre || false,
+            doc_foto_estudiante: doc_foto_estudiante || false,
+            doc_foto_representante: doc_foto_representante || false,
+            doc_carpeta_marron: doc_carpeta_marron || false,
+            doc_acta_compromiso: doc_acta_compromiso || false,
+            misma_institucion: misma_institucion !== undefined ? misma_institucion : true,
+            institucion_procedencia: institucion_procedencia || null,
+            motivo_retiro_procedencia: motivo_retiro_procedencia || null,
+            con_quien_vive: con_quien_vive || null,
+            tiene_hermanos_institucion: tiene_hermanos_institucion || false,
+            cantidad_hermanos: cantidad_hermanos ? parseInt(cantidad_hermanos) : null,
+            tipo_vivienda: tipo_vivienda || null,
+            condicion_infraestructura: condicion_infraestructura || null,
+            integracion_pasivo: social ? social.pasivo : false,
+            integracion_inquieto: social ? social.inquieto : false,
+            integracion_tierno: social ? social.tierno : false,
+            integracion_sensible: social ? social.sensible : false,
+            habilidades: social ? social.habilidades : null,
+          },
+          include: {
+            estudiante: { select: { primer_nombre: true, primer_apellido: true } },
+            seccion: { include: { grado: true } },
+            anio_escolar: true,
+          }
+        });
+      } else {
+        insc = await prisma.inscripciones.create({
+          data: {
+            estudiante_id: parseInt(estudiante_id),
+            seccion_id: parseInt(seccion_id),
+            anio_escolar_id: parseInt(anio_escolar_id),
+            fecha_inscripcion: new Date(fecha_inscripcion),
+            modalidad: modalidad || 'REGULAR',
+            estado: 'ACTIVO',
+            // Datos variables
+            direccion: direccion || null,
+            telefono: telefono || null,
+            correo_electronico: correo_electronico || null,
+            talla: talla || null,
+            peso: peso || null,
+            talla_camisa: talla_camisa || null,
+            talla_pantalon: talla_pantalon || null,
+            talla_zapato: talla_zapato || null,
+            // Documentos
+            doc_partida_nacimiento: doc_partida_nacimiento || false,
+            doc_boleta_promocion: doc_boleta_promocion || false,
+            doc_ci_madre: doc_ci_madre || false,
+            doc_ci_padre: doc_ci_padre || false,
+            doc_foto_estudiante: doc_foto_estudiante || false,
+            doc_foto_representante: doc_foto_representante || false,
+            doc_carpeta_marron: doc_carpeta_marron || false,
+            doc_acta_compromiso: doc_acta_compromiso || false,
+            // Procedencia
+            misma_institucion: misma_institucion !== undefined ? misma_institucion : true,
+            institucion_procedencia: institucion_procedencia || null,
+            motivo_retiro_procedencia: motivo_retiro_procedencia || null,
+            con_quien_vive: con_quien_vive || null,
+            tiene_hermanos_institucion: tiene_hermanos_institucion || false,
+            cantidad_hermanos: cantidad_hermanos ? parseInt(cantidad_hermanos) : null,
+            // Socioeconómicos
+            tipo_vivienda: tipo_vivienda || null,
+            condicion_infraestructura: condicion_infraestructura || null,
+            // Social (Solo inicial)
+            integracion_pasivo: social ? social.pasivo : false,
+            integracion_inquieto: social ? social.inquieto : false,
+            integracion_tierno: social ? social.tierno : false,
+            integracion_sensible: social ? social.sensible : false,
+            habilidades: social ? social.habilidades : null,
+          },
+          include: {
+            estudiante: { select: { primer_nombre: true, primer_apellido: true } },
+            seccion: { include: { grado: true } },
+            anio_escolar: true,
+          }
+        });
+      }
 
       // Actualizar datos médicos del estudiante (dentro de la misma transacción)
       if (medico) {

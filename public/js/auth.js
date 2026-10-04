@@ -111,6 +111,7 @@ if (!document.getElementById('loginForm')) {
     const roleEl = document.getElementById('headerUserRole');
     if (nameEl) nameEl.textContent = usuario.nombre_usuario;
     if (roleEl) roleEl.textContent = typeof formatRol === 'function' ? formatRol(usuario.rol) : usuario.rol;
+    window._userRol = usuario.rol;
 
     // Lógica de roles
     if (usuario.rol === 'SUPER_ADMIN') {

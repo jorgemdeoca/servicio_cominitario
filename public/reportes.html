@@ -137,6 +137,18 @@
             <label>A&#241;o Escolar:</label>
             <select id="selAnioEstadisticas" class="form-control"></select>
           </div>
+          <div class="form-group">
+            <label>Grado:</label>
+            <select id="selGradoEstadisticas" class="form-control" onchange="filtrarEstadisticas()">
+              <option value="">Todos</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Secci&#243;n:</label>
+            <select id="selSeccionEstadisticas" class="form-control" onchange="filtrarEstadisticas()">
+              <option value="">Todas</option>
+            </select>
+          </div>
           <div>
             <button class="btn btn-primary" onclick="cargarEstadisticas()">Cargar Resumen</button>
           </div>

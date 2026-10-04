@@ -144,6 +144,9 @@
             <input type="text" id="inputBuscar" placeholder="Buscar por nombre, apellido o cédula...">
             <button class="btn btn-primary btn-sm" onclick="buscarPersonas()">Buscar</button>
           </div>
+          <div class="search-bar">
+            <input type="text" id="inputBuscarEstudiante" placeholder="Buscar por nombre del estudiante...">
+          </div>
           <button class="btn btn-primary" onclick="abrirModal()">+ Nueva Persona</button>
         </div>
       </div>
@@ -158,6 +161,7 @@
               <th>Apellidos y Nombres</th>
               <th>Teléfono</th>
               <th>Profesión</th>
+              <th>Rol</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -167,6 +171,17 @@
 
       <div class="pagination" id="paginacion"></div>
     </main>
+  </div>
+
+  <!-- Mini-modal para ver estudiantes representados -->
+  <div class="modal" id="modalEstudiantesRep" style="display:none;">
+    <div class="modal-content" style="max-width:500px;">
+      <h2 style="margin-bottom:1rem;">Estudiantes Representados</h2>
+      <div id="listaEstudiantesRep"></div>
+      <div style="text-align:right;margin-top:1rem;">
+        <button class="btn btn-sm" onclick="document.getElementById('modalEstudiantesRep').style.display='none'">Cerrar</button>
+      </div>
+    </div>
   </div>
 
   <!-- Modal Crear/Editar Persona -->

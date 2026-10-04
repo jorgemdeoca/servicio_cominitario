@@ -4,25 +4,64 @@ const router = express.Router();
 // GET /api/personas - Listar personas (con búsqueda y paginación)
 router.get('/', async (req, res) => {
   try {
-    const { buscar, pagina = 1, limite = 20 } = req.query;
+    const { buscar, buscar_estudiante, pagina = 1, limite = 20 } = req.query;
     const skip = (parseInt(pagina) - 1) * parseInt(limite);
     const take = parseInt(limite);
 
     const where = { eliminado: false };
 
-    // Búsqueda por nombre, apellido o cédula
+    // Búsqueda por nombre, apellido o cédula de la persona
     if (buscar && buscar.trim()) {
       const termino = buscar.trim();
-      where.OR = [
-        { nombres: { contains: termino } },
-        { apellidos: { contains: termino } },
-        { cedula: { contains: termino } }
-      ];
+      const terminos = termino.split(/\s+/).filter(t => t.length > 0);
+      const camposBusqueda = (t) => ([
+        { nombres: { contains: t } },
+        { apellidos: { contains: t } },
+        { cedula: { contains: t } }
+      ]);
+
+      if (terminos.length > 1) {
+        where.AND = terminos.map(t => ({ OR: camposBusqueda(t) }));
+      } else {
+        where.OR = camposBusqueda(termino);
+      }
+    }
+
+    // Búsqueda por nombres y apellidos del estudiante representado
+    if (buscar_estudiante && buscar_estudiante.trim()) {
+      const terminos = buscar_estudiante.trim().split(/\s+/).filter(t => t.length > 0);
+      where.estudiantes_como_representante = {
+        some: {
+          eliminado: false,
+          AND: terminos.map(t => ({
+            OR: [
+              { primer_nombre: { contains: t } },
+              { primer_apellido: { contains: t } },
+              { segundo_nombre: { contains: t } },
+              { segundo_apellido: { contains: t } }
+            ]
+          }))
+        }
+      };
     }
 
     const [personas, total] = await Promise.all([
       req.prisma.personas.findMany({
         where,
+        include: {
+          _count: { select: { estudiantes_como_representante: { where: { eliminado: false } } } },
+          estudiantes_como_representante: {
+            where: { eliminado: false },
+            select: {
+              id: true, primer_nombre: true, primer_apellido: true, segundo_nombre: true, segundo_apellido: true,
+              inscripciones: {
+                where: { eliminado: false, anio_escolar: { activo: true } },
+                select: { seccion: { include: { grado: true } } },
+                take: 1, orderBy: { fecha_inscripcion: 'desc' }
+              }
+            }
+          }
+        },
         orderBy: { apellidos: 'asc' },
         skip,
         take,

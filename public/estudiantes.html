@@ -41,6 +41,19 @@
     }
     .badge-sexo-m { background: hsl(215, 50%, 92%); color: hsl(215, 60%, 40%); }
     .badge-sexo-f { background: hsl(330, 50%, 92%); color: hsl(330, 60%, 40%); }
+
+    /* Badges de estado de inscripción */
+    .badge-estado {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .badge-estado-verde { background: hsl(145, 50%, 90%); color: hsl(145, 60%, 30%); }
+    .badge-estado-rojo { background: hsl(0, 50%, 92%); color: hsl(0, 60%, 38%); }
+    .badge-estado-azul { background: hsl(210, 50%, 92%); color: hsl(210, 60%, 38%); }
     .pagination {
       display: flex;
       justify-content: center;
@@ -297,10 +310,12 @@
           <thead>
             <tr>
               <th>Nombre Completo</th>
+              <th>Cód. Escolar</th>
               <th>Sexo</th>
               <th>F. Nacimiento</th>
               <th>Representante</th>
               <th>Teléfono Rep.</th>
+              <th>Estado</th>
               <th>Acciones</th>
             </tr>
           </thead>

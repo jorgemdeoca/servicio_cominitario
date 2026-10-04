@@ -45,6 +45,63 @@ document.addEventListener('DOMContentLoaded', () => {
     limpiarProfesoresSeleccionados();
     cargarProfesoresDisponibles();
   });
+
+  // --- Pestaña Sistema: solo visible para SUPER_ADMIN ---
+  apiFetch('/api/me').then(function(res) {
+    if (!res) return;
+    return res.json();
+  }).then(function(data) {
+    if (data && data.usuario && data.usuario.rol === 'SUPER_ADMIN') {
+      var tabBtn = document.getElementById('tabBtnSistema');
+      if (tabBtn) tabBtn.style.display = '';
+    }
+  });
+
+  // Botón de apagar sistema
+  var btnApagar = document.getElementById('btnApagarSistema');
+  if (btnApagar) {
+    btnApagar.addEventListener('click', function() {
+      // Primera confirmación
+      var confirmar1 = confirm(
+        '⚠️ ¿Está seguro que desea APAGAR el sistema?\n\n' +
+        'Se detendrá el servidor web y la base de datos.\n' +
+        'Todos los usuarios perderán el acceso inmediatamente.'
+      );
+      if (!confirmar1) return;
+
+      // Segunda confirmación
+      var confirmar2 = confirm(
+        '🔴 ÚLTIMA CONFIRMACIÓN\n\n' +
+        '¿Realmente desea apagar TODO el sistema ahora?\n' +
+        'Esta acción no se puede deshacer.'
+      );
+      if (!confirmar2) return;
+
+      // Ejecutar apagado
+      btnApagar.disabled = true;
+      btnApagar.textContent = '⏳ Apagando...';
+
+      apiFetch('/api/sistema/apagar', {
+        method: 'POST'
+      }).then(function(res) {
+        if (!res) return;
+        return res.json();
+      }).then(function(data) {
+        if (data && data.ok) {
+          showAlert('alertConfig', '✅ ' + data.mensaje + ' Esta página dejará de funcionar.', 'success');
+          btnApagar.textContent = '✅ Sistema apagado';
+        } else {
+          btnApagar.disabled = false;
+          btnApagar.textContent = '🔴 Apagar Sistema';
+          showAlert('alertConfig', 'Error al apagar el sistema.', 'error');
+        }
+      }).catch(function() {
+        // Si la conexión se pierde es porque el servidor ya se apagó
+        btnApagar.textContent = '✅ Sistema apagado';
+        showAlert('alertConfig', 'El sistema se ha apagado correctamente.', 'success');
+      });
+    });
+  }
 });
 
 function initAnioEscolarSelects() {
@@ -503,9 +560,33 @@ async function loadConfiguracion() {
     if (conf.direccion) document.getElementById('cfg_direccion').value = conf.direccion;
     if (conf.membrete) document.getElementById('cfg_membrete').value = conf.membrete;
     if (conf.localidad) document.getElementById('cfg_localidad').value = conf.localidad;
+
+    // Mostrar preview del logo si existe
+    if (conf.logo_institucion_base64) {
+      const previewEl = document.getElementById('previewLogo');
+      if (previewEl) {
+        previewEl.src = conf.logo_institucion_base64;
+        previewEl.style.display = 'block';
+      }
+    }
     
   } catch (error) {
     console.error('Error al cargar config de escuela');
+  }
+}
+
+// Preview del logo al seleccionar archivo
+function previewLogoFile(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const previewEl = document.getElementById('previewLogo');
+      if (previewEl) {
+        previewEl.src = e.target.result;
+        previewEl.style.display = 'block';
+      }
+    };
+    reader.readAsDataURL(input.files[0]);
   }
 }
 
@@ -752,12 +833,12 @@ async function loadUsuarios() {
         : '<span class="status-badge" style="background:#10b981;color:white;">Admin</span>';
 
       tr.innerHTML = `
-        <td>${u.nombre_usuario}</td>
+        <td><strong>${u.nombre_usuario}</strong></td>
         <td>${roleBadge}</td>
         <td>${d}</td>
-        <td>
-          <button class="btn-icon" title="Editar" onclick="editUsuario(${u.id}, '${u.nombre_usuario}', '${u.rol}')">✏️</button>
-          <button class="btn-icon text-danger" title="Eliminar" onclick="deleteUsuario(${u.id})">🗑️</button>
+        <td style="display:flex;gap:6px;">
+          <button class="btn btn-sm" style="font-size:0.75rem;padding:3px 10px;" onclick="editUsuario(${u.id}, '${u.nombre_usuario}', '${u.rol}')">Editar</button>
+          <button class="btn btn-sm btn-logout" style="font-size:0.75rem;padding:3px 10px;" onclick="deleteUsuario(${u.id})">Eliminar</button>
         </td>
       `;
       tbody.appendChild(tr);
