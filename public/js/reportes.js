@@ -6,6 +6,23 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('selAnioMatricula').addEventListener('change', function(e) {
     cargarSecciones(e.target.value);
   });
+
+  // Búsqueda en tiempo real para fichas
+  var searchTimerFicha;
+  document.getElementById('inputBuscarInscripcion').addEventListener('input', function(e) {
+    clearTimeout(searchTimerFicha);
+    var val = e.target.value.trim();
+    if (val.length === 0) {
+      document.getElementById('selInscripcionFicha').innerHTML = '<option value="">Seleccione...</option>';
+      return;
+    }
+    if (val.length >= 4) {
+      searchTimerFicha = setTimeout(buscarInscripciones, 500);
+    }
+  });
+  document.getElementById('inputBuscarInscripcion').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); buscarInscripciones(); }
+  });
 });
 
 async function cargarAniosEscolares() {
@@ -166,6 +183,8 @@ async function generarFicha(tipo) {
   }
 }
 
+var _estadisticasData = null;
+
 async function cargarEstadisticas() {
   var anio_escolar_id = document.getElementById('selAnioEstadisticas').value;
   if (!anio_escolar_id) {
@@ -176,36 +195,97 @@ async function cargarEstadisticas() {
   try {
     var res = await apiFetch('/api/reportes/estadisticas?anio_escolar_id=' + anio_escolar_id);
     if (!res) return;
-    var datos = await res.json();
+    _estadisticasData = await res.json();
 
-    var tbody = document.getElementById('tbodyEstadisticas');
-    tbody.innerHTML = '';
+    // Llenar selects de grado/sección
+    var selGrado = document.getElementById('selGradoEstadisticas');
+    var selSeccion = document.getElementById('selSeccionEstadisticas');
+    selGrado.innerHTML = '<option value="">Todos</option>';
+    selSeccion.innerHTML = '<option value="">Todas</option>';
 
-    if (datos.por_grado.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4">No hay datos para este ano escolar</td></tr>';
-    } else {
-      datos.por_grado.forEach(function(g) {
-        tbody.insertAdjacentHTML('beforeend',
-          '<tr class="grado-row"><td colspan="4">' + g.grado + '</td></tr>'
-        );
-        g.secciones.forEach(function(s) {
-          tbody.insertAdjacentHTML('beforeend',
-            '<tr><td>Seccion "' + s.letra + '"</td><td>' + s.varones + '</td><td>' + s.hembras + '</td><td><strong>' + s.total + '</strong></td></tr>'
-          );
-        });
-        tbody.insertAdjacentHTML('beforeend',
-          '<tr style="background:hsl(0,0%,98%);font-weight:600;"><td style="text-align:right;">Total ' + g.grado + ':</td><td>' + g.varonesGrado + '</td><td>' + g.hembraGrado + '</td><td>' + g.totalGrado + '</td></tr>'
-        );
-      });
-    }
+    _estadisticasData.por_grado.forEach(function(g) {
+      selGrado.insertAdjacentHTML('beforeend', '<option value="' + g.grado + '">' + g.grado + '</option>');
+    });
 
-    document.getElementById('totVarones').textContent = datos.totales_globales.varones;
-    document.getElementById('totHembras').textContent = datos.totales_globales.hembras;
-    document.getElementById('totTotal').textContent = datos.totales_globales.total;
-
+    renderEstadisticas(_estadisticasData);
     document.getElementById('tablaEstadisticasContainer').style.display = 'block';
   } catch (error) {
     console.error(error);
     showAlert('alertReportes', 'Error al cargar estadisticas', 'error');
   }
+}
+
+function filtrarEstadisticas() {
+  if (!_estadisticasData) return;
+
+  var gradoSel = document.getElementById('selGradoEstadisticas').value;
+  var seccionSel = document.getElementById('selSeccionEstadisticas').value;
+
+  // Actualizar secciones disponibles cuando se selecciona un grado
+  var selSeccion = document.getElementById('selSeccionEstadisticas');
+  if (gradoSel) {
+    var gradoData = _estadisticasData.por_grado.find(function(g) { return g.grado === gradoSel; });
+    selSeccion.innerHTML = '<option value="">Todas</option>';
+    if (gradoData) {
+      gradoData.secciones.forEach(function(s) {
+        selSeccion.insertAdjacentHTML('beforeend', '<option value="' + s.letra + '"' + (s.letra === seccionSel ? ' selected' : '') + '>Sección "' + s.letra + '"</option>');
+      });
+    }
+  } else {
+    selSeccion.innerHTML = '<option value="">Todas</option>';
+  }
+
+  // Filtrar datos
+  var datosFiltrados = {
+    por_grado: _estadisticasData.por_grado.filter(function(g) {
+      return !gradoSel || g.grado === gradoSel;
+    }).map(function(g) {
+      var secciones = g.secciones.filter(function(s) {
+        return !seccionSel || s.letra === seccionSel;
+      });
+      return {
+        grado: g.grado,
+        secciones: secciones,
+        varonesGrado: secciones.reduce(function(sum, s) { return sum + s.varones; }, 0),
+        hembraGrado: secciones.reduce(function(sum, s) { return sum + s.hembras; }, 0),
+        totalGrado: secciones.reduce(function(sum, s) { return sum + s.total; }, 0)
+      };
+    }),
+    totales_globales: { varones: 0, hembras: 0, total: 0 }
+  };
+
+  datosFiltrados.por_grado.forEach(function(g) {
+    datosFiltrados.totales_globales.varones += g.varonesGrado;
+    datosFiltrados.totales_globales.hembras += g.hembraGrado;
+    datosFiltrados.totales_globales.total += g.totalGrado;
+  });
+
+  renderEstadisticas(datosFiltrados);
+}
+
+function renderEstadisticas(datos) {
+  var tbody = document.getElementById('tbodyEstadisticas');
+  tbody.innerHTML = '';
+
+  if (datos.por_grado.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4">No hay datos para este filtro</td></tr>';
+  } else {
+    datos.por_grado.forEach(function(g) {
+      tbody.insertAdjacentHTML('beforeend',
+        '<tr class="grado-row"><td colspan="4">' + g.grado + '</td></tr>'
+      );
+      g.secciones.forEach(function(s) {
+        tbody.insertAdjacentHTML('beforeend',
+          '<tr><td>Seccion "' + s.letra + '"</td><td>' + s.varones + '</td><td>' + s.hembras + '</td><td><strong>' + s.total + '</strong></td></tr>'
+        );
+      });
+      tbody.insertAdjacentHTML('beforeend',
+        '<tr style="background:hsl(0,0%,98%);font-weight:600;"><td style="text-align:right;">Total ' + g.grado + ':</td><td>' + g.varonesGrado + '</td><td>' + g.hembraGrado + '</td><td>' + g.totalGrado + '</td></tr>'
+      );
+    });
+  }
+
+  document.getElementById('totVarones').textContent = datos.totales_globales.varones;
+  document.getElementById('totHembras').textContent = datos.totales_globales.hembras;
+  document.getElementById('totTotal').textContent = datos.totales_globales.total;
 }

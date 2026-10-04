@@ -85,7 +85,7 @@ async function loadEstudiantes() {
     tbody.innerHTML = '';
 
     if (data.datos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">No se encontraron estudiantes.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">No se encontraron estudiantes.</td></tr>';
       document.getElementById('paginacion').innerHTML = '';
       return;
     }
@@ -100,12 +100,26 @@ async function loadEstudiantes() {
       const rep = e.representante ? `${e.representante.apellidos}, ${e.representante.nombres}` : '—';
       const telRep = e.representante && e.representante.telefono ? e.representante.telefono : '—';
 
+      // Estado de inscripción
+      let estadoBadge = '';
+      const inscActiva = e.inscripciones && e.inscripciones[0];
+      if (inscActiva && inscActiva.estado === 'ACTIVO') {
+        const gs = `${inscActiva.seccion.grado.nombre} "${inscActiva.seccion.letra}"`;
+        estadoBadge = `<span class="badge-estado badge-estado-verde" title="Inscrito en año activo">${gs}</span>`;
+      } else if (inscActiva && inscActiva.estado === 'RETIRADO') {
+        estadoBadge = `<span class="badge-estado badge-estado-rojo" title="Retirado">Retirado</span>`;
+      } else {
+        estadoBadge = `<span class="badge-estado badge-estado-azul" title="No inscrito en año activo">Sin inscribir</span>`;
+      }
+
       tr.innerHTML = `
         <td><strong>${nombre}</strong></td>
+        <td>${e.codigo_escolar || '—'}</td>
         <td><span class="badge-sexo ${sexoClass}">${sexoText}</span></td>
         <td>${fechaNac}</td>
         <td>${rep}</td>
         <td>${telRep}</td>
+        <td>${estadoBadge}</td>
         <td class="actions-cell">
           <button class="btn btn-sm" onclick="editarEstudiante(${e.id})">Editar</button>
           <button class="btn btn-sm btn-logout" onclick="eliminarEstudiante(${e.id})">Eliminar</button>

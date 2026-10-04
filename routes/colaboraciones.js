@@ -113,6 +113,7 @@ router.get('/resumen', async (req, res) => {
 
       const registro = {
         id: colab.id,
+        inscripcion_id: colab.inscripcion_id,
         representante: `${colab.representante.apellidos}, ${colab.representante.nombres}`,
         representante_cedula: colab.representante.cedula,
         estudiante: colab.estudiante_nombre,

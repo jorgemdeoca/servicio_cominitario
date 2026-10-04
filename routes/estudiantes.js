@@ -12,13 +12,21 @@ router.get('/', async (req, res) => {
 
     if (buscar && buscar.trim()) {
       const termino = buscar.trim();
-      where.OR = [
-        { primer_nombre: { contains: termino } },
-        { primer_apellido: { contains: termino } },
-        { segundo_nombre: { contains: termino } },
-        { segundo_apellido: { contains: termino } },
-        { codigo_escolar: { contains: termino } }
-      ];
+      const terminos = termino.split(/\s+/).filter(t => t.length > 0);
+      const camposBusqueda = (t) => ([
+        { primer_nombre: { contains: t } },
+        { primer_apellido: { contains: t } },
+        { segundo_nombre: { contains: t } },
+        { segundo_apellido: { contains: t } },
+        { codigo_escolar: { contains: t } }
+      ]);
+
+      if (terminos.length > 1) {
+        // Multi-palabra: TODOS los términos deben coincidir en algún campo
+        where.AND = terminos.map(t => ({ OR: camposBusqueda(t) }));
+      } else {
+        where.OR = camposBusqueda(termino);
+      }
     }
 
     const [estudiantes, total] = await Promise.all([
@@ -28,6 +36,16 @@ router.get('/', async (req, res) => {
           madre: { select: { id: true, nombres: true, apellidos: true, cedula: true, telefono: true } },
           padre: { select: { id: true, nombres: true, apellidos: true, cedula: true, telefono: true } },
           representante: { select: { id: true, nombres: true, apellidos: true, cedula: true, telefono: true } },
+          inscripciones: {
+            where: { eliminado: false, anio_escolar: { activo: true } },
+            select: {
+              id: true, estado: true,
+              seccion: { include: { grado: true } },
+              anio_escolar: { select: { nombre: true } }
+            },
+            take: 1,
+            orderBy: { fecha_inscripcion: 'desc' }
+          }
         },
         orderBy: { primer_apellido: 'asc' },
         skip,
@@ -83,12 +101,14 @@ router.get('/:id', async (req, res) => {
 // Función auxiliar: buscar o crear persona por cédula
 // =============================================
 async function buscarOCrearPersona(prisma, datosPersona) {
-  const { cedula, nombres, apellidos, nacionalidad, fecha_nacimiento,
+  const { cedula, nombres, apellidos, nacionalidad, nacionalidad_texto, fecha_nacimiento,
           profesion_oficio, estado_civil, telefono, direccion } = datosPersona;
 
   if (!cedula || !nombres || !apellidos) {
     return null;
   }
+
+  const nacTexto = nacionalidad_texto || (nacionalidad === 'V' ? 'Venezolana' : null);
 
   // Buscar si ya existe
   let persona = await prisma.personas.findUnique({ where: { cedula } });
@@ -100,6 +120,7 @@ async function buscarOCrearPersona(prisma, datosPersona) {
       data: {
         nombres, apellidos,
         nacionalidad: nacionalidad || 'V',
+        nacionalidad_texto: nacTexto,
         fecha_nacimiento: fecha_nacimiento ? new Date(fecha_nacimiento) : null,
         profesion_oficio: profesion_oficio || null,
         estado_civil: estado_civil || null,
@@ -116,6 +137,7 @@ async function buscarOCrearPersona(prisma, datosPersona) {
     data: {
       cedula, nombres, apellidos,
       nacionalidad: nacionalidad || 'V',
+      nacionalidad_texto: nacTexto,
       fecha_nacimiento: fecha_nacimiento ? new Date(fecha_nacimiento) : null,
       profesion_oficio: profesion_oficio || null,
       estado_civil: estado_civil || null,

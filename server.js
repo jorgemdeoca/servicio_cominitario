@@ -3,8 +3,9 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 const os = require('os');
+const { execFile } = require('child_process');
 const { PrismaClient } = require('@prisma/client');
-const { requireAuth } = require('./middleware/auth');
+const { requireAuth, soloSuperAdmin } = require('./middleware/auth');
 const authRoutes = require('./routes/auth');
 
 const app = express();
@@ -85,6 +86,7 @@ const inscripcionesRoutes = require('./routes/inscripciones');
 const reportesRoutes = require('./routes/reportes');
 const usuariosRoutes = require('./routes/usuarios');
 const colaboracionesRoutes = require('./routes/colaboraciones');
+const dashboardRoutes = require('./routes/dashboard');
 
 app.use('/api/anios-escolares', aniosEscolaresRoutes);
 app.use('/api/grados', gradosRoutes);
@@ -97,13 +99,42 @@ app.use('/api/inscripciones', inscripcionesRoutes);
 app.use('/api/reportes', reportesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/colaboraciones', colaboracionesRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Endpoint para verificar sesión
 app.get('/api/me', (req, res) => {
   res.json({ usuario: req.session.usuario });
 });
 
-// Cerrar Prisma al apagar
+// Endpoint para apagar el sistema (solo SUPER_ADMIN)
+app.post('/api/sistema/apagar', soloSuperAdmin, async (req, res) => {
+  console.log('\n  ⚠️  Apagado solicitado por: ' + req.session.usuario.nombre);
+  res.json({ ok: true, mensaje: 'El sistema se apagará en unos segundos...' });
+
+  // Dar tiempo para que la respuesta llegue al navegador
+  setTimeout(async () => {
+    // 1. Desconectar Prisma
+    await prisma.$disconnect();
+
+    // 2. Intentar apagar MySQL
+    const mysqladminPath = path.join(
+      'C:\\laragon\\bin\\mysql\\mysql-8.4.3-winx64\\bin',
+      'mysqladmin.exe'
+    );
+    execFile(mysqladminPath, ['-u', 'root', 'shutdown'], (err) => {
+      if (err) {
+        console.log('  [!] No se pudo apagar MySQL automáticamente:', err.message);
+      } else {
+        console.log('  [OK] MySQL apagado.');
+      }
+      // 3. Cerrar el proceso Node.js
+      console.log('  [OK] Servidor Node.js apagado.\n');
+      process.exit(0);
+    });
+  }, 1500);
+});
+
+// Cerrar Prisma al apagar con Ctrl+C
 process.on('SIGINT', async () => {
   await prisma.$disconnect();
   process.exit();

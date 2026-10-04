@@ -3,90 +3,254 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Principal - Sistema de Gestión Escolar</title>
+  <title>Panel Principal - Sistema de Gesti&#243;n Escolar</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Dashboard Styles */
+    .dash-stats { display:grid; grid-template-columns:repeat(4, 1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
+    .dash-stat {
+      background:#fff; border-radius:12px; padding:var(--space-4);
+      border:1px solid #e2e8f0;
+      box-shadow:0 1px 3px rgba(15,23,42,0.05);
+      display:flex; align-items:center; gap:var(--space-3);
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .dash-stat:hover { box-shadow:0 4px 6px rgba(15,23,42,0.08); border-color:#cbd5e1; }
+    .dash-stat-icon {
+      width:52px; height:52px; border-radius:12px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.5rem; flex-shrink:0;
+    }
+    .dash-stat-icon.blue { background:#e8f0fe; }
+    .dash-stat-icon.teal { background:#e6fffa; }
+    .dash-stat-icon.green { background:#ecfdf5; }
+    .dash-stat-icon.purple { background:#f5f3ff; }
+    .dash-stat-number { font-size:2rem; font-weight:700; color:#0f172a; line-height:1; }
+    .dash-stat-label { font-size:0.8rem; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
+
+    .dash-row { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); margin-bottom:var(--space-5); }
+    .dash-card {
+      background:#fff; border-radius:12px; border:1px solid #e2e8f0;
+      box-shadow:0 1px 3px rgba(15,23,42,0.05); overflow:hidden;
+    }
+    .dash-card-header {
+      padding:var(--space-3) var(--space-4);
+      border-bottom:1px solid #f1f5f9;
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .dash-card-header h3 { margin:0; font-size:1rem; font-weight:600; color:#0f172a; }
+    .dash-card-body { padding:var(--space-4); }
+
+    /* Bar chart */
+    .bar-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+    .bar-label { width:120px; font-size:0.82rem; color:#334155; font-weight:500; text-align:right; flex-shrink:0; }
+    .bar-track { flex:1; background:#f1f5f9; border-radius:6px; height:22px; position:relative; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:6px; transition:width 0.6s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; }
+    .bar-fill span { font-size:0.7rem; font-weight:700; color:#fff; }
+    .bar-colors-0 { background:#1a73e8; } .bar-colors-1 { background:#0d9488; }
+    .bar-colors-2 { background:#7c3aed; } .bar-colors-3 { background:#16a34a; }
+    .bar-colors-4 { background:#ea580c; } .bar-colors-5 { background:#dc2626; }
+    .bar-colors-6 { background:#2563eb; } .bar-colors-7 { background:#059669; }
+
+    /* Donut chart (CSS only) */
+    .donut-container { display:flex; align-items:center; justify-content:center; gap:var(--space-5); }
+    .donut-ring { width:140px; height:140px; border-radius:50%; position:relative; }
+    .donut-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
+    .donut-center .donut-total { font-size:1.5rem; font-weight:700; color:#0f172a; }
+    .donut-center .donut-txt { font-size:0.7rem; color:#64748b; }
+    .donut-legend { display:flex; flex-direction:column; gap:10px; }
+    .donut-legend-item { display:flex; align-items:center; gap:8px; }
+    .donut-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
+    .donut-legend-label { font-size:0.85rem; color:#334155; }
+    .donut-legend-val { font-size:0.85rem; font-weight:700; color:#0f172a; }
+
+    /* Alert lists */
+    .alert-badge {
+      padding:2px 10px; border-radius:9999px; font-size:0.75rem; font-weight:700;
+    }
+    .alert-badge.warn { background:#fffbeb; color:#ea580c; }
+    .alert-badge.info { background:#e8f0fe; color:#1a73e8; }
+    .alert-item {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 0; border-bottom:1px solid #f1f5f9;
+    }
+    .alert-item:last-child { border-bottom:none; }
+    .alert-item-info { display:flex; align-items:center; gap:10px; }
+    .alert-avatar {
+      width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+      font-size:0.75rem; font-weight:700; color:#fff; flex-shrink:0;
+    }
+    .alert-name { font-size:0.85rem; font-weight:500; color:#0f172a; }
+    .alert-sub { font-size:0.75rem; color:#64748b; }
+    .alert-btn {
+      padding:4px 14px; border-radius:6px; font-size:0.75rem; font-weight:600;
+      border:none; cursor:pointer; transition:opacity 0.2s;
+    }
+    .alert-btn:hover { opacity:0.85; }
+    .alert-btn.blue { background:#1a73e8; color:#fff; }
+    .alert-btn.orange { background:#ea580c; color:#fff; }
+    .alert-ver-todos {
+      display:block; text-align:center; padding:10px; font-size:0.82rem;
+      color:#1a73e8; font-weight:600; text-decoration:none; border-top:1px solid #f1f5f9;
+    }
+    .alert-ver-todos:hover { background:#f8fafc; }
+
+    /* Bottom bar */
+    .dash-footer {
+      background:linear-gradient(135deg, #1a73e8, #0d47a1); color:#fff;
+      border-radius:12px; padding:var(--space-3) var(--space-4);
+      display:flex; justify-content:space-between; align-items:center;
+      font-size:0.85rem;
+    }
+    .dash-footer-badge { background:rgba(255,255,255,0.2); padding:3px 12px; border-radius:9999px; font-size:0.75rem; font-weight:600; }
+    .empty-state { text-align:center; padding:var(--space-5); color:#64748b; }
+    .empty-state-icon { font-size:2rem; margin-bottom:var(--space-2); }
+
+    @media (max-width: 900px) {
+      .dash-stats { grid-template-columns:repeat(2, 1fr); }
+      .dash-row { grid-template-columns:1fr; }
+    }
+  </style>
 </head>
 <body class="dashboard-page">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <h2>Gestión Escolar</h2>
-      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
+      <h2>Gesti&#243;n Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Ju&#225;res"</p>
     </div>
-        <nav class="sidebar-nav">
+    <nav class="sidebar-nav">
       <a href="/dashboard.html" class="nav-item active">
-        <span class="nav-icon">📊</span>
+        <span class="nav-icon">&#128202;</span>
         <span class="nav-text">Dashboard</span>
       </a>
       <a href="/personas.html" class="nav-item">
-        <span class="nav-icon">👥</span>
+        <span class="nav-icon">&#128101;</span>
         <span class="nav-text">Personas</span>
       </a>
       <a href="/estudiantes.html" class="nav-item">
-        <span class="nav-icon">🎓</span>
+        <span class="nav-icon">&#127891;</span>
         <span class="nav-text">Estudiantes</span>
       </a>
       <a href="/inscripciones.html" class="nav-item">
-        <span class="nav-icon">📝</span>
+        <span class="nav-icon">&#128221;</span>
         <span class="nav-text">Inscripciones</span>
       </a>
       <a href="/profesores.html" class="nav-item">
-        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-icon">&#128104;&#8205;&#127979;</span>
         <span class="nav-text">Profesores</span>
       </a>
       <a href="/reportes.html" class="nav-item">
-        <span class="nav-icon">📄</span>
+        <span class="nav-icon">&#128196;</span>
         <span class="nav-text">Reportes y PDFs</span>
       </a>
       <a href="/configuracion.html" class="nav-item">
-        <span class="nav-icon">⚙️</span>
-        <span class="nav-text">Configuración</span>
+        <span class="nav-icon">&#9881;&#65039;</span>
+        <span class="nav-text">Configuraci&#243;n</span>
       </a>
     </nav>
     <div class="sidebar-footer">
-      <p>v1.0 — Servicio Comunitario UNEFA</p>
+      <p>v1.0 &#8212; Servicio Comunitario UNEFA</p>
     </div>
   </aside>
 
   <div class="main-wrapper">
     <header class="main-header">
-      <button class="menu-toggle" id="menuToggle">☰</button>
+      <button class="menu-toggle" id="menuToggle">&#9776;</button>
       <div class="header-info">
-        <span class="header-year" id="headerYear">Año Escolar: —</span>
+        <span class="header-year" id="headerYear">A&#241;o Escolar: &#8212;</span>
       </div>
       <div class="header-user">
-        <span id="headerUserName">—</span>
-        <span class="header-role" id="headerUserRole">—</span>
-        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesión</button>
+        <span id="headerUserName">&#8212;</span>
+        <span class="header-role" id="headerUserRole">&#8212;</span>
+        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesi&#243;n</button>
       </div>
     </header>
 
     <main class="main-content" id="mainContent">
-      <div class="welcome-section">
-        <h1>Bienvenido al Sistema de Gestión Escolar</h1>
-        <p class="welcome-text">Seleccione una opción del menú lateral para comenzar.</p>
+      <!-- STAT CARDS -->
+      <div class="dash-stats">
+        <div class="dash-stat">
+          <div class="dash-stat-icon blue">&#127891;</div>
+          <div>
+            <div class="dash-stat-number" id="statEstudiantes">&#8212;</div>
+            <div class="dash-stat-label">Estudiantes</div>
+          </div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon teal">&#128101;</div>
+          <div>
+            <div class="dash-stat-number" id="statPersonas">&#8212;</div>
+            <div class="dash-stat-label">Personas</div>
+          </div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon green">&#128203;</div>
+          <div>
+            <div class="dash-stat-number" id="statInscripciones">&#8212;</div>
+            <div class="dash-stat-label">Inscritos (A&#241;o Activo)</div>
+          </div>
+        </div>
+        <div class="dash-stat">
+          <div class="dash-stat-icon purple">&#128104;&#8205;&#127979;</div>
+          <div>
+            <div class="dash-stat-number" id="statProfesores">&#8212;</div>
+            <div class="dash-stat-label">Profesores</div>
+          </div>
+        </div>
       </div>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">👨‍🎓</div>\n            <div class="stat-info">\n              <span class="stat-number" id="statEstudiantes">—</span>
-            <span class="stat-label">Estudiantes</span>
+      <!-- CHARTS ROW -->
+      <div class="dash-row">
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3>&#128202; Matr&#237;cula por Grado</h3>
+          </div>
+          <div class="dash-card-body" id="chartGrados">
+            <div class="empty-state"><div class="empty-state-icon">&#128202;</div>Cargando datos...</div>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">👥</div>\n            <div class="stat-info">\n              <span class="stat-number" id="statPersonas">—</span>
-            <span class="stat-label">Personas</span>
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3>&#129383; Distribuci&#243;n por Sexo</h3>
+          </div>
+          <div class="dash-card-body" id="chartSexo">
+            <div class="empty-state"><div class="empty-state-icon">&#129383;</div>Cargando datos...</div>
           </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">📋</div>\n            <div class="stat-info">\n              <span class="stat-number" id="statInscripciones">—</span>
-            <span class="stat-label">Inscripciones</span>
+      </div>
+
+      <!-- ALERTS ROW -->
+      <div class="dash-row">
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3>&#9888;&#65039; Estudiantes sin Inscribir</h3>
+            <span class="alert-badge warn" id="badgeSinInscribir">0</span>
           </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">👨‍🏫</div>\n            <div class="stat-info">\n              <span class="stat-number" id="statProfesores">—</span>
-            <span class="stat-label">Profesores</span>
+          <div class="dash-card-body" id="listaSinInscribir" style="padding:0 var(--space-4);max-height:300px;overflow-y:auto;">
           </div>
+          <a href="/inscripciones.html" class="alert-ver-todos" id="linkSinInscribir" style="display:none;">
+            Ver todos &#8594;
+          </a>
         </div>
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3>&#128176; Inscritos sin Colaboraci&#243;n</h3>
+            <span class="alert-badge info" id="badgeSinColab">0</span>
+          </div>
+          <div class="dash-card-body" id="listaSinColab" style="padding:0 var(--space-4);max-height:300px;overflow-y:auto;">
+          </div>
+          <a href="/inscripciones.html" class="alert-ver-todos" id="linkSinColab" style="display:none;">
+            Ver todos &#8594;
+          </a>
+        </div>
+      </div>
+
+      <!-- FOOTER BAR -->
+      <div class="dash-footer" id="dashFooter" style="display:none;">
+        <div>
+          <strong>A&#241;o Escolar Activo:</strong> <span id="footerAnio">&#8212;</span>
+        </div>
+        <span class="dash-footer-badge">&#9679; Per&#237;odo Activo</span>
       </div>
     </main>
   </div>
@@ -95,4 +259,3 @@
   <script src="/js/dashboard.js"></script>
 </body>
 </html>
-

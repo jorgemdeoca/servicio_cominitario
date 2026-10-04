@@ -202,6 +202,7 @@
                 <th>Modalidad</th>
                 <th>Fecha</th>
                 <th>Estado</th>
+                <th>Colab.</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -278,13 +279,17 @@
                       <input type="text" id="ni_e_segundo_nombre">
                     </div>
                   </div>
-                  <div class="form-row-4">
+                    <div class="form-row-4">
                     <div class="form-group">
                       <label>Nacionalidad *</label>
-                      <select id="ni_e_nacionalidad">
+                      <select id="ni_e_nacionalidad" onchange="toggleNacionalidadTexto()">
                         <option value="V">V</option>
                         <option value="E">E</option>
                       </select>
+                    </div>
+                    <div class="form-group" id="grupoNacExacta" style="display:none;">
+                      <label>Nacionalidad Exacta *</label>
+                      <input type="text" id="ni_e_nacionalidad_texto" placeholder="Ej: Colombiana">
                     </div>
                     <div class="form-group">
                       <label>Sexo *</label>
@@ -867,6 +872,79 @@
     </div>
   </div>
 
+  <!-- MODAL CAMBIAR SECCIÓN (solo SUPER_ADMIN) -->
+  <div class="modal-overlay" id="modalCambiarSeccion">
+    <div class="modal-insc" style="max-width:450px;">
+      <div class="modal-insc-header" style="background:hsl(30,80%,50%);">
+        <h2>🔄 Cambiar Grado/Sección</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="document.getElementById('modalCambiarSeccion').classList.remove('active')">×</button>
+      </div>
+      <div class="modal-insc-body">
+        <div id="alertCambioSeccion" class="alert" style="display:none;"></div>
+        <div id="cambioSeccionInfo" style="margin-bottom:var(--space-4);padding:var(--space-3);background:var(--bg);border-radius:8px;"></div>
+        <div class="form-group">
+          <label>Nuevo Grado *</label>
+          <select id="cs_grado" onchange="cargarSeccionesCambio()">
+            <option value="">Seleccione...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Nueva Secci&#243;n *</label>
+          <select id="cs_seccion">
+            <option value="">Seleccione grado primero</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-insc-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalCambiarSeccion').classList.remove('active')">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarCambioSeccion()">Guardar Cambio</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL EDITAR DOCUMENTOS -->
+  <div class="modal-overlay" id="modalDocumentos">
+    <div class="modal-insc" style="max-width:450px;">
+      <div class="modal-insc-header">
+        <h2>📄 Documentos Consignados</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="document.getElementById('modalDocumentos').classList.remove('active')">×</button>
+      </div>
+      <div class="modal-insc-body">
+        <div id="alertDocs" class="alert" style="display:none;"></div>
+        <div id="docsEstudianteInfo" style="margin-bottom:var(--space-3);"></div>
+        <div class="docs-grid">
+          <label class="doc-check"><input type="checkbox" id="md_doc_partida"> Partida de Nacimiento</label>
+          <label class="doc-check"><input type="checkbox" id="md_doc_boleta"> Boleta de Promoci&#243;n</label>
+          <label class="doc-check"><input type="checkbox" id="md_doc_ci_madre"> Copia C.I. Madre</label>
+          <label class="doc-check"><input type="checkbox" id="md_doc_ci_padre"> Copia C.I. Padre</label>
+          <label class="doc-check"><input type="checkbox" id="md_doc_foto_est"> Foto del Estudiante</label>
+          <label class="doc-check"><input type="checkbox" id="md_doc_foto_rep"> Foto del Representante</label>
+          <label class="doc-check"><input type="checkbox" id="md_doc_carta_res"> Carpeta Marr&#243;n</label>
+          <label class="doc-check"><input type="checkbox" id="md_doc_constancia"> Acta de Compromiso</label>
+        </div>
+      </div>
+      <div class="modal-insc-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalDocumentos').classList.remove('active')">Cancelar</button>
+        <button type="button" class="btn btn-primary" onclick="guardarDocumentos()">Guardar Documentos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VER INSCRIPCIÓN (reemplaza alert) -->
+  <div class="modal-overlay" id="modalVerInscripcion">
+    <div class="modal-insc" style="max-width:650px;">
+      <div class="modal-insc-header">
+        <h2>📋 Datos de la Inscripción</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="document.getElementById('modalVerInscripcion').classList.remove('active')">×</button>
+      </div>
+      <div class="modal-insc-body" style="max-height:75vh;overflow-y:auto;" id="verInscripcionBody">
+      </div>
+      <div class="modal-insc-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalVerInscripcion').classList.remove('active')">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL NUEVO PAGO (para pagos parciales) -->
   <div class="modal-overlay" id="modalNuevoPago">
     <div class="modal-insc" style="max-width:450px;">
@@ -895,6 +973,94 @@
       <div class="modal-insc-footer">
         <button type="button" class="btn btn-secondary" onclick="cerrarModalNuevoPago()">Cancelar</button>
         <button type="button" class="btn btn-primary" onclick="guardarNuevoPago()">Guardar Pago</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL VER/EDITAR COLABORACIÓN DESDE TABLA -->
+  <div class="modal-overlay" id="modalVerColab">
+    <div class="modal-insc" style="max-width:600px;">
+      <div class="modal-insc-header">
+        <h2>💰 Colaboración</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalVerColab()">×</button>
+      </div>
+      <div class="modal-insc-body" style="max-height:70vh;overflow-y:auto;">
+        <div id="alertVerColab" class="alert" style="display:none;"></div>
+        <div id="verColabInfo" style="margin-bottom:var(--space-3);"></div>
+
+        <!-- Producto -->
+        <div class="form-group">
+          <label><strong>Producto / Colaboración en especie</strong></label>
+          <input type="text" id="vc_producto" placeholder="Ej: Resma de papel, pintura...">
+        </div>
+
+        <!-- Montos -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Monto Total (Bs)</label>
+            <input type="number" id="vc_monto_total" step="0.01" min="0" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label>Observaciones</label>
+            <input type="text" id="vc_observaciones" placeholder="Notas adicionales...">
+          </div>
+        </div>
+
+        <div style="text-align:right;margin-bottom:var(--space-3);">
+          <button type="button" class="btn btn-sm btn-primary" onclick="guardarDatosColab()">💾 Guardar Datos Colaboración</button>
+        </div>
+
+        <!-- Resumen de pagos -->
+        <div style="background:var(--bg);padding:var(--space-3);border-radius:8px;margin-bottom:var(--space-3);">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span>Monto Total:</span><strong id="vc_display_total">Bs 0,00</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span>Abonado:</span><strong id="vc_display_abonado" style="color:var(--success);">Bs 0,00</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span>Pendiente:</span><strong id="vc_display_pendiente" style="color:var(--error);">Bs 0,00</strong>
+          </div>
+        </div>
+
+        <!-- Tabla de pagos -->
+        <div style="font-weight:600;margin-bottom:var(--space-2);display:flex;justify-content:space-between;align-items:center;">
+          <span>Pagos Registrados</span>
+          <button type="button" class="btn btn-sm btn-primary" onclick="abrirNuevoPagoDesdeVerColab()">+ Nuevo Pago</button>
+        </div>
+        <table style="width:100%;font-size:var(--font-size-sm);">
+          <thead><tr><th>Fecha</th><th>Monto</th><th>Tipo</th><th>Referencia</th><th></th></tr></thead>
+          <tbody id="vc_tbody_pagos"></tbody>
+        </table>
+
+        <!-- Formulario nuevo pago inline -->
+        <div id="vc_form_nuevo_pago" style="display:none;background:var(--bg);padding:var(--space-3);border-radius:8px;margin-top:var(--space-3);border:1px solid var(--border);">
+          <h4 style="margin-bottom:var(--space-2);">Registrar Pago</h4>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Monto (Bs) *</label>
+              <input type="number" id="vc_pago_monto" step="0.01" min="0.01">
+            </div>
+            <div class="form-group">
+              <label>Tipo *</label>
+              <select id="vc_pago_tipo" onchange="document.getElementById('vc_pago_ref_group').style.display = this.value === 'PAGO_MOVIL' ? 'block' : 'none'">
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="PAGO_MOVIL">Pago Móvil</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" id="vc_pago_ref_group" style="display:none;">
+            <label>Referencia</label>
+            <input type="text" id="vc_pago_referencia" placeholder="N° de referencia">
+          </div>
+          <div style="text-align:right;margin-top:var(--space-2);">
+            <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('vc_form_nuevo_pago').style.display='none'">Cancelar</button>
+            <button type="button" class="btn btn-sm btn-primary" onclick="guardarPagoDesdeVerColab()">Guardar Pago</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-insc-footer">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalVerColab()">Cerrar</button>
       </div>
     </div>
   </div>

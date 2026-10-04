@@ -99,6 +99,7 @@ model personas {
   nombres          String   @db.VarChar(200)
   cedula           String   @unique @db.VarChar(20)
   nacionalidad     personas_nacionalidad
+  nacionalidad_texto String?  @db.VarChar(100) @default("Venezolana")
   fecha_nacimiento DateTime? @db.Date
   profesion_oficio String?  @db.VarChar(100)
   estado_civil     String?  @db.VarChar(30)
@@ -140,6 +141,7 @@ model estudiantes {
   primer_nombre          String   @db.VarChar(100)
   segundo_nombre         String?  @db.VarChar(100)
   nacionalidad           estudiantes_nacionalidad
+  nacionalidad_texto     String?  @db.VarChar(100) @default("Venezolana")
   codigo_escolar         String?  @unique @db.VarChar(30)
   lateralidad            String?  @db.VarChar(20)
   sexo                   estudiantes_sexo

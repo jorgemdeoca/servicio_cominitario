@@ -9,3 +9,6 @@ skills-lock.json
 .windsurf/
 fix-html.js
 fix-sidebar.js
+
+# Knowledge graph generado por graphify
+graphify-out/

@@ -14,6 +14,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   configurarBusquedaEnTiempoReal('ni_p_cedula', 5, () => buscarPersonaInsc('padre'));
   configurarBusquedaEnTiempoReal('ni_r_cedula', 5, () => buscarPersonaInsc('rep'));
 
+  // Búsqueda en tiempo real en el filtro principal de inscripciones
+  let filtroSearchTimer;
+  const filtroBuscar = document.getElementById('filtroBuscar');
+  if (filtroBuscar) {
+    filtroBuscar.addEventListener('input', (e) => {
+      clearTimeout(filtroSearchTimer);
+      const val = e.target.value.trim();
+      if (val.length === 0 || val.length >= 4) {
+        filtroSearchTimer = setTimeout(() => { paginaActual = 1; loadInscripciones(); }, 500);
+      }
+    });
+  }
+
   // === ACORDEÓN: Secciones colapsables en el modal ===
   document.querySelectorAll('.planilla-seccion-titulo').forEach((titulo, index) => {
     // Colapsar secciones 2-8 por defecto (índice 1 en adelante)
@@ -195,7 +208,7 @@ async function loadInscripciones() {
     tbody.innerHTML = '';
 
     if (data.datos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem;">No se encontraron inscripciones.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">No se encontraron inscripciones.</td></tr>';
       document.getElementById('paginacion').innerHTML = '';
       return;
     }
@@ -209,6 +222,20 @@ async function loadInscripciones() {
         : '—';
       const fecha = formatearFecha(insc.fecha_inscripcion);
 
+      // Badge de colaboración
+      const colab = insc.colaboracion;
+      let colabBadge;
+      if (!colab) {
+        colabBadge = `<span style="background:hsl(0,50%,92%);color:hsl(0,60%,38%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" title="Sin colaboración — clic para registrar" onclick="verColaboracionDesdeTabla(${insc.id})">❌</span>`;
+      } else {
+        const abonado = colab.pagos.reduce((s, p) => s + p.monto, 0);
+        if (abonado >= colab.monto_total && colab.monto_total > 0) {
+          colabBadge = `<span style="background:hsl(145,50%,90%);color:hsl(145,60%,30%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" title="Pagado — clic para ver" onclick="verColaboracionDesdeTabla(${insc.id})">✅</span>`;
+        } else {
+          colabBadge = `<span style="background:hsl(210,50%,92%);color:hsl(210,60%,38%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" title="Pendiente — clic para editar" onclick="verColaboracionDesdeTabla(${insc.id})">💰</span>`;
+        }
+      }
+
       tr.innerHTML = `
         <td>${(paginaActual - 1) * 20 + i + 1}</td>
         <td><strong>${nombre}</strong></td>
@@ -216,8 +243,11 @@ async function loadInscripciones() {
         <td><span class="badge-modalidad">${insc.modalidad}</span></td>
         <td>${fecha}</td>
         <td><span class="badge-estado badge-${insc.estado}">${insc.estado}</span></td>
+        <td style="text-align:center;">${colabBadge}</td>
         <td class="actions-cell">
           <button class="btn btn-sm" onclick="verInscripcion(${insc.id})">Ver</button>
+          <button class="btn btn-sm" onclick="abrirModalDocumentos(${insc.id})" title="Editar documentos">📄</button>
+          ${window._userRol === 'SUPER_ADMIN' && insc.estado === 'ACTIVO' ? `<button class="btn btn-sm" onclick="abrirModalCambiarSeccion(${insc.id})" title="Cambiar grado/sección">🔄</button>` : ''}
           ${insc.estado === 'ACTIVO' ? `<button class="btn btn-sm btn-logout" onclick="retirarEstudiante(${insc.id})">Retirar</button>` : ''}
         </td>
       `;
@@ -604,6 +634,7 @@ async function guardarInscripcion(e) {
           primer_nombre: document.getElementById('ni_e_primer_nombre').value.trim(),
           segundo_nombre: document.getElementById('ni_e_segundo_nombre').value.trim() || null,
           nacionalidad: document.getElementById('ni_e_nacionalidad').value,
+          nacionalidad_texto: document.getElementById('ni_e_nacionalidad').value === 'V' ? 'Venezolana' : (document.getElementById('ni_e_nacionalidad_texto').value.trim() || null),
           sexo: document.getElementById('ni_e_sexo').value,
           fecha_nacimiento: document.getElementById('ni_e_fecha_nacimiento').value,
           codigo_escolar: document.getElementById('ni_e_codigo_escolar').value.trim() || null,
@@ -615,6 +646,7 @@ async function guardarInscripcion(e) {
         madre: {
           cedula: document.getElementById('ni_m_cedula').value.trim(),
           nacionalidad: document.getElementById('ni_m_nacionalidad').value,
+          nacionalidad_texto: document.getElementById('ni_m_nacionalidad').value === 'V' ? 'Venezolana' : null,
           apellidos: document.getElementById('ni_m_apellidos').value.trim(),
           nombres: document.getElementById('ni_m_nombres').value.trim(),
           fecha_nacimiento: document.getElementById('ni_m_fecha_nacimiento').value || null,
@@ -626,6 +658,7 @@ async function guardarInscripcion(e) {
         padre: {
           cedula: document.getElementById('ni_p_cedula').value.trim(),
           nacionalidad: document.getElementById('ni_p_nacionalidad').value,
+          nacionalidad_texto: document.getElementById('ni_p_nacionalidad').value === 'V' ? 'Venezolana' : null,
           apellidos: document.getElementById('ni_p_apellidos').value.trim(),
           nombres: document.getElementById('ni_p_nombres').value.trim(),
           fecha_nacimiento: document.getElementById('ni_p_fecha_nacimiento').value || null,
@@ -642,6 +675,7 @@ async function guardarInscripcion(e) {
         bodyCompleta.representante = {
           cedula: document.getElementById('ni_r_cedula').value.trim(),
           nacionalidad: document.getElementById('ni_r_nacionalidad').value,
+          nacionalidad_texto: document.getElementById('ni_r_nacionalidad').value === 'V' ? 'Venezolana' : null,
           apellidos: document.getElementById('ni_r_apellidos').value.trim(),
           nombres: document.getElementById('ni_r_nombres').value.trim(),
           fecha_nacimiento: document.getElementById('ni_r_fecha_nacimiento').value || null,
@@ -803,18 +837,138 @@ async function verInscripcion(id) {
     const gradoSec = insc.seccion && insc.seccion.grado
       ? `${insc.seccion.grado.nombre} "${insc.seccion.letra}"`
       : '—';
-    const rep = est.representante ? `${est.representante.apellidos}, ${est.representante.nombres} (${est.representante.cedula})` : '—';
 
-    alert(
-      `DATOS DE LA INSCRIPCIÓN\n\n` +
-      `Estudiante: ${nombre}\n` +
-      `Grado/Sección: ${gradoSec}\n` +
-      `Año Escolar: ${insc.anio_escolar.nombre}\n` +
-      `Modalidad: ${insc.modalidad}\n` +
-      `Estado: ${insc.estado}\n` +
-      `Fecha: ${formatearFecha(insc.fecha_inscripcion)}\n` +
-      `Representante: ${rep}\n`
-    );
+    // Calcular edad
+    const nacDate = new Date(est.fecha_nacimiento);
+    const hoy = new Date();
+    let edad = hoy.getFullYear() - nacDate.getFullYear();
+    if (hoy.getMonth() < nacDate.getMonth() || (hoy.getMonth() === nacDate.getMonth() && hoy.getDate() < nacDate.getDate())) edad--;
+
+    // Personas
+    const madre = est.madre;
+    const padre = est.padre;
+    const rep = est.representante;
+
+    // Documentos
+    const docs = [
+      ['Partida de Nacimiento', insc.doc_partida_nacimiento],
+      ['Boleta de Promoción', insc.doc_boleta_promocion],
+      ['Copia C.I. Madre', insc.doc_ci_madre],
+      ['Copia C.I. Padre', insc.doc_ci_padre],
+      ['Foto del Estudiante', insc.doc_foto_estudiante],
+      ['Foto del Representante', insc.doc_foto_representante],
+      ['Carpeta Marrón', insc.doc_carpeta_marron],
+      ['Acta de Compromiso', insc.doc_acta_compromiso],
+    ];
+    const docsHtml = docs.map(([label, val]) =>
+      `<span style="margin-right:12px;">${val ? '✅' : '❌'} ${label}</span>`
+    ).join('');
+
+    // Helper para persona
+    const personaInfo = (p, rol) => {
+      if (!p) return `<div style="color:var(--text-muted);">No registrado</div>`;
+      return `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
+          <div><strong>Nombre:</strong> ${p.apellidos}, ${p.nombres}</div>
+          <div><strong>Cédula:</strong> ${p.cedula || '—'}</div>
+          <div><strong>Teléfono:</strong> ${p.telefono || '—'}</div>
+          <div><strong>Profesión:</strong> ${p.profesion || '—'}</div>
+          <div><strong>Dirección:</strong> ${p.direccion || '—'}</div>
+          <div><strong>Estado Civil:</strong> ${p.estado_civil || '—'}</div>
+        </div>
+      `;
+    };
+
+    document.getElementById('verInscripcionBody').innerHTML = `
+      <style>
+        .vi-section { margin-bottom:var(--space-3); }
+        .vi-header { display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:8px 12px;background:var(--primary);color:white;border-radius:6px;margin-bottom:4px; }
+        .vi-header h3 { margin:0;font-size:0.95rem; }
+        .vi-toggle { font-size:0.8rem;opacity:0.8; }
+        .vi-body { padding:8px 12px; }
+        .vi-grid { display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;font-size:0.9rem; }
+        .vi-dato { font-size:0.9rem;margin-bottom:2px; }
+      </style>
+
+      <!-- ESTUDIANTE - siempre visible -->
+      <div class="vi-section">
+        <div class="vi-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+          <h3>👤 Estudiante</h3><span class="vi-toggle">▼</span>
+        </div>
+        <div class="vi-body">
+          <div class="vi-grid">
+            <div class="vi-dato"><strong>Nombre:</strong> ${nombre}</div>
+            <div class="vi-dato"><strong>Edad:</strong> ${edad} años</div>
+            <div class="vi-dato"><strong>Sexo:</strong> ${est.sexo === 'M' ? 'Masculino' : 'Femenino'}</div>
+            <div class="vi-dato"><strong>F. Nacimiento:</strong> ${formatearFecha(est.fecha_nacimiento)}</div>
+            <div class="vi-dato"><strong>Lugar Nac.:</strong> ${est.lugar_nacimiento || '—'}</div>
+            <div class="vi-dato"><strong>Estado Nac.:</strong> ${est.estado_nacimiento || '—'}</div>
+            <div class="vi-dato"><strong>Nacionalidad:</strong> ${est.nacionalidad}${est.nacionalidad_texto ? ' — ' + est.nacionalidad_texto : ''}</div>
+            <div class="vi-dato"><strong>Cód. Escolar:</strong> ${est.codigo_escolar || '—'}</div>
+            <div class="vi-dato"><strong>Lateralidad:</strong> ${est.lateralidad || '—'}</div>
+            <div class="vi-dato"><strong>Tipo Sangre:</strong> ${est.tipo_sangre || '—'}</div>
+            <div class="vi-dato"><strong>Dirección Actual:</strong> ${insc.direccion || '—'}</div>
+            <div class="vi-dato"><strong>Teléfono:</strong> ${insc.telefono || '—'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INSCRIPCIÓN -->
+      <div class="vi-section">
+        <div class="vi-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+          <h3>📝 Inscripción</h3><span class="vi-toggle">▼</span>
+        </div>
+        <div class="vi-body">
+          <div class="vi-grid">
+            <div class="vi-dato"><strong>Grado/Sección:</strong> ${gradoSec}</div>
+            <div class="vi-dato"><strong>Año Escolar:</strong> ${insc.anio_escolar.nombre}</div>
+            <div class="vi-dato"><strong>Modalidad:</strong> ${insc.modalidad}</div>
+            <div class="vi-dato"><strong>Estado:</strong> ${insc.estado}</div>
+            <div class="vi-dato"><strong>Fecha:</strong> ${formatearFecha(insc.fecha_inscripcion)}</div>
+            <div class="vi-dato"><strong>Procedencia:</strong> ${insc.institucion_procedencia || insc.escuela_procedencia || '—'}</div>
+            <div class="vi-dato"><strong>Talla:</strong> ${insc.talla || '—'}</div>
+            <div class="vi-dato"><strong>Peso:</strong> ${insc.peso || '—'}</div>
+            <div class="vi-dato"><strong>Talla Camisa:</strong> ${insc.talla_camisa || '—'}</div>
+            <div class="vi-dato"><strong>Talla Pantalón:</strong> ${insc.talla_pantalon || '—'}</div>
+            <div class="vi-dato"><strong>Talla Zapato:</strong> ${insc.talla_zapato || '—'}</div>
+            <div class="vi-dato"><strong>Vive con:</strong> ${insc.con_quien_vive || '—'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FAMILIA -->
+      <div class="vi-section">
+        <div class="vi-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+          <h3>👨‍👩‍👧 Familia</h3><span class="vi-toggle">▼</span>
+        </div>
+        <div class="vi-body">
+          <div style="margin-bottom:8px;padding:6px;background:var(--bg);border-radius:6px;">
+            <div style="font-weight:600;margin-bottom:4px;color:var(--primary);">Madre</div>
+            ${personaInfo(madre)}
+          </div>
+          <div style="margin-bottom:8px;padding:6px;background:var(--bg);border-radius:6px;">
+            <div style="font-weight:600;margin-bottom:4px;color:var(--primary);">Padre</div>
+            ${personaInfo(padre)}
+          </div>
+          <div style="padding:6px;background:var(--bg);border-radius:6px;">
+            <div style="font-weight:600;margin-bottom:4px;color:var(--primary);">Representante</div>
+            ${personaInfo(rep)}
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTOS -->
+      <div class="vi-section">
+        <div class="vi-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
+          <h3>📄 Documentos</h3><span class="vi-toggle">▼</span>
+        </div>
+        <div class="vi-body">
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">${docsHtml}</div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('modalVerInscripcion').classList.add('active');
   } catch (error) {
     showAlert('alertInscripciones', 'Error al ver inscripción', 'error');
   }
@@ -1064,8 +1218,8 @@ async function cargarResumenColaboraciones() {
           </select>
         </div>
         <div style="flex:2;">
-          <label>Buscar Representante:</label>
-          <input type="text" id="filtroColabBuscar" placeholder="Nombre o apellido..." oninput="aplicarFiltrosColaboraciones()">
+          <label>Buscar:</label>
+          <input type="text" id="filtroColabBuscar" placeholder="Representante o estudiante..." oninput="aplicarFiltrosColaboraciones()">
         </div>
       </div>
       <div id="colaboracionesContenedorTablas"></div>
@@ -1094,6 +1248,13 @@ function actualizarSelectSeccionesColab() {
   const fGrado = document.getElementById('filtroColabGrado')?.value;
   const selectSeccion = document.getElementById('filtroColabSeccion');
   const valorAnterior = selectSeccion.value;
+
+  // Si no se ha seleccionado un grado, no mostrar secciones específicas
+  if (!fGrado) {
+    selectSeccion.innerHTML = '<option value="">Seleccione un grado primero</option>';
+    aplicarFiltrosColaboraciones();
+    return;
+  }
 
   let letrasUnicas = new Set();
   data.grados.forEach(grado => {
@@ -1145,8 +1306,12 @@ function aplicarFiltrosColaboraciones() {
       let colaboracionesFiltradas = seccion.colaboraciones;
       
       if (fBuscar) {
+        const terminos = fBuscar.split(/\s+/).filter(t => t.length > 0);
         colaboracionesFiltradas = colaboracionesFiltradas.filter(c => 
-          c.representante.toLowerCase().includes(fBuscar)
+          terminos.every(t =>
+            c.representante.toLowerCase().includes(t) ||
+            (c.estudiante && c.estudiante.toLowerCase().includes(t))
+          )
         );
       }
 
@@ -1168,11 +1333,15 @@ function aplicarFiltrosColaboraciones() {
         <th>Monto Total</th>
         <th>Abonado</th>
         <th>Pendiente</th>
+        <th>Estado</th>
         <th>Pagos</th>
       </tr></thead><tbody>`;
 
       colaboracionesFiltradas.forEach(c => {
         const pendienteColor = c.monto_pendiente <= 0 ? 'var(--success)' : 'var(--error)';
+        const estadoColab = c.monto_pendiente <= 0
+          ? `<span style="background:hsl(145,50%,90%);color:hsl(145,60%,30%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" onclick="verColaboracionDesdeTabla(${c.inscripcion_id})">✅ Al día</span>`
+          : `<span style="background:hsl(210,50%,92%);color:hsl(210,60%,38%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" onclick="verColaboracionDesdeTabla(${c.inscripcion_id})">💰 Pendiente</span>`;
         const pagosDetalle = c.pagos.map(p => {
           const tipo = p.tipo_pago === 'PAGO_MOVIL' ? 'P.M.' : 'Efect.';
           const ref = p.referencia_pago ? ` (Ref: ${p.referencia_pago})` : '';
@@ -1187,6 +1356,7 @@ function aplicarFiltrosColaboraciones() {
           <td>${formatBs(c.monto_total)}</td>
           <td>${formatBs(c.monto_abonado)}</td>
           <td style="color:${pendienteColor}; font-weight:600;">${formatBs(c.monto_pendiente)}</td>
+          <td style="text-align:center;">${estadoColab}</td>
           <td style="font-size:var(--font-size-xs);">${pagosDetalle}</td>
         </tr>`;
       });
@@ -1194,7 +1364,7 @@ function aplicarFiltrosColaboraciones() {
       gradoHtml += `</tbody>`;
       gradoHtml += `<tfoot><tr style="font-weight:700; background:var(--bg); border-top:2px solid var(--border);">
         <td colspan="5" style="text-align:right;">Subtotal Sección "${seccion.seccion_letra}":</td>
-        <td colspan="3">${formatBs(subtotalSeccion)}</td>
+        <td colspan="4">${formatBs(subtotalSeccion)}</td>
       </tr></tfoot>`;
       gradoHtml += `</table></div></div>`;
     });
@@ -1243,4 +1413,413 @@ function mostrarVista(vista) {
 function formatBs(amount) {
   if (amount === null || amount === undefined) amount = 0;
   return 'Bs ' + parseFloat(amount).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// ==========================================
+// MODAL CAMBIAR GRADO/SECCIÓN (SUPER_ADMIN)
+// ==========================================
+let _csInscripcionId = null;
+let _csSeccionesData = [];
+
+async function abrirModalCambiarSeccion(inscId) {
+  _csInscripcionId = inscId;
+  hideAlert('alertCambioSeccion');
+
+  try {
+    // Cargar inscripción actual
+    const resInsc = await apiFetch(`/api/inscripciones/${inscId}`);
+    if (!resInsc || !resInsc.ok) return;
+    const insc = await resInsc.json();
+
+    const est = insc.estudiante;
+    const nombre = [est.primer_apellido, est.segundo_apellido, est.primer_nombre, est.segundo_nombre].filter(Boolean).join(' ');
+    const gradoActual = insc.seccion.grado.nombre;
+    const secActual = insc.seccion.letra;
+
+    document.getElementById('cambioSeccionInfo').innerHTML = `
+      <div><strong>Estudiante:</strong> ${nombre}</div>
+      <div><strong>Asignación actual:</strong> <span style="color:var(--primary);font-weight:600;">${gradoActual} "${secActual}"</span></div>
+    `;
+
+    // Cargar grados y secciones del año de la inscripción
+    const resSecciones = await apiFetch(`/api/secciones?anio_escolar_id=${insc.anio_escolar.id}`);
+    if (!resSecciones || !resSecciones.ok) return;
+    _csSeccionesData = await resSecciones.json();
+
+    // Llenar select de grados (únicos)
+    const gradosUnicos = {};
+    _csSeccionesData.forEach(s => {
+      if (s.grado && !gradosUnicos[s.grado.id]) {
+        gradosUnicos[s.grado.id] = s.grado;
+      }
+    });
+
+    const selGrado = document.getElementById('cs_grado');
+    selGrado.innerHTML = '<option value="">Seleccione...</option>';
+    Object.values(gradosUnicos)
+      .sort((a, b) => a.orden - b.orden)
+      .forEach(g => {
+        selGrado.insertAdjacentHTML('beforeend',
+          `<option value="${g.id}" ${g.id === insc.seccion.grado.id ? 'selected' : ''}>${g.nombre}</option>`
+        );
+      });
+
+    // Cargar secciones del grado actual
+    cargarSeccionesCambio(insc.seccion_id);
+
+    document.getElementById('modalCambiarSeccion').classList.add('active');
+  } catch (e) {
+    console.error('Error al abrir cambio de sección:', e);
+  }
+}
+
+function cargarSeccionesCambio(preseleccionId) {
+  const gradoId = parseInt(document.getElementById('cs_grado').value);
+  const selSeccion = document.getElementById('cs_seccion');
+  selSeccion.innerHTML = '<option value="">Seleccione...</option>';
+
+  if (!gradoId) return;
+
+  const secciones = _csSeccionesData.filter(s => s.grado && s.grado.id === gradoId);
+  secciones.sort((a, b) => a.letra.localeCompare(b.letra));
+
+  secciones.forEach(s => {
+    const selected = preseleccionId && s.id === preseleccionId ? 'selected' : '';
+    selSeccion.insertAdjacentHTML('beforeend',
+      `<option value="${s.id}" ${selected}>${s.grado.nombre} "${s.letra}"</option>`
+    );
+  });
+}
+
+async function guardarCambioSeccion() {
+  const seccionId = document.getElementById('cs_seccion').value;
+  if (!seccionId) {
+    showAlert('alertCambioSeccion', 'Seleccione un grado y sección', 'error');
+    return;
+  }
+
+  if (!confirm('¿Está seguro de cambiar el grado/sección de este estudiante?')) return;
+
+  try {
+    const res = await apiFetch(`/api/inscripciones/${_csInscripcionId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ seccion_id: parseInt(seccionId) })
+    });
+
+    if (res && res.ok) {
+      showAlert('alertCambioSeccion', 'Grado/sección cambiado correctamente', 'success');
+      setTimeout(() => {
+        document.getElementById('modalCambiarSeccion').classList.remove('active');
+        loadInscripciones();
+      }, 1000);
+    } else if (res) {
+      const err = await res.json();
+      showAlert('alertCambioSeccion', err.error || 'Error al cambiar', 'error');
+    }
+  } catch (e) {
+    showAlert('alertCambioSeccion', 'Error de conexión', 'error');
+  }
+}
+
+// ==========================================
+// MODAL EDITAR DOCUMENTOS
+// ==========================================
+let _docsInscripcionId = null;
+
+async function abrirModalDocumentos(inscId) {
+  _docsInscripcionId = inscId;
+  hideAlert('alertDocs');
+
+  try {
+    const res = await apiFetch(`/api/inscripciones/${inscId}`);
+    if (!res || !res.ok) return;
+    const insc = await res.json();
+
+    const est = insc.estudiante;
+    const nombre = [est.primer_apellido, est.segundo_apellido, est.primer_nombre, est.segundo_nombre].filter(Boolean).join(' ');
+    document.getElementById('docsEstudianteInfo').innerHTML = `<strong>${nombre}</strong> — ${insc.seccion.grado.nombre} "${insc.seccion.letra}"`;
+
+    document.getElementById('md_doc_partida').checked = !!insc.doc_partida_nacimiento;
+    document.getElementById('md_doc_boleta').checked = !!insc.doc_boleta_promocion;
+    document.getElementById('md_doc_ci_madre').checked = !!insc.doc_ci_madre;
+    document.getElementById('md_doc_ci_padre').checked = !!insc.doc_ci_padre;
+    document.getElementById('md_doc_foto_est').checked = !!insc.doc_foto_estudiante;
+    document.getElementById('md_doc_foto_rep').checked = !!insc.doc_foto_representante;
+    document.getElementById('md_doc_carta_res').checked = !!insc.doc_carpeta_marron;
+    document.getElementById('md_doc_constancia').checked = !!insc.doc_acta_compromiso;
+
+    document.getElementById('modalDocumentos').classList.add('active');
+  } catch (e) {
+    console.error('Error al cargar documentos:', e);
+  }
+}
+
+async function guardarDocumentos() {
+  try {
+    const body = {
+      doc_partida_nacimiento: document.getElementById('md_doc_partida').checked,
+      doc_boleta_promocion: document.getElementById('md_doc_boleta').checked,
+      doc_ci_madre: document.getElementById('md_doc_ci_madre').checked,
+      doc_ci_padre: document.getElementById('md_doc_ci_padre').checked,
+      doc_foto_estudiante: document.getElementById('md_doc_foto_est').checked,
+      doc_foto_representante: document.getElementById('md_doc_foto_rep').checked,
+      doc_carpeta_marron: document.getElementById('md_doc_carta_res').checked,
+      doc_acta_compromiso: document.getElementById('md_doc_constancia').checked
+    };
+
+    const res = await apiFetch(`/api/inscripciones/${_docsInscripcionId}`, {
+      method: 'PUT',
+      body: JSON.stringify(body)
+    });
+
+    if (res && res.ok) {
+      showAlert('alertDocs', 'Documentos actualizados correctamente', 'success');
+      setTimeout(() => {
+        document.getElementById('modalDocumentos').classList.remove('active');
+        loadInscripciones();
+      }, 1000);
+    } else if (res) {
+      const err = await res.json();
+      showAlert('alertDocs', err.error || 'Error al actualizar', 'error');
+    }
+  } catch (e) {
+    showAlert('alertDocs', 'Error de conexión', 'error');
+  }
+}
+
+// Toggle campo de nacionalidad exacta
+function toggleNacionalidadTexto() {
+  const nac = document.getElementById('ni_e_nacionalidad').value;
+  const grupo = document.getElementById('grupoNacExacta');
+  const input = document.getElementById('ni_e_nacionalidad_texto');
+  if (nac === 'E') {
+    grupo.style.display = 'block';
+    input.value = input.value || '';
+  } else {
+    grupo.style.display = 'none';
+    input.value = 'Venezolana';
+  }
+}
+
+// ==========================================
+// MODAL VER/EDITAR COLABORACIÓN DESDE TABLA
+// ==========================================
+let _vcInscripcionId = null;
+let _vcColabId = null;
+let _vcRepresentanteId = null;
+let _vcEstudianteNombre = '';
+
+async function verColaboracionDesdeTabla(inscripcionId) {
+  _vcInscripcionId = inscripcionId;
+  _vcColabId = null;
+  _vcRepresentanteId = null;
+  _vcEstudianteNombre = '';
+
+  try {
+    // Cargar datos de la inscripción para mostrar info del estudiante
+    const resInsc = await apiFetch(`/api/inscripciones/${inscripcionId}`);
+    if (!resInsc || !resInsc.ok) return;
+    const insc = await resInsc.json();
+
+    const est = insc.estudiante;
+    const nombre = [est.primer_apellido, est.segundo_apellido, est.primer_nombre, est.segundo_nombre].filter(Boolean).join(' ');
+    const rep = est.representante ? `${est.representante.apellidos}, ${est.representante.nombres}` : '—';
+    const gradoSec = insc.seccion && insc.seccion.grado ? `${insc.seccion.grado.nombre} "${insc.seccion.letra}"` : '—';
+
+    // Guardar datos para crear colaboración
+    _vcRepresentanteId = est.representante_id || (est.representante ? est.representante.id : null);
+    _vcEstudianteNombre = nombre;
+
+    document.getElementById('verColabInfo').innerHTML = `
+      <div style="background:var(--bg);padding:var(--space-3);border-radius:8px;">
+        <div><strong>Estudiante:</strong> ${nombre}</div>
+        <div><strong>Grado/Sección:</strong> ${gradoSec}</div>
+        <div><strong>Representante:</strong> ${rep}</div>
+      </div>
+    `;
+
+    // Intentar cargar colaboración existente
+    const resColab = await apiFetch(`/api/colaboraciones/inscripcion/${inscripcionId}`);
+    if (resColab && resColab.ok) {
+      const colab = await resColab.json();
+      if (colab && colab.id) {
+        _vcColabId = colab.id;
+        document.getElementById('vc_producto').value = colab.producto || '';
+        document.getElementById('vc_monto_total').value = colab.monto_total || '';
+        document.getElementById('vc_observaciones').value = colab.observaciones || '';
+        _vcRenderPagos(colab.pagos || [], colab.monto_total, colab.monto_abonado);
+      } else {
+        _vcLimpiar();
+      }
+    } else {
+      _vcLimpiar();
+    }
+
+    document.getElementById('vc_form_nuevo_pago').style.display = 'none';
+    hideAlert('alertVerColab');
+    document.getElementById('modalVerColab').classList.add('active');
+  } catch (error) {
+    console.error('Error al cargar colaboración:', error);
+  }
+}
+
+function _vcLimpiar() {
+  document.getElementById('vc_producto').value = '';
+  document.getElementById('vc_monto_total').value = '';
+  document.getElementById('vc_observaciones').value = '';
+  document.getElementById('vc_tbody_pagos').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1rem;">Sin pagos registrados</td></tr>';
+  document.getElementById('vc_display_total').textContent = 'Bs 0,00';
+  document.getElementById('vc_display_abonado').textContent = 'Bs 0,00';
+  document.getElementById('vc_display_pendiente').textContent = 'Bs 0,00';
+  document.getElementById('vc_display_pendiente').style.color = 'var(--error)';
+}
+
+function _vcRenderPagos(pagos, montoTotal, montoAbonado) {
+  const tbody = document.getElementById('vc_tbody_pagos');
+  tbody.innerHTML = '';
+
+  if (!pagos || pagos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:1rem;">Sin pagos registrados</td></tr>';
+  } else {
+    pagos.forEach(p => {
+      const fecha = new Date(p.fecha_pago).toLocaleDateString('es-VE');
+      const tipo = p.tipo_pago === 'PAGO_MOVIL' ? 'Pago Móvil' : 'Efectivo';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${fecha}</td>
+        <td>${formatBs(p.monto)}</td>
+        <td>${tipo}</td>
+        <td>${p.referencia_pago || '—'}</td>
+        <td><button type="button" class="btn btn-sm btn-logout" onclick="_vcEliminarPago(${p.id})">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  const total = parseFloat(montoTotal) || 0;
+  const abonado = parseFloat(montoAbonado) || pagos.reduce((s, p) => s + parseFloat(p.monto), 0);
+  const pendiente = total - abonado;
+
+  document.getElementById('vc_display_total').textContent = formatBs(total);
+  document.getElementById('vc_display_abonado').textContent = formatBs(abonado);
+  document.getElementById('vc_display_pendiente').textContent = formatBs(pendiente);
+  document.getElementById('vc_display_pendiente').style.color = pendiente <= 0 ? 'var(--success)' : 'var(--error)';
+}
+
+function cerrarModalVerColab() {
+  document.getElementById('modalVerColab').classList.remove('active');
+  loadInscripciones(); // Refrescar tabla
+}
+
+async function guardarDatosColab() {
+  const producto = document.getElementById('vc_producto').value.trim();
+  const montoTotal = document.getElementById('vc_monto_total').value;
+  const observaciones = document.getElementById('vc_observaciones').value.trim();
+
+  if (!_vcColabId) {
+    // Crear nueva colaboración
+    try {
+      const res = await apiFetch('/api/colaboraciones', {
+        method: 'POST',
+        body: JSON.stringify({
+          inscripcion_id: _vcInscripcionId,
+          representante_id: _vcRepresentanteId,
+          estudiante_nombre: _vcEstudianteNombre,
+          producto: producto,
+          monto_total: parseFloat(montoTotal) || 0,
+          observaciones: observaciones
+        })
+      });
+      if (res && res.ok) {
+        const data = await res.json();
+        _vcColabId = data.id;
+        showAlert('alertVerColab', 'Colaboración creada correctamente', 'success');
+        // Recargar datos
+        verColaboracionDesdeTabla(_vcInscripcionId);
+      } else if (res) {
+        const err = await res.json();
+        showAlert('alertVerColab', err.error || 'Error al crear', 'error');
+      }
+    } catch (e) {
+      showAlert('alertVerColab', 'Error de conexión', 'error');
+    }
+  } else {
+    // Actualizar colaboración existente
+    try {
+      const res = await apiFetch(`/api/colaboraciones/${_vcColabId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          producto: producto,
+          monto_total: parseFloat(montoTotal) || 0,
+          observaciones: observaciones
+        })
+      });
+      if (res && res.ok) {
+        showAlert('alertVerColab', 'Datos actualizados correctamente', 'success');
+        verColaboracionDesdeTabla(_vcInscripcionId);
+      } else if (res) {
+        const err = await res.json();
+        showAlert('alertVerColab', err.error || 'Error al actualizar', 'error');
+      }
+    } catch (e) {
+      showAlert('alertVerColab', 'Error de conexión', 'error');
+    }
+  }
+}
+
+function abrirNuevoPagoDesdeVerColab() {
+  if (!_vcColabId) {
+    showAlert('alertVerColab', 'Primero guarde los datos de la colaboración.', 'error');
+    return;
+  }
+  document.getElementById('vc_pago_monto').value = '';
+  document.getElementById('vc_pago_tipo').value = 'EFECTIVO';
+  document.getElementById('vc_pago_referencia').value = '';
+  document.getElementById('vc_pago_ref_group').style.display = 'none';
+  document.getElementById('vc_form_nuevo_pago').style.display = 'block';
+}
+
+async function guardarPagoDesdeVerColab() {
+  const monto = document.getElementById('vc_pago_monto').value;
+  const tipoPago = document.getElementById('vc_pago_tipo').value;
+  const referencia = document.getElementById('vc_pago_referencia').value.trim();
+
+  if (!monto || parseFloat(monto) <= 0) {
+    showAlert('alertVerColab', 'El monto debe ser mayor a 0.', 'error');
+    return;
+  }
+
+  try {
+    const res = await apiFetch(`/api/colaboraciones/${_vcColabId}/pagos`, {
+      method: 'POST',
+      body: JSON.stringify({
+        monto: parseFloat(monto),
+        tipo_pago: tipoPago,
+        referencia_pago: tipoPago === 'PAGO_MOVIL' ? referencia : null
+      })
+    });
+    if (res && res.ok) {
+      document.getElementById('vc_form_nuevo_pago').style.display = 'none';
+      showAlert('alertVerColab', 'Pago registrado correctamente', 'success');
+      verColaboracionDesdeTabla(_vcInscripcionId);
+    } else if (res) {
+      const err = await res.json();
+      showAlert('alertVerColab', err.error || 'Error al guardar pago', 'error');
+    }
+  } catch (e) {
+    showAlert('alertVerColab', 'Error de conexión', 'error');
+  }
+}
+
+async function _vcEliminarPago(pagoId) {
+  if (!confirm('¿Eliminar este pago?')) return;
+  try {
+    const res = await apiFetch(`/api/colaboraciones/${_vcColabId}/pagos/${pagoId}`, { method: 'DELETE' });
+    if (res && res.ok) {
+      showAlert('alertVerColab', 'Pago eliminado', 'success');
+      verColaboracionDesdeTabla(_vcInscripcionId);
+    }
+  } catch (e) {
+    showAlert('alertVerColab', 'Error al eliminar pago', 'error');
+  }
 }
