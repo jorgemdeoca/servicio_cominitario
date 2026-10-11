@@ -6,16 +6,42 @@
   <title>Reportes - Sistema de Gesti&#243;n Escolar</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
-    .report-card { background: var(--bg-white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--space-6); margin-bottom: var(--space-6); }
-    .report-card h3 { font-size: var(--font-size-lg); margin-bottom: var(--space-4); border-bottom: 2px solid var(--primary-bg); padding-bottom: var(--space-2); }
-    .report-form-row { display: flex; gap: var(--space-4); align-items: flex-end; flex-wrap: wrap; margin-bottom: var(--space-5); }
-    .report-form-row > .form-group { flex: 1; min-width: 200px; }
-    
-    .stats-table { width: 100%; border-collapse: collapse; margin-top: var(--space-4); }
+    /* Report cards */
+    .report-card {
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      margin-bottom: var(--space-5);
+      box-shadow: var(--shadow);
+    }
+    .report-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-2);
+      padding-bottom: var(--space-3);
+      border-bottom: 2px solid var(--primary-bg);
+    }
+    .report-card-header .rc-icon {
+      width: 36px; height: 36px;
+      background: var(--primary-bg);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .report-card-header .rc-icon img { width: 18px; height: 18px; }
+    .report-card-header h3 { font-size: var(--font-size-base); font-weight: 700; margin: 0; color: var(--text); }
+    .report-card-header p  { font-size: var(--font-size-xs); color: var(--text-muted); margin: 0; }
+    .report-form-row { display: flex; gap: var(--space-4); align-items: flex-end; flex-wrap: wrap; margin: var(--space-4) 0; }
+    .report-form-row > .form-group { flex: 1; min-width: 180px; }
+
+    /* Stats table */
+    .stats-table { width: 100%; border-collapse: collapse; margin-top: var(--space-4); font-size: var(--font-size-sm); }
     .stats-table th, .stats-table td { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); text-align: center; }
-    .stats-table th { background: var(--bg); font-weight: 600; }
-    .stats-table .grado-row { background: var(--primary-bg); font-weight: 600; text-align: left; }
-    .stats-table .total-row { font-weight: bold; background: hsl(215, 80%, 95%); }
+    .stats-table th { background: var(--bg); font-weight: 700; font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .stats-table .grado-row { background: var(--primary-bg); font-weight: 700; text-align: left; color: var(--primary-dark); }
+    .stats-table .total-row { font-weight: 700; background: hsl(215,60%,94%); color: var(--primary-dark); }
   </style>
 </head>
 <body class="dashboard-page">
@@ -26,31 +52,31 @@
     </div>
     <nav class="sidebar-nav">
       <a href="/dashboard.html" class="nav-item">
-        <span class="nav-icon">&#x1F4CA;</span>
+        <span class="nav-icon"><img src="/icons/home.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Dashboard</span>
       </a>
       <a href="/personas.html" class="nav-item">
-        <span class="nav-icon">&#x1F465;</span>
+        <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Personas</span>
       </a>
       <a href="/estudiantes.html" class="nav-item">
-        <span class="nav-icon">&#x1F393;</span>
+        <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Estudiantes</span>
       </a>
       <a href="/inscripciones.html" class="nav-item">
-        <span class="nav-icon">&#x1F4DD;</span>
+        <span class="nav-icon"><img src="/icons/clipboard-list.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Inscripciones</span>
       </a>
       <a href="/profesores.html" class="nav-item">
-        <span class="nav-icon">&#x1F468;&#x200D;&#x1F3EB;</span>
+        <span class="nav-icon"><img src="/icons/user-check.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Profesores</span>
       </a>
       <a href="/reportes.html" class="nav-item active">
-        <span class="nav-icon">&#x1F4C4;</span>
+        <span class="nav-icon"><img src="/icons/bar-chart-3.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Reportes y PDFs</span>
       </a>
       <a href="/configuracion.html" class="nav-item">
-        <span class="nav-icon">&#x2699;&#xFE0F;</span>
+        <span class="nav-icon"><img src="/icons/settings.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Configuraci&#243;n</span>
       </a>
     </nav>
@@ -73,92 +99,125 @@
     </header>
 
     <main class="main-content">
-      <h1 class="page-title">Reportes y PDFs</h1>
-      <p class="page-subtitle">Genera documentos PDF y visualiza estad&#237;sticas de matr&#237;cula</p>
+      <div class="section-header" style="margin-bottom:var(--space-5);">
+        <div class="section-header-text">
+          <h2>Reportes y PDFs</h2>
+          <p>Genera documentos PDF y visualiza estadísticas de matrícula</p>
+        </div>
+      </div>
 
       <div id="alertReportes" class="alert" style="display:none; margin-bottom:var(--space-4);"></div>
 
-      <!-- 1. Matricula Inicial -->
+      <!-- R2: Matrícula Inicial -->
       <div class="report-card">
-        <h3>PDF Matr&#237;cula Inicial</h3>
-        <p style="color:var(--text-muted); margin-bottom:var(--space-4); font-size:var(--font-size-sm);">Genera la planilla de matr&#237;cula inicial con los estudiantes activos de una secci&#243;n. Seleccione el formato deseado.</p>
-
+        <div class="report-card-header">
+          <div class="rc-icon"><img src="/icons/file-text.svg" alt=""></div>
+          <div>
+            <h3>PDF Matrícula Inicial</h3>
+            <p>Planilla con estudiantes activos de una sección — selecciona formato</p>
+          </div>
+        </div>
         <div class="report-form-row">
           <div class="form-group">
-            <label>A&#241;o Escolar:</label>
+            <label>Año Escolar</label>
             <select id="selAnioMatricula" class="form-control"></select>
           </div>
           <div class="form-group">
-            <label>Secci&#243;n:</label>
+            <label>Sección</label>
             <select id="selSeccionMatricula" class="form-control">
-              <option value="">Seleccione un a&#241;o escolar primero...</option>
+              <option value="">Seleccione un año escolar primero...</option>
             </select>
           </div>
-          <div style="display:flex; gap:var(--space-2); align-items:end; flex-wrap:wrap;">
-            <button class="btn btn-secondary" onclick="generarMatricula()" title="Membrete del Ministerio con tabla detallada (D&#237;a/Mes/A&#241;o separados)">&#128196; Formato Anterior</button>
-            <button class="btn btn-primary" onclick="generarMatriculaNuevoFormato()" title="Membrete con escudo de la instituci&#243;n + &#237;cono MPPE, tabla simplificada">&#128196; Nuevo Formato</button>
+          <div style="display:flex; gap:var(--space-2); align-items:flex-end; flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="generarMatricula()" title="Membrete del Ministerio con tabla detallada">
+              <img src="/icons/file.svg" alt="" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;opacity:0.7;">
+              Formato Anterior
+            </button>
+            <button class="btn btn-primary" onclick="generarMatriculaNuevoFormato()" title="Membrete institucional con escudo MPPE">
+              <img src="/icons/file-text.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+              Nuevo Formato
+            </button>
           </div>
         </div>
       </div>
 
-      <!-- 2. Ficha de Inscripcion -->
+      <!-- R3: Fichas de Inscripción -->
       <div class="report-card">
-        <h3>PDF Fichas de Inscripci&#243;n</h3>
-        <p style="color:var(--text-muted); margin-bottom:var(--space-4); font-size:var(--font-size-sm);">Busca una inscripci&#243;n y genera su ficha (Educaci&#243;n Inicial o Primaria).</p>
-
+        <div class="report-card-header">
+          <div class="rc-icon"><img src="/icons/clipboard-list.svg" alt=""></div>
+          <div>
+            <h3>PDF Fichas de Inscripción</h3>
+            <p>Busca una inscripción y genera su ficha (Inicial o Primaria)</p>
+          </div>
+        </div>
         <div class="report-form-row">
           <div class="form-group" style="flex:2;">
-            <label>Buscar (C&#233;dula o Apellidos del Estudiante):</label>
+            <label>Buscar — Cédula o Apellidos del Estudiante</label>
             <div style="display:flex; gap:var(--space-2);">
-              <input type="text" id="inputBuscarInscripcion" class="form-control" placeholder="Ej. Perez o 11222333">
+              <div class="search-bar" style="flex:1;">
+                <img src="/icons/search.svg" alt="" class="search-icon">
+                <input type="text" id="inputBuscarInscripcion" placeholder="Ej. Pérez o V-11222333" onkeydown="if(event.key==='Enter') buscarInscripciones()">
+              </div>
               <button class="btn btn-secondary" onclick="buscarInscripciones()">Buscar</button>
             </div>
           </div>
           <div class="form-group" style="flex:3;">
-            <label>Seleccionar Inscripci&#243;n:</label>
+            <label>Seleccionar Inscripción</label>
             <select id="selInscripcionFicha" class="form-control">
               <option value="">Escriba y busque para ver resultados...</option>
             </select>
           </div>
         </div>
-        <div style="display:flex; gap:var(--space-3);">
-          <button class="btn btn-primary" onclick="generarFicha('INICIAL')">Ficha Inicial (7 secciones)</button>
-          <button class="btn btn-secondary" onclick="generarFicha('PRIMARIA')">Ficha Primaria (5 secciones)</button>
+        <div style="display:flex; gap:var(--space-3); flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="generarFicha('INICIAL')">
+            <img src="/icons/printer.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            Ficha Inicial (7 secciones)
+          </button>
+          <button class="btn btn-secondary" onclick="generarFicha('PRIMARIA')">
+            <img src="/icons/printer.svg" alt="" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;opacity:0.7;">
+            Ficha Primaria (5 secciones)
+          </button>
         </div>
       </div>
 
-      <!-- 3. Estadisticas -->
+      <!-- R4: Estadísticas en pantalla -->
       <div class="report-card">
-        <h3>Estad&#237;sticas de Matr&#237;cula (En pantalla)</h3>
-        <p style="color:var(--text-muted); margin-bottom:var(--space-4); font-size:var(--font-size-sm);">Resumen total de varones y hembras por grado y secci&#243;n.</p>
-
+        <div class="report-card-header">
+          <div class="rc-icon"><img src="/icons/bar-chart-3.svg" alt=""></div>
+          <div>
+            <h3>Estadísticas de Matrícula</h3>
+            <p>Resumen de varones y hembras por grado y sección</p>
+          </div>
+        </div>
         <div class="report-form-row">
           <div class="form-group">
-            <label>A&#241;o Escolar:</label>
+            <label>Año Escolar</label>
             <select id="selAnioEstadisticas" class="form-control"></select>
           </div>
           <div class="form-group">
-            <label>Grado:</label>
+            <label>Grado</label>
             <select id="selGradoEstadisticas" class="form-control" onchange="filtrarEstadisticas()">
               <option value="">Todos</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Secci&#243;n:</label>
+            <label>Sección</label>
             <select id="selSeccionEstadisticas" class="form-control" onchange="filtrarEstadisticas()">
               <option value="">Todas</option>
             </select>
           </div>
-          <div>
-            <button class="btn btn-primary" onclick="cargarEstadisticas()">Cargar Resumen</button>
+          <div style="align-self:flex-end;">
+            <button class="btn btn-primary" onclick="cargarEstadisticas()">
+              <img src="/icons/bar-chart-3.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+              Cargar Resumen
+            </button>
           </div>
         </div>
-
         <div id="tablaEstadisticasContainer" style="display:none; overflow-x:auto;">
           <table class="stats-table">
             <thead>
               <tr>
-                <th>Grado / Secci&#243;n</th>
+                <th>Grado / Sección</th>
                 <th>Varones</th>
                 <th>Hembras</th>
                 <th>Total</th>

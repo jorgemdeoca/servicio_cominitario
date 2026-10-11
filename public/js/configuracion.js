@@ -220,12 +220,12 @@ async function loadAniosEscolares() {
       const fin = formatearFecha(anio.fecha_fin);
       
       let badge = anio.activo 
-        ? '<span class="badge badge-success">Activo</span>' 
-        : '<span class="badge badge-inactive">Inactivo</span>';
+        ? '<span class="badge badge-green no-dot">Activo</span>' 
+        : '<span class="badge badge-gray no-dot">Inactivo</span>';
         
       let btnActivar = anio.activo 
         ? '' 
-        : `<button class="btn btn-sm" onclick="activarAnio(${anio.id})">Activar</button>`;
+        : `<button class="btn-icon" onclick="activarAnio(${anio.id})" title="Activar año escolar" aria-label="Activar"><img src="/icons/check.svg" alt="Activar"></button>`;
 
       tr.innerHTML = `
         <td><strong>${anio.nombre}</strong></td>
@@ -233,7 +233,7 @@ async function loadAniosEscolares() {
         <td>${badge}</td>
         <td class="actions-cell">
           ${btnActivar}
-          ${anio.activo ? `<button class="btn btn-sm btn-logout" onclick="finalizarAnio(${anio.id})">Finalizar</button>` : ''}
+          ${anio.activo ? `<button class="btn-icon danger" onclick="finalizarAnio(${anio.id})" title="Finalizar año escolar" aria-label="Finalizar"><img src="/icons/x.svg" alt="Finalizar"></button>` : ''}
         </td>
       `;
       tbody.appendChild(tr);
@@ -346,7 +346,7 @@ async function loadGrados() {
         <td><strong>${grado.nombre}</strong></td>
         <td><span class="badge ${badgeClass}">${grado.nivel}</span></td>
         <td class="actions-cell">
-          <button class="btn btn-sm btn-logout" onclick="deleteGrado(${grado.id})">Eliminar</button>
+          <button class="btn-icon danger" onclick="deleteGrado(${grado.id})" title="Eliminar grado" aria-label="Eliminar"><img src="/icons/trash-2.svg" alt="Eliminar"></button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -838,7 +838,7 @@ async function loadUsuarios() {
         <td>${d}</td>
         <td style="display:flex;gap:6px;">
           <button class="btn btn-sm" style="font-size:0.75rem;padding:3px 10px;" onclick="editUsuario(${u.id}, '${u.nombre_usuario}', '${u.rol}')">Editar</button>
-          <button class="btn btn-sm btn-logout" style="font-size:0.75rem;padding:3px 10px;" onclick="deleteUsuario(${u.id})">Eliminar</button>
+          <button class="btn-icon danger" onclick="deleteUsuario(${u.id})" title="Eliminar usuario" aria-label="Eliminar"><img src="/icons/trash-2.svg" alt="Eliminar"></button>
         </td>
       `;
       tbody.appendChild(tr);

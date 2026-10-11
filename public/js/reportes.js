@@ -280,7 +280,7 @@ function renderEstadisticas(datos) {
         );
       });
       tbody.insertAdjacentHTML('beforeend',
-        '<tr style="background:hsl(0,0%,98%);font-weight:600;"><td style="text-align:right;">Total ' + g.grado + ':</td><td>' + g.varonesGrado + '</td><td>' + g.hembraGrado + '</td><td>' + g.totalGrado + '</td></tr>'
+        '<tr style="background:var(--bg);font-weight:600;"><td style="text-align:right;">Total ' + g.grado + ':</td><td>' + g.varonesGrado + '</td><td>' + g.hembraGrado + '</td><td>' + g.totalGrado + '</td></tr>'
       );
     });
   }

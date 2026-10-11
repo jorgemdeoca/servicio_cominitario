@@ -208,7 +208,17 @@ async function loadInscripciones() {
     tbody.innerHTML = '';
 
     if (data.datos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">No se encontraron inscripciones.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="8">
+        <div class="empty-state">
+          <img src="/icons/clipboard-list.svg" alt="" class="empty-state-icon">
+          <h3>No se encontraron inscripciones</h3>
+          <p>Ajusta los filtros o registra una nueva inscripción para este año escolar.</p>
+          <button class="btn btn-primary btn-sm" onclick="abrirModalInscripcion()">
+            <img src="/icons/plus.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            Nueva Inscripción
+          </button>
+        </div>
+      </td></tr>`;
       document.getElementById('paginacion').innerHTML = '';
       return;
     }
@@ -222,33 +232,73 @@ async function loadInscripciones() {
         : '—';
       const fecha = formatearFecha(insc.fecha_inscripcion);
 
-      // Badge de colaboración
+      // I4: Avatar con iniciales
+      const initials = avatarInitials(nombre);
+      const avatarColor = nameToColor(nombre);
+
+      // I4: Badge de estado unificado
+      const estadoMap = {
+        'ACTIVO':     'badge-green',
+        'APROBADO':   'badge-teal',
+        'REPROBADO':  'badge-red',
+        'RETIRADO':   'badge-gray',
+      };
+      const estadoLabel = {
+        'ACTIVO': 'Activo', 'APROBADO': 'Aprobado',
+        'REPROBADO': 'Reprobado', 'RETIRADO': 'Retirado'
+      };
+      const estadoBadge = `<span class="badge ${estadoMap[insc.estado] || 'badge-gray'} no-dot">${estadoLabel[insc.estado] || insc.estado}</span>`;
+
+      // I5: Badge modalidad unificado
+      const modalidadBadge = `<span class="badge badge-blue no-dot">${insc.modalidad}</span>`;
+
+      // I5: Badge colaboración con SVG en lugar de emojis
       const colab = insc.colaboracion;
       let colabBadge;
       if (!colab) {
-        colabBadge = `<span style="background:hsl(0,50%,92%);color:hsl(0,60%,38%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" title="Sin colaboración — clic para registrar" onclick="verColaboracionDesdeTabla(${insc.id})">❌</span>`;
+        colabBadge = `<span class="badge badge-red" style="cursor:pointer;" title="Sin colaboración — clic para registrar" onclick="verColaboracionDesdeTabla(${insc.id})">
+          <img src="/icons/x.svg" alt="" style="width:10px;height:10px;filter:invert(0.4) sepia(1) saturate(5) hue-rotate(320deg);"> Sin colab.
+        </span>`;
       } else {
         const abonado = colab.pagos.reduce((s, p) => s + p.monto, 0);
         if (abonado >= colab.monto_total && colab.monto_total > 0) {
-          colabBadge = `<span style="background:hsl(145,50%,90%);color:hsl(145,60%,30%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" title="Pagado — clic para ver" onclick="verColaboracionDesdeTabla(${insc.id})">✅</span>`;
+          colabBadge = `<span class="badge badge-green" style="cursor:pointer;" title="Pagado — clic para ver" onclick="verColaboracionDesdeTabla(${insc.id})">
+            <img src="/icons/circle-check.svg" alt="" style="width:10px;height:10px;filter:invert(0.4) sepia(1) saturate(5) hue-rotate(100deg);"> Pagado
+          </span>`;
         } else {
-          colabBadge = `<span style="background:hsl(210,50%,92%);color:hsl(210,60%,38%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" title="Pendiente — clic para editar" onclick="verColaboracionDesdeTabla(${insc.id})">💰</span>`;
+          colabBadge = `<span class="badge badge-orange" style="cursor:pointer;" title="Pendiente — clic para editar" onclick="verColaboracionDesdeTabla(${insc.id})">
+            <img src="/icons/dollar-sign.svg" alt="" style="width:10px;height:10px;opacity:0.7;"> Pendiente
+          </span>`;
         }
       }
 
+      // I6: Botones de acción con SVG
+      const btnVer = `<button class="btn-icon" onclick="verInscripcion(${insc.id})" title="Ver inscripción" aria-label="Ver"><img src="/icons/eye.svg" alt="Ver"></button>`;
+      const btnDocs = `<button class="btn-icon" onclick="abrirModalDocumentos(${insc.id})" title="Documentos" aria-label="Documentos"><img src="/icons/file-text.svg" alt="Docs"></button>`;
+      const btnCambio = (window._userRol === 'SUPER_ADMIN' && insc.estado === 'ACTIVO')
+        ? `<button class="btn-icon" onclick="abrirModalCambiarSeccion(${insc.id})" title="Cambiar grado/sección" aria-label="Cambiar sección"><img src="/icons/refresh-cw.svg" alt="Cambiar"></button>`
+        : '';
+      const btnRetirar = insc.estado === 'ACTIVO'
+        ? `<button class="btn-icon danger" onclick="retirarEstudiante(${insc.id})" title="Retirar estudiante" aria-label="Retirar"><img src="/icons/x.svg" alt="Retirar"></button>`
+        : '';
+
       tr.innerHTML = `
-        <td>${(paginaActual - 1) * 20 + i + 1}</td>
-        <td><strong>${nombre}</strong></td>
-        <td>${gradoSec}</td>
-        <td><span class="badge-modalidad">${insc.modalidad}</span></td>
-        <td>${fecha}</td>
-        <td><span class="badge-estado badge-${insc.estado}">${insc.estado}</span></td>
-        <td style="text-align:center;">${colabBadge}</td>
-        <td class="actions-cell">
-          <button class="btn btn-sm" onclick="verInscripcion(${insc.id})">Ver</button>
-          <button class="btn btn-sm" onclick="abrirModalDocumentos(${insc.id})" title="Editar documentos">📄</button>
-          ${window._userRol === 'SUPER_ADMIN' && insc.estado === 'ACTIVO' ? `<button class="btn btn-sm" onclick="abrirModalCambiarSeccion(${insc.id})" title="Cambiar grado/sección">🔄</button>` : ''}
-          ${insc.estado === 'ACTIVO' ? `<button class="btn btn-sm btn-logout" onclick="retirarEstudiante(${insc.id})">Retirar</button>` : ''}
+        <td style="font-size:var(--font-size-xs);color:var(--text-muted);font-weight:600;">${(paginaActual - 1) * 20 + i + 1}</td>
+        <td>
+          <div class="flex-center gap-2">
+            <span class="avatar-initials" style="background:${avatarColor};">${initials}</span>
+            <strong>${nombre}</strong>
+          </div>
+        </td>
+        <td><span class="badge badge-lblue no-dot">${gradoSec}</span></td>
+        <td>${modalidadBadge}</td>
+        <td style="font-size:var(--font-size-sm);">${fecha}</td>
+        <td>${estadoBadge}</td>
+        <td>${colabBadge}</td>
+        <td>
+          <div class="actions-cell">
+            ${btnVer}${btnDocs}${btnCambio}${btnRetirar}
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -263,24 +313,27 @@ async function loadInscripciones() {
 function renderPaginacion(pagina, totalPaginas, total) {
   const container = document.getElementById('paginacion');
   container.innerHTML = '';
+  if (totalPaginas <= 1 && total > 0) { renderResultsCount('resultsCountInsc', pagina, 20, total); return; }
   if (totalPaginas <= 1) return;
 
   const btnPrev = document.createElement('button');
-  btnPrev.textContent = '← Anterior';
+  btnPrev.innerHTML = `<img src="/icons/chevron-left.svg" class="pg-icon" alt="Anterior"> Anterior`;
   btnPrev.disabled = pagina <= 1;
   btnPrev.onclick = () => { paginaActual--; loadInscripciones(); };
+  container.appendChild(btnPrev);
 
-  const info = document.createElement('span');
-  info.textContent = `Página ${pagina} de ${totalPaginas} (${total} inscripciones)`;
+  const delta = 2, range = [];
+  for (let i = Math.max(1, pagina - delta); i <= Math.min(totalPaginas, pagina + delta); i++) range.push(i);
+  if (range[0] > 1) { const e = document.createElement('button'); e.textContent = '1'; e.onclick = () => { paginaActual = 1; loadInscripciones(); }; container.appendChild(e); if (range[0] > 2) { const d = document.createElement('span'); d.textContent = '…'; d.style.cssText = 'padding:0 4px;color:var(--text-muted);align-self:center;'; container.appendChild(d); } }
+  range.forEach(n => { const b = document.createElement('button'); b.textContent = n; if (n === pagina) b.classList.add('active'); b.onclick = () => { paginaActual = n; loadInscripciones(); }; container.appendChild(b); });
+  if (range[range.length - 1] < totalPaginas) { if (range[range.length - 1] < totalPaginas - 1) { const d = document.createElement('span'); d.textContent = '…'; d.style.cssText = 'padding:0 4px;color:var(--text-muted);align-self:center;'; container.appendChild(d); } const e = document.createElement('button'); e.textContent = totalPaginas; e.onclick = () => { paginaActual = totalPaginas; loadInscripciones(); }; container.appendChild(e); }
 
   const btnNext = document.createElement('button');
-  btnNext.textContent = 'Siguiente →';
+  btnNext.innerHTML = `Siguiente <img src="/icons/chevron-right.svg" class="pg-icon" alt="Siguiente">`;
   btnNext.disabled = pagina >= totalPaginas;
   btnNext.onclick = () => { paginaActual++; loadInscripciones(); };
-
-  container.appendChild(btnPrev);
-  container.appendChild(info);
   container.appendChild(btnNext);
+  renderResultsCount('resultsCountInsc', pagina, 20, total);
 }
 
 // ==========================================
@@ -1340,8 +1393,8 @@ function aplicarFiltrosColaboraciones() {
       colaboracionesFiltradas.forEach(c => {
         const pendienteColor = c.monto_pendiente <= 0 ? 'var(--success)' : 'var(--error)';
         const estadoColab = c.monto_pendiente <= 0
-          ? `<span style="background:hsl(145,50%,90%);color:hsl(145,60%,30%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" onclick="verColaboracionDesdeTabla(${c.inscripcion_id})">✅ Al día</span>`
-          : `<span style="background:hsl(210,50%,92%);color:hsl(210,60%,38%);padding:2px 8px;border-radius:10px;font-size:0.75rem;font-weight:600;cursor:pointer;" onclick="verColaboracionDesdeTabla(${c.inscripcion_id})">💰 Pendiente</span>`;
+          ? `<span class="badge badge-green" style="cursor:pointer;" onclick="verColaboracionDesdeTabla(${c.inscripcion_id})"><img src="/icons/circle-check.svg" alt="" style="width:10px;height:10px;filter:invert(0.4) sepia(1) saturate(5) hue-rotate(100deg);"> Al día</span>`
+          : `<span class="badge badge-orange" style="cursor:pointer;" onclick="verColaboracionDesdeTabla(${c.inscripcion_id})"><img src="/icons/dollar-sign.svg" alt="" style="width:10px;height:10px;opacity:0.7;"> Pendiente</span>`;
         const pagosDetalle = c.pagos.map(p => {
           const tipo = p.tipo_pago === 'PAGO_MOVIL' ? 'P.M.' : 'Efect.';
           const ref = p.referencia_pago ? ` (Ref: ${p.referencia_pago})` : '';

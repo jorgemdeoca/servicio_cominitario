@@ -1,64 +1,84 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* ========================================
+   TIPOGRAFÍA LOCAL — Sin CDN (100% Offline)
+   ======================================== */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+}
 
 /* ========================================
    VARIABLES DEL SISTEMA DE DISEÑO
    ======================================== */
 :root {
-  /* Colores primarios */
-  --primary: hsl(215, 60%, 45%);
-  --primary-dark: hsl(215, 60%, 35%);
-  --primary-light: hsl(215, 60%, 55%);
-  --primary-bg: hsl(215, 60%, 95%);
+  /* ── Colores primarios (Navy institucional: Research Lab/University) ── */
+  --primary:       #1E3A5F;
+  --primary-dark:  #152d4a;
+  --primary-light: #2563EB;
+  --primary-bg:    #E8F0FE;
 
-  /* Colores neutros */
-  --bg: #f1f3f5;
-  --bg-white: #ffffff;
-  --sidebar-bg: #1e293b;
-  --sidebar-hover: #334155;
-  --sidebar-active: #0f172a;
-  --text: #1a1a2e;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
-  --border: #e2e8f0;
+  /* ── Acento (dorado institucional) ── */
+  --accent:        #A16207;
+  --accent-bg:     #FEF9C3;
 
-  /* Colores semánticos */
-  --success: hsl(142, 50%, 40%);
-  --success-bg: hsl(142, 50%, 93%);
-  --error: hsl(0, 65%, 50%);
-  --error-bg: hsl(0, 65%, 95%);
-  --warning: hsl(38, 90%, 50%);
-  --warning-bg: hsl(38, 90%, 93%);
+  /* ── Semánticos ── */
+  --success:       #059669;
+  --success-bg:    #ECFDF5;
+  --error:         #DC2626;
+  --error-bg:      #FEF2F2;
+  --warning:       #D97706;
+  --warning-bg:    #FFFBEB;
+  --info:          #0D9488;
+  --info-bg:       #F0FDFA;
+  --purple:        #7C3AED;
+  --purple-bg:     #F5F3FF;
 
-  /* Tipografía */
+  /* ── Neutros ── */
+  --bg:            #F8FAFC;
+  --bg-white:      #FFFFFF;
+  --muted:         #E9EEF5;
+  --border:        #CBD5E1;
+  --text:          #0F172A;
+  --text-muted:    #475569;
+  --text-light:    #94A3B8;
+
+  /* ── Sidebar ── */
+  --sidebar-bg:     #0F172A;
+  --sidebar-hover:  #1E293B;
+  --sidebar-active: #1E3A5F;
+
+  /* ── Tipografía ── */
   --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-size-xs: 0.75rem;
-  --font-size-sm: 0.875rem;
+  --font-size-xs:   0.75rem;
+  --font-size-sm:   0.875rem;
   --font-size-base: 1rem;
-  --font-size-lg: 1.125rem;
-  --font-size-xl: 1.25rem;
-  --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
+  --font-size-lg:   1.125rem;
+  --font-size-xl:   1.25rem;
+  --font-size-2xl:  1.5rem;
+  --font-size-3xl:  1.875rem;
 
-  /* Espaciado */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
+  /* ── Espaciado (8px grid) ── */
+  --space-1:  0.25rem;   /*  4px */
+  --space-2:  0.5rem;    /*  8px */
+  --space-3:  0.75rem;   /* 12px */
+  --space-4:  1rem;      /* 16px */
+  --space-5:  1.25rem;   /* 20px */
+  --space-6:  1.5rem;    /* 24px */
+  --space-8:  2rem;      /* 32px */
+  --space-10: 2.5rem;    /* 40px */
+  --space-12: 3rem;      /* 48px */
 
-  /* Bordes y sombras */
-  --radius: 8px;
+  /* ── Radios y sombras ── */
+  --radius:    8px;
   --radius-lg: 12px;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --radius-xl: 16px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow:    0 1px 3px rgba(15, 23, 42, 0.10), 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.06);
+  --shadow-lg: 0 10px 24px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06);
 
-  /* Layout */
+  /* ── Layout ── */
   --sidebar-width: 260px;
   --header-height: 60px;
 }
@@ -225,7 +245,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, hsl(215, 40%, 95%) 0%, hsl(220, 30%, 88%) 100%);
+  background: linear-gradient(135deg, #E8F0FE 0%, #c9d9f5 50%, #b8cef0 100%);
   padding: var(--space-4);
 }
 
@@ -266,6 +286,39 @@ a {
   font-size: var(--font-size-sm);
   color: var(--primary);
   font-weight: 500;
+}
+
+/* L1: Logo placeholder / logo real */
+.login-logo-placeholder {
+  width: 68px; height: 68px;
+  background: var(--primary-bg);
+  border-radius: var(--radius-lg);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto var(--space-4);
+  border: 1px solid var(--border);
+}
+.login-logo {
+  width: 68px; height: 68px;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  margin: 0 auto var(--space-4);
+  display: block;
+}
+
+/* L2: Inputs con icono */
+.input-icon-wrap {
+  position: relative;
+}
+.input-icon-wrap .input-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  width: 16px; height: 16px;
+  pointer-events: none;
+  opacity: 0.4;
+}
+.input-icon-wrap input {
+  padding-left: 36px !important;
 }
 
 /* ========================================
@@ -323,7 +376,7 @@ a {
   color: rgba(255, 255, 255, 0.7);
   font-size: var(--font-size-sm);
   font-weight: 400;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   border-left: 3px solid transparent;
 }
 
@@ -371,7 +424,7 @@ a {
 .main-header {
   height: var(--header-height);
   background-color: var(--bg-white);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--muted);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -463,6 +516,7 @@ a {
   align-items: center;
   gap: var(--space-5);
   box-shadow: var(--shadow);
+  border: 1px solid var(--border);
   border-left: 4px solid var(--primary);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -470,6 +524,7 @@ a {
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
+  border-left-color: var(--primary-light);
 }
 
 .stat-icon {
@@ -515,15 +570,7 @@ table {
   border-collapse: collapse;
 }
 
-thead th {
-  background: var(--bg);
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-muted);
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-}
+/* thead th → movido a bloque G9 mejorado */
 
 tbody td {
   padding: var(--space-3) var(--space-4);
@@ -531,6 +578,9 @@ tbody td {
   border-bottom: 1px solid var(--border);
 }
 
+tbody tr {
+  transition: background-color 0.12s ease;
+}
 tbody tr:hover {
   background-color: hsl(215, 60%, 98%);
 }
@@ -542,6 +592,16 @@ tbody tr:last-child td {
 /* ========================================
    RESPONSIVE
    ======================================== */
+/* ── Tablet: 2 columnas ── */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .dashboard-charts {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -580,75 +640,7 @@ tbody tr:last-child td {
   }
 }
 
-/* ========================================
-   MODALES
-   ======================================== */
-.modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
-}
-
-.modal.active {
-  display: flex;
-}
-
-.modal-content {
-  background: var(--bg-white);
-  padding: var(--space-6);
-  border-radius: var(--radius-lg);
-  width: 90%;
-  max-width: 600px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--shadow-lg);
-  position: relative;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: var(--space-2);
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: var(--font-size-lg);
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--text-muted);
-}
-.close-btn:hover {
-  color: var(--danger);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  margin-top: var(--space-6);
-}
-
-.btn-secondary {
-  background: var(--bg);
-  color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-secondary:hover {
-  background: var(--border);
-}
+/* (Modal + btn-secondary movidos a bloque G10 mejorado más abajo) */
 
 /* Ocultar Configuración por defecto - JS lo muestra para SUPER_ADMIN */
 a.nav-item[href="/configuracion.html"] {
@@ -749,4 +741,570 @@ a.nav-item[href="/configuracion.html"].visible {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-4px); }
   75% { transform: translateX(4px); }
+}
+
+/* ========================================
+   FASE UI-1 — G2: LOADING SKELETON
+   ======================================== */
+.skeleton {
+  background: linear-gradient(90deg, #e9eef5 25%, #d8e0ee 50%, #e9eef5 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shine 1.4s infinite;
+  border-radius: var(--radius);
+  color: transparent !important;
+  pointer-events: none;
+  user-select: none;
+}
+.skeleton * { visibility: hidden; }
+.skeleton-line {
+  height: 13px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #e9eef5 25%, #d8e0ee 50%, #e9eef5 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shine 1.4s infinite;
+  display: block;
+}
+.skeleton-line.w-40 { width: 40%; }
+.skeleton-line.w-60 { width: 60%; }
+.skeleton-line.w-80 { width: 80%; }
+@keyframes skeleton-shine {
+  0%   { background-position:  200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ========================================
+   FASE UI-1 — G3: EMPTY STATES
+   ======================================== */
+.empty-state {
+  text-align: center;
+  padding: var(--space-12) var(--space-8);
+  color: var(--text-muted);
+}
+.empty-state-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto var(--space-4);
+  opacity: 0.35;
+  display: block;
+}
+.empty-state h3 {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: var(--space-2);
+}
+.empty-state p {
+  font-size: var(--font-size-sm);
+  max-width: 320px;
+  margin: 0 auto var(--space-5);
+  line-height: 1.6;
+}
+
+/* ========================================
+   FASE UI-1 — G4: PAGINACIÓN MEJORADA
+   ======================================== */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  margin-top: var(--space-5);
+  flex-wrap: wrap;
+}
+.pagination button {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.pagination button:hover:not(:disabled) {
+  background: var(--primary-bg);
+  border-color: var(--primary-light);
+  color: var(--primary-light);
+}
+.pagination button.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+.pagination button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.pagination-info {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: var(--space-2);
+}
+.pagination .pg-icon {
+  width: 14px; height: 14px;
+}
+
+/* ========================================
+   FASE UI-1 — G5: FOCUS VISIBLE
+   ======================================== */
+:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+/* ========================================
+   FASE UI-1 — G6: SISTEMA DE BADGES
+   ======================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.6;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+.badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+.badge.no-dot::before { display: none; }
+.badge-blue   { background: #E8F0FE; color: #1E3A5F; }
+.badge-lblue  { background: #DBEAFE; color: #1D4ED8; }
+.badge-green  { background: #ECFDF5; color: #065F46; }
+.badge-red    { background: #FEF2F2; color: #991B1B; }
+.badge-orange { background: #FFFBEB; color: #92400E; }
+.badge-purple { background: #F5F3FF; color: #5B21B6; }
+.badge-teal   { background: #F0FDFA; color: #134E4A; }
+.badge-gray   { background: #F1F5F9; color: #475569; }
+.badge-gold   { background: #FEF9C3; color: #78350F; }
+
+/* ========================================
+   FASE UI-1 — G7: SCROLLBAR ESTILIZADO
+   ======================================== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+/* ========================================
+   FASE UI-1 — G8: ICONOS SVG
+   ======================================== */
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.icon-sm  { width: 14px; height: 14px; }
+.icon-md  { width: 18px; height: 18px; }
+.icon-lg  { width: 22px; height: 22px; }
+.icon-xl  { width: 28px; height: 28px; }
+
+/* Nav icons en sidebar */
+.nav-icon-img {
+  width: 18px; height: 18px;
+  opacity: 0.65;
+  filter: invert(1);
+  transition: opacity 0.15s ease;
+}
+.nav-item:hover .nav-icon-img,
+.nav-item.active .nav-icon-img { opacity: 1; }
+
+/* Botón icono pequeño */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+.btn-icon img { width: 15px; height: 15px; opacity: 0.7; }
+.btn-icon:hover { background: var(--primary-bg); border-color: var(--primary-light); }
+.btn-icon:hover img { opacity: 1; filter: none; }
+.btn-icon.danger:hover { background: var(--error-bg); border-color: var(--error); }
+
+/* ========================================
+   FASE UI-1 — G9: CLASES UTILITARIAS
+   ======================================== */
+
+/* Section header */
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+.section-header-text h2 {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin-bottom: 2px;
+  line-height: 1.25;
+}
+.section-header-text p {
+  font-size: var(--font-size-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+.section-header-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+/* Card sistema */
+.card {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+}
+.card-body { padding: var(--space-5); }
+.card-header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--bg);
+}
+.card-header h3 {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Toolbar de filtros */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-white);
+  border-bottom: 1px solid var(--border);
+}
+.toolbar select, .toolbar input {
+  height: 34px;
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-white);
+  color: var(--text);
+  font-family: var(--font);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.toolbar select:focus, .toolbar input:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.toolbar-divider {
+  width: 1px; height: 22px;
+  background: var(--border);
+  flex-shrink: 0;
+  margin: 0 var(--space-1);
+}
+
+/* Search bar */
+.search-bar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.search-bar .search-icon {
+  position: absolute;
+  left: 10px;
+  width: 15px; height: 15px;
+  pointer-events: none;
+  opacity: 0.45;
+}
+.search-bar input {
+  padding-left: 32px;
+  border-radius: 9999px !important;
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  height: 34px;
+  font-size: var(--font-size-sm);
+  min-width: 200px;
+  font-family: var(--font);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  color: var(--text);
+}
+.search-bar input:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.search-bar input::placeholder { color: var(--text-light); }
+
+/* Avatares con iniciales */
+.avatar-initials {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+/* Contador de resultados */
+.results-count {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+/* Tabla mejorada */
+thead th {
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  background: var(--muted);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody td { vertical-align: middle; }
+.actions-cell {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+.table-zebra tbody tr:nth-child(even) { background: #FAFBFC; }
+
+/* Divider */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: var(--space-5) 0;
+}
+
+/* Utilidades flex */
+.flex         { display: flex; }
+.flex-center  { display: flex; align-items: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.gap-2        { gap: var(--space-2); }
+.gap-3        { gap: var(--space-3); }
+.w-full       { width: 100%; }
+.mt-2         { margin-top: var(--space-2); }
+.mt-4         { margin-top: var(--space-4); }
+.mb-4         { margin-bottom: var(--space-4); }
+.text-success { color: var(--success); }
+.text-error   { color: var(--error); }
+.text-muted   { color: var(--text-muted); }
+.text-right   { text-align: right; }
+.text-center  { text-align: center; }
+.fw-600       { font-weight: 600; }
+.fw-700       { font-weight: 700; }
+
+/* ========================================
+   FASE UI-1 — G10: MODAL OVERLAY MEJORADO
+   ======================================== */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.50);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+.modal.active { display: flex; }
+
+.modal-content {
+  background: var(--bg-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  border: 1px solid var(--border);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.modal-header h3 {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.modal-body { padding: var(--space-5); }
+
+.close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+  line-height: 1;
+}
+.close-btn:hover {
+  background: var(--error-bg);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+/* ========================================
+   FASE UI-1 — BOTÓN CON LOADING
+   ======================================== */
+.btn-loading {
+  pointer-events: none;
+  opacity: 0.80;
+  position: relative;
+}
+.btn-loading::after {
+  content: '';
+  width: 13px; height: 13px;
+  border: 2px solid rgba(255,255,255,0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  margin-left: var(--space-2);
+  display: inline-block;
+  vertical-align: middle;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ========================================
+   FASE UI-6 — PULIDO VISUAL FINAL
+   ======================================== */
+
+/* P4-2: Hover más sutil en tablas zebra */
+.table-zebra tbody tr:hover {
+  background-color: var(--primary-bg) !important;
+}
+
+/* P4-3: Botón danger del btn-icon — color del icono al hacer hover */
+.btn-icon.danger:hover img {
+  filter: invert(0.2) sepia(1) saturate(8) hue-rotate(340deg) !important;
+}
+
+/* P4-5: Selects en formularios — cursor pointer */
+select {
+  cursor: pointer;
+}
+
+/* P4-8: Labels de formularios en toolbars — estilo compacto */
+.toolbar label {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+/* P4-9: Mejorar contraste de badges en dark backgrounds */
+.badge img {
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* P4-10: Animación sutil de entrada para cards */
+.card, .report-card, .stat-card, .config-form-card {
+  animation: fadeIn 0.2s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* P4-11: Botón secondary mejorado — consistencia global */
+.btn-secondary {
+  background: var(--bg-white);
+  color: var(--text);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--muted);
+  border-color: var(--text-light);
+}
+
+/* P4-12: Mejorar contraste de .text-light en resultados */
+.results-count strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+/* P4-14: Print — ocultar sidebar y header */
+@media print {
+  .sidebar, .main-header, .pagination, .section-header-actions { display: none !important; }
+  .main-wrapper { margin-left: 0 !important; }
+  .main-content { padding: 0 !important; }
 }

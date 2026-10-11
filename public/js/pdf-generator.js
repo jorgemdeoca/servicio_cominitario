@@ -192,7 +192,8 @@ function drawFieldNF(doc, label, value, x, y, maxX) {
 }
 
 async function generarPDFMatriculaNuevoFormato(datos) {
-  var doc = inicializarPDF(true);
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF('l', 'pt', 'legal'); // Tamaño oficio horizontal
   var pageW = doc.internal.pageSize.getWidth();
   var marginL = 15;
   var marginR = 15;
@@ -330,15 +331,15 @@ async function generarPDFMatriculaNuevoFormato(datos) {
     columnStyles: {
       0: { cellWidth: 18, halign: 'center' },
       1: { cellWidth: 60 },
-      2: { cellWidth: 132 },
-      3: { cellWidth: 78 }, // Aumentado de 58 a 78
+      2: { cellWidth: 197 }, // Aumentado para aprovechar Oficio
+      3: { cellWidth: 78 },
       4: { cellWidth: 48, halign: 'center' },
       5: { cellWidth: 26, halign: 'center' },
       6: { cellWidth: 22, halign: 'center' },
-      7: { cellWidth: 90 },
-      8: { cellWidth: 52 },
-      9: { cellWidth: 172 }, // Disminuido de 192 a 172 para compensar
-      10: { cellWidth: 60 }
+      7: { cellWidth: 145 }, // Aumentado para aprovechar Oficio
+      8: { cellWidth: 62, halign: 'center' },  // Dos espacios de caracteres más
+      9: { cellWidth: 252 }, // Aumentado para aprovechar Oficio
+      10: { cellWidth: 70 }  // Dos espacios de caracteres más
     }
   });
 
