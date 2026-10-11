@@ -62,7 +62,13 @@ async function loadPersonas() {
     tbody.innerHTML = '';
 
     if (data.datos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem;">No se encontraron personas.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="6">
+        <div class="empty-state">
+          <img src="/icons/users.svg" alt="" class="empty-state-icon">
+          <h3>No se encontraron personas</h3>
+          <p>Intenta con otro término de búsqueda o registra una nueva persona.</p>
+        </div>
+      </td></tr>`;
     }
 
     // Guardar datos para popup
@@ -71,19 +77,33 @@ async function loadPersonas() {
       window._personasData[p.id] = p;
       const tr = document.createElement('tr');
       const cantEstudiantes = p._count?.estudiantes_como_representante || 0;
-      let rolBadge = '—';
+      const nombreCompleto = `${p.apellidos}, ${p.nombres}`;
+      const initials = avatarInitials(nombreCompleto);
+      const avatarColor = nameToColor(nombreCompleto);
+      let rolBadge = '<span class="badge badge-gray no-dot">—</span>';
       if (cantEstudiantes > 0) {
-        rolBadge = `<span style="background:hsl(145,50%,90%);color:hsl(145,60%,30%);padding:3px 10px;border-radius:12px;font-size:0.78rem;font-weight:600;cursor:pointer;" onclick="verEstudiantesRep(${p.id})">Representante (${cantEstudiantes})</span>`;
+        rolBadge = `<span class="badge badge-teal" style="cursor:pointer;" onclick="verEstudiantesRep(${p.id})">Representante (${cantEstudiantes})</span>`;
       }
       tr.innerHTML = `
-        <td><span class="badge-nacionalidad">${p.nacionalidad}</span> ${p.cedula}</td>
-        <td><strong>${p.apellidos}</strong>, ${p.nombres}</td>
+        <td><span class="badge badge-blue no-dot">${p.nacionalidad}</span> ${p.cedula}</td>
+        <td>
+          <div class="flex-center gap-2">
+            <span class="avatar-initials" style="background:${avatarColor};">${initials}</span>
+            <span><strong>${p.apellidos}</strong>, ${p.nombres}</span>
+          </div>
+        </td>
         <td>${p.telefono || '—'}</td>
         <td>${p.profesion_oficio || '—'}</td>
         <td>${rolBadge}</td>
-        <td class="actions-cell">
-          <button class="btn btn-sm" onclick="editarPersona(${p.id})">Editar</button>
-          <button class="btn btn-sm btn-logout" onclick="eliminarPersona(${p.id})">Eliminar</button>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-icon" onclick="editarPersona(${p.id})" title="Editar persona" aria-label="Editar">
+              <img src="/icons/pencil.svg" alt="Editar">
+            </button>
+            <button class="btn-icon danger" onclick="eliminarPersona(${p.id})" title="Eliminar persona" aria-label="Eliminar">
+              <img src="/icons/trash-2.svg" alt="Eliminar">
+            </button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -99,24 +119,27 @@ async function loadPersonas() {
 function renderPaginacion(pagina, totalPaginas, total) {
   const container = document.getElementById('paginacion');
   container.innerHTML = '';
+  if (totalPaginas <= 1 && total > 0) { renderResultsCount('resultsCount', pagina, 20, total); return; }
   if (totalPaginas <= 1) return;
 
   const btnPrev = document.createElement('button');
-  btnPrev.textContent = '← Anterior';
+  btnPrev.innerHTML = `<img src="/icons/chevron-left.svg" class="pg-icon" alt="Anterior"> Anterior`;
   btnPrev.disabled = pagina <= 1;
   btnPrev.onclick = () => { paginaActual--; loadPersonas(); };
+  container.appendChild(btnPrev);
 
-  const info = document.createElement('span');
-  info.textContent = `Página ${pagina} de ${totalPaginas} (${total} registros)`;
+  const delta = 2, range = [];
+  for (let i = Math.max(1, pagina - delta); i <= Math.min(totalPaginas, pagina + delta); i++) range.push(i);
+  if (range[0] > 1) { const e = document.createElement('button'); e.textContent = '1'; e.onclick = () => { paginaActual = 1; loadPersonas(); }; container.appendChild(e); if (range[0] > 2) { const d = document.createElement('span'); d.textContent = '…'; d.style.cssText = 'padding:0 4px;color:var(--text-muted);align-self:center;'; container.appendChild(d); } }
+  range.forEach(n => { const b = document.createElement('button'); b.textContent = n; if (n === pagina) b.classList.add('active'); b.onclick = () => { paginaActual = n; loadPersonas(); }; container.appendChild(b); });
+  if (range[range.length - 1] < totalPaginas) { if (range[range.length - 1] < totalPaginas - 1) { const d = document.createElement('span'); d.textContent = '…'; d.style.cssText = 'padding:0 4px;color:var(--text-muted);align-self:center;'; container.appendChild(d); } const e = document.createElement('button'); e.textContent = totalPaginas; e.onclick = () => { paginaActual = totalPaginas; loadPersonas(); }; container.appendChild(e); }
 
   const btnNext = document.createElement('button');
-  btnNext.textContent = 'Siguiente →';
+  btnNext.innerHTML = `Siguiente <img src="/icons/chevron-right.svg" class="pg-icon" alt="Siguiente">`;
   btnNext.disabled = pagina >= totalPaginas;
   btnNext.onclick = () => { paginaActual++; loadPersonas(); };
-
-  container.appendChild(btnPrev);
-  container.appendChild(info);
   container.appendChild(btnNext);
+  renderResultsCount('resultsCount', pagina, 20, total);
 }
 
 // === MODAL ===

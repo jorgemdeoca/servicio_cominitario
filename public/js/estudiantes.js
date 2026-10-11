@@ -85,7 +85,17 @@ async function loadEstudiantes() {
     tbody.innerHTML = '';
 
     if (data.datos.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:2rem;">No se encontraron estudiantes.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="8">
+        <div class="empty-state">
+          <img src="/icons/graduation-cap.svg" alt="" class="empty-state-icon">
+          <h3>No se encontraron estudiantes</h3>
+          <p>Intenta con otro término de búsqueda o agrega un nuevo estudiante.</p>
+          <button class="btn btn-primary btn-sm" onclick="abrirPlanilla()">
+            <img src="/icons/plus.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            Nuevo Estudiante
+          </button>
+        </div>
+      </td></tr>`;
       document.getElementById('paginacion').innerHTML = '';
       return;
     }
@@ -100,29 +110,44 @@ async function loadEstudiantes() {
       const rep = e.representante ? `${e.representante.apellidos}, ${e.representante.nombres}` : '—';
       const telRep = e.representante && e.representante.telefono ? e.representante.telefono : '—';
 
+      // T6: Avatar con iniciales
+      const initials = avatarInitials(nombre);
+      const avatarColor = nameToColor(nombre);
+
       // Estado de inscripción
       let estadoBadge = '';
       const inscActiva = e.inscripciones && e.inscripciones[0];
       if (inscActiva && inscActiva.estado === 'ACTIVO') {
         const gs = `${inscActiva.seccion.grado.nombre} "${inscActiva.seccion.letra}"`;
-        estadoBadge = `<span class="badge-estado badge-estado-verde" title="Inscrito en año activo">${gs}</span>`;
+        estadoBadge = `<span class="badge badge-green no-dot" title="Inscrito en año activo">${gs}</span>`;
       } else if (inscActiva && inscActiva.estado === 'RETIRADO') {
-        estadoBadge = `<span class="badge-estado badge-estado-rojo" title="Retirado">Retirado</span>`;
+        estadoBadge = `<span class="badge badge-red no-dot" title="Retirado">Retirado</span>`;
       } else {
-        estadoBadge = `<span class="badge-estado badge-estado-azul" title="No inscrito en año activo">Sin inscribir</span>`;
+        estadoBadge = `<span class="badge badge-gray no-dot" title="No inscrito en año activo">Sin inscribir</span>`;
       }
 
       tr.innerHTML = `
-        <td><strong>${nombre}</strong></td>
+        <td>
+          <div class="flex-center gap-2">
+            <span class="avatar-initials" style="background:${avatarColor};">${initials}</span>
+            <strong>${nombre}</strong>
+          </div>
+        </td>
         <td>${e.codigo_escolar || '—'}</td>
-        <td><span class="badge-sexo ${sexoClass}">${sexoText}</span></td>
+        <td><span class="badge ${e.sexo === 'M' ? 'badge-lblue' : 'badge-orange'} no-dot">${sexoText}</span></td>
         <td>${fechaNac}</td>
         <td>${rep}</td>
         <td>${telRep}</td>
         <td>${estadoBadge}</td>
-        <td class="actions-cell">
-          <button class="btn btn-sm" onclick="editarEstudiante(${e.id})">Editar</button>
-          <button class="btn btn-sm btn-logout" onclick="eliminarEstudiante(${e.id})">Eliminar</button>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-icon" onclick="editarEstudiante(${e.id})" title="Editar estudiante" aria-label="Editar">
+              <img src="/icons/pencil.svg" alt="Editar">
+            </button>
+            <button class="btn-icon danger" onclick="eliminarEstudiante(${e.id})" title="Eliminar estudiante" aria-label="Eliminar">
+              <img src="/icons/trash-2.svg" alt="Eliminar">
+            </button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
@@ -137,24 +162,35 @@ async function loadEstudiantes() {
 function renderPaginacion(pagina, totalPaginas, total) {
   const container = document.getElementById('paginacion');
   container.innerHTML = '';
+  if (totalPaginas <= 1 && total > 0) {
+    // Solo contador, sin botones
+    renderResultsCount('resultsCount', pagina, 20, total);
+    return;
+  }
   if (totalPaginas <= 1) return;
 
   const btnPrev = document.createElement('button');
-  btnPrev.textContent = '← Anterior';
+  btnPrev.innerHTML = `<img src="/icons/chevron-left.svg" class="pg-icon" alt="Anterior"> Anterior`;
   btnPrev.disabled = pagina <= 1;
   btnPrev.onclick = () => { paginaActual--; loadEstudiantes(); };
 
-  const info = document.createElement('span');
-  info.textContent = `Página ${pagina} de ${totalPaginas} (${total} registros)`;
+  container.appendChild(btnPrev);
+
+  // Páginas numeradas (máx 5 visibles)
+  const delta = 2;
+  const range = [];
+  for (let i = Math.max(1, pagina - delta); i <= Math.min(totalPaginas, pagina + delta); i++) range.push(i);
+  if (range[0] > 1) { const e = document.createElement('button'); e.textContent = '1'; e.onclick = () => { paginaActual = 1; loadEstudiantes(); }; container.appendChild(e); if (range[0] > 2) { const d = document.createElement('span'); d.textContent = '…'; d.style.cssText = 'padding:0 4px;color:var(--text-muted);align-self:center;'; container.appendChild(d); } }
+  range.forEach(n => { const b = document.createElement('button'); b.textContent = n; if (n === pagina) b.classList.add('active'); b.onclick = () => { paginaActual = n; loadEstudiantes(); }; container.appendChild(b); });
+  if (range[range.length - 1] < totalPaginas) { if (range[range.length - 1] < totalPaginas - 1) { const d = document.createElement('span'); d.textContent = '…'; d.style.cssText = 'padding:0 4px;color:var(--text-muted);align-self:center;'; container.appendChild(d); } const e = document.createElement('button'); e.textContent = totalPaginas; e.onclick = () => { paginaActual = totalPaginas; loadEstudiantes(); }; container.appendChild(e); }
 
   const btnNext = document.createElement('button');
-  btnNext.textContent = 'Siguiente →';
+  btnNext.innerHTML = `Siguiente <img src="/icons/chevron-right.svg" class="pg-icon" alt="Siguiente">`;
   btnNext.disabled = pagina >= totalPaginas;
   btnNext.onclick = () => { paginaActual++; loadEstudiantes(); };
 
-  container.appendChild(btnPrev);
-  container.appendChild(info);
   container.appendChild(btnNext);
+  renderResultsCount('resultsCount', pagina, 20, total);
 }
 
 // ==========================================

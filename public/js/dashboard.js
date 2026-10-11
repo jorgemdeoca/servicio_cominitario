@@ -9,11 +9,11 @@ async function cargarDashboard() {
     if (!res || !res.ok) return;
     const data = await res.json();
 
-    // 1. Stat cards
-    document.getElementById('statEstudiantes').textContent = data.estudiantes;
-    document.getElementById('statPersonas').textContent = data.personas;
-    document.getElementById('statInscripciones').textContent = data.inscripciones;
-    document.getElementById('statProfesores').textContent = data.profesores;
+    // 1. Stat cards con animación count-up
+    countUp(document.getElementById('statEstudiantes'), data.estudiantes);
+    countUp(document.getElementById('statPersonas'), data.personas);
+    countUp(document.getElementById('statInscripciones'), data.inscripciones);
+    countUp(document.getElementById('statProfesores'), data.profesores);
 
     // 2. Gráfico de barras - Matrícula por Grado
     renderBarChart(data.matriculaPorGrado);
@@ -192,4 +192,23 @@ function renderSinColaboracion(lista, total) {
     link.textContent = 'Ver todos los casos pendientes (' + total + ') →';
     link.style.display = 'block';
   }
+}
+
+// D2: Animación count-up para stat cards (JS puro, sin librería)
+function countUp(el, target, duration) {
+  if (!el) return;
+  target = parseInt(target) || 0;
+  duration = duration || 900;
+  if (target === 0) { el.textContent = '0'; return; }
+  const start = performance.now();
+  function update(now) {
+    const elapsed = now - start;
+    const progress = Math.min(elapsed / duration, 1);
+    // Easing: ease-out cubic
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(eased * target).toLocaleString('es-VE');
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = target.toLocaleString('es-VE');
+  }
+  requestAnimationFrame(update);
 }

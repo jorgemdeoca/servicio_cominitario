@@ -1,4 +1,4 @@
-﻿let busquedaActual = '';
+let busquedaActual = '';
 let searchTimeout = null;
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,36 +40,59 @@ async function loadProfesores() {
     tbody.innerHTML = '';
 
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem;">No se encontraron profesores.</td></tr>';
+      tbody.innerHTML = `<tr><td colspan="7">
+        <div class="empty-state">
+          <img src="/icons/user-check.svg" alt="" class="empty-state-icon">
+          <h3>No se encontraron profesores</h3>
+          <p>No hay profesores registrados o ninguno coincide con el filtro actual.</p>
+        </div>
+      </td></tr>`;
       return;
     }
 
     data.forEach(p => {
       const tr = document.createElement('tr');
-      const activoBadge = p.activo 
-        ? '<span class="badge-activo badge-activo-si">Activo</span>'
-        : '<span class="badge-activo badge-activo-no">Inactivo</span>';
-      
-      let sexoBadge = '—';
-      if (p.sexo === 'M') sexoBadge = '<span class="badge-sexo badge-sexo-m">M</span>';
-      if (p.sexo === 'F') sexoBadge = '<span class="badge-sexo badge-sexo-f">F</span>';
+      const nombreCompleto = `${p.apellidos}, ${p.nombres}`;
+      const initials = avatarInitials(nombreCompleto);
+      const avatarColor = nameToColor(nombreCompleto);
+
+      const activoBadge = p.activo
+        ? '<span class="badge badge-green no-dot">Activo</span>'
+        : '<span class="badge badge-red no-dot">Inactivo</span>';
+
+      let sexoBadge = '<span class="badge badge-gray no-dot">—</span>';
+      if (p.sexo === 'M') sexoBadge = '<span class="badge badge-lblue no-dot">M</span>';
+      if (p.sexo === 'F') sexoBadge = '<span class="badge badge-orange no-dot">F</span>';
 
       tr.innerHTML = `
         <td>${p.nacionalidad}-${p.cedula}</td>
-        <td><strong>${p.apellidos}</strong>, ${p.nombres}</td>
+        <td>
+          <div class="flex-center gap-2">
+            <span class="avatar-initials" style="background:${avatarColor};">${initials}</span>
+            <span><strong>${p.apellidos}</strong>, ${p.nombres}</span>
+          </div>
+        </td>
         <td>${sexoBadge}</td>
         <td>${p.telefono || '—'}</td>
         <td>${p.email || '—'}</td>
         <td>${activoBadge}</td>
-        <td class="actions-cell">
-          <button class="btn btn-sm" onclick="editarProfesor(${p.id})">Editar</button>
-          <button class="btn btn-sm btn-logout btn-delete-profesor" onclick="toggleEstadoProfesor(${p.id}, ${!p.activo})">
-            ${p.activo ? 'Desactivar' : 'Activar'}
-          </button>
+        <td>
+          <div class="actions-cell">
+            <button class="btn-icon" onclick="editarProfesor(${p.id})" title="Editar profesor" aria-label="Editar">
+              <img src="/icons/pencil.svg" alt="Editar">
+            </button>
+            <button class="btn-icon ${p.activo ? 'danger' : ''}" onclick="toggleEstadoProfesor(${p.id}, ${!p.activo})"
+              title="${p.activo ? 'Desactivar' : 'Activar'}" aria-label="${p.activo ? 'Desactivar' : 'Activar'}">
+              <img src="/icons/${p.activo ? 'x' : 'check'}.svg" alt="${p.activo ? 'Desactivar' : 'Activar'}">
+            </button>
+          </div>
         </td>
       `;
       tbody.appendChild(tr);
     });
+    // T8: Contador de resultados
+    const rc = document.getElementById('resultsCount');
+    if (rc) rc.textContent = `${data.length} profesor${data.length !== 1 ? 'es' : ''} registrado${data.length !== 1 ? 's' : ''}`;
   } catch (error) {
     showAlert('alertProfesores', 'Error al cargar profesores', 'error');
   }

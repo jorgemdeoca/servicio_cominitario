@@ -87,31 +87,31 @@
     </div>
         <nav class="sidebar-nav">
       <a href="/dashboard.html" class="nav-item">
-        <span class="nav-icon">📊</span>
+        <span class="nav-icon"><img src="/icons/home.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Dashboard</span>
       </a>
       <a href="/personas.html" class="nav-item active">
-        <span class="nav-icon">👥</span>
+        <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Personas</span>
       </a>
       <a href="/estudiantes.html" class="nav-item">
-        <span class="nav-icon">🎓</span>
+        <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Estudiantes</span>
       </a>
       <a href="/inscripciones.html" class="nav-item">
-        <span class="nav-icon">📝</span>
+        <span class="nav-icon"><img src="/icons/clipboard-list.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Inscripciones</span>
       </a>
       <a href="/profesores.html" class="nav-item">
-        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-icon"><img src="/icons/user-check.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Profesores</span>
       </a>
       <a href="/reportes.html" class="nav-item">
-        <span class="nav-icon">📄</span>
+        <span class="nav-icon"><img src="/icons/bar-chart-3.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Reportes y PDFs</span>
       </a>
       <a href="/configuracion.html" class="nav-item">
-        <span class="nav-icon">⚙️</span>
+        <span class="nav-icon"><img src="/icons/settings.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Configuración</span>
       </a>
     </nav>
@@ -134,39 +134,46 @@
     </header>
 
     <main class="main-content" id="mainContent">
-      <div class="page-header">
-        <div>
-          <h1>Personas</h1>
-          <p class="welcome-text">Madres, padres, representantes y terceras personas.</p>
+      <div class="section-header">
+        <div class="section-header-text">
+          <h2>Personas</h2>
+          <p>Madres, padres, representantes y terceras personas</p>
         </div>
-        <div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap;">
+        <div class="section-header-actions">
           <div class="search-bar">
-            <input type="text" id="inputBuscar" placeholder="Buscar por nombre, apellido o cédula...">
-            <button class="btn btn-primary btn-sm" onclick="buscarPersonas()">Buscar</button>
+            <img src="/icons/search.svg" alt="" class="search-icon">
+            <input type="text" id="inputBuscar" placeholder="Buscar por nombre o cédula..." onkeyup="if(event.key==='Enter') buscarPersonas()">
           </div>
           <div class="search-bar">
+            <img src="/icons/graduation-cap.svg" alt="" class="search-icon">
             <input type="text" id="inputBuscarEstudiante" placeholder="Buscar por nombre del estudiante...">
           </div>
-          <button class="btn btn-primary" onclick="abrirModal()">+ Nueva Persona</button>
+          <button class="btn btn-primary" onclick="abrirModal()">
+            <img src="/icons/plus.svg" alt="" style="width:15px;height:15px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            Nueva Persona
+          </button>
         </div>
       </div>
 
       <div id="alertPersonas" class="alert" style="display: none;"></div>
 
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Cédula</th>
-              <th>Apellidos y Nombres</th>
-              <th>Teléfono</th>
-              <th>Profesión</th>
-              <th>Rol</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyPersonas"></tbody>
-        </table>
+      <div class="card">
+        <div class="table-container">
+          <table class="table-zebra">
+            <thead>
+              <tr>
+                <th>Cédula</th>
+                <th>Apellidos y Nombres</th>
+                <th>Teléfono</th>
+                <th>Profesión</th>
+                <th>Rol</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbodyPersonas"></tbody>
+          </table>
+        </div>
+        <div class="results-count" id="resultsCount"></div>
       </div>
 
       <div class="pagination" id="paginacion"></div>

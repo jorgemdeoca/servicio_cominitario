@@ -6,89 +6,61 @@
   <title>Inscripciones — Sistema de Gestión Escolar</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
-    .page-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-6); flex-wrap:wrap; gap:var(--space-4); }
+    /* ── Sólo estilos exclusivos de inscripciones (lo global está en styles.css) ── */
 
-    /* Filtros */
-    .filtros-bar { display:flex; gap:var(--space-3); align-items:center; flex-wrap:wrap; margin-bottom:var(--space-5); padding:var(--space-4); background:var(--bg); border-radius:var(--radius); border:1px solid var(--border); }
-    .filtros-bar select, .filtros-bar input { padding:var(--space-2) var(--space-3); border:1px solid var(--border); border-radius:var(--radius); font-family:var(--font); font-size:var(--font-size-sm); outline:none; }
-    .filtros-bar select:focus, .filtros-bar input:focus { border-color:var(--primary); }
-    .filtros-bar label { font-size:var(--font-size-xs); font-weight:600; color:var(--text-muted); margin-right:0.25rem; }
-
-    .badge-estado { display:inline-block; padding:0.15rem 0.6rem; border-radius:100px; font-size:var(--font-size-xs); font-weight:600; }
-    .badge-ACTIVO { background:var(--success-bg); color:var(--success); }
-    .badge-RETIRADO { background:hsl(0,50%,93%); color:hsl(0,50%,45%); }
-    .badge-APROBADO { background:hsl(215,50%,92%); color:hsl(215,60%,40%); }
-    .badge-REPROBADO { background:hsl(38,80%,90%); color:hsl(38,70%,30%); }
-
-    .badge-modalidad { display:inline-block; padding:0.1rem 0.5rem; border-radius:var(--radius); font-size:var(--font-size-xs); font-weight:500; background:var(--bg); color:var(--text-muted); border:1px solid var(--border); }
-
-    .actions-cell { display:flex; gap:var(--space-2); }
-    .pagination { display:flex; justify-content:center; align-items:center; gap:var(--space-3); margin-top:var(--space-6); }
-    .pagination button { padding:var(--space-2) var(--space-4); border:1px solid var(--border); background:var(--bg-white); border-radius:var(--radius); cursor:pointer; font-family:var(--font); font-size:var(--font-size-sm); }
-    .pagination button:hover:not(:disabled) { background:var(--primary-bg); }
-    .pagination button:disabled { opacity:0.4; cursor:not-allowed; }
-    .pagination span { font-size:var(--font-size-sm); color:var(--text-muted); }
-
-    /* Modal */
-    .modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.5); z-index:200; align-items:flex-start; justify-content:center; padding:2rem 1rem; overflow-y:auto; }
+    /* Modal inscripción */
+    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); z-index:9999; align-items:flex-start; justify-content:center; padding:2rem 1rem; overflow-y:auto; }
     .modal-overlay.active { display:flex; }
-    .modal-insc { background:var(--bg-white); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:95%; max-width:750px; margin:auto; }
-    .modal-insc-header { background:var(--sidebar-bg); color:white; padding:var(--space-5) var(--space-8); border-radius:var(--radius-lg) var(--radius-lg) 0 0; display:flex; justify-content:space-between; align-items:center; }
-    .modal-insc-header h2 { font-size:var(--font-size-lg); font-weight:600; }
-    .modal-insc-body { padding:var(--space-6) var(--space-8); }
-    .modal-insc-footer { padding:var(--space-4) var(--space-8); border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:var(--space-3); background:var(--bg); border-radius:0 0 var(--radius-lg) var(--radius-lg); }
+    .modal-insc { background:var(--bg-white); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:95%; max-width:750px; margin:auto; border:1px solid var(--border); }
+    .modal-insc-header { background:var(--primary); color:white; padding:var(--space-4) var(--space-6); border-radius:var(--radius-lg) var(--radius-lg) 0 0; display:flex; justify-content:space-between; align-items:center; }
+    .modal-insc-header h2 { font-size:var(--font-size-base); font-weight:700; margin:0; }
+    .modal-insc-body { padding:var(--space-5) var(--space-6); }
+    .modal-insc-footer { padding:var(--space-4) var(--space-6); border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:var(--space-3); background:var(--bg); border-radius:0 0 var(--radius-lg) var(--radius-lg); }
 
+    /* Secciones de planilla */
     .planilla-seccion { margin-bottom:var(--space-5); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
     .planilla-seccion-titulo { background:var(--bg); padding:var(--space-3) var(--space-5); font-size:var(--font-size-sm); font-weight:700; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:var(--space-3); }
     .planilla-seccion-titulo .seccion-num { background:var(--primary); color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:var(--font-size-xs); font-weight:700; }
     .planilla-seccion-body { padding:var(--space-5); }
-    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+    .form-row   { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
     .form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--space-4); }
     .form-row-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:var(--space-4); }
 
     .btn-secondary { background:var(--bg-white); color:var(--text); border:1px solid var(--border); }
-    .btn-secondary:hover { background:var(--border); }
+    .btn-secondary:hover { background:var(--muted); }
 
-    /* Búsqueda de estudiante */
+    /* Búsqueda de estudiante en modal */
     .estudiante-search { display:flex; gap:var(--space-2); }
     .estudiante-search input { flex:1; }
-    .estudiante-result { margin-top:var(--space-3); }
     .estudiante-result table { width:100%; font-size:var(--font-size-sm); }
     .estudiante-result tr { cursor:pointer; }
     .estudiante-result tr:hover { background:var(--primary-bg); }
     .estudiante-selected { background:var(--success-bg); border:1px solid hsl(142,50%,75%); border-radius:var(--radius); padding:var(--space-3) var(--space-4); font-size:var(--font-size-sm); margin-top:var(--space-3); }
 
-    /* Documentos checkboxes */
+    /* Documentos */
     .docs-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); }
     .doc-check { display:flex; align-items:center; gap:var(--space-2); font-size:var(--font-size-sm); }
     .doc-check input[type="checkbox"] { accent-color:var(--primary); width:18px; height:18px; }
-    /* Buscar cédula inline */
-    .cedula-search { display: flex; gap: var(--space-2); align-items: flex-end; }
-    .cedula-search input { flex: 1; }
-    .cedula-search button { height: 42px; white-space: nowrap; }
-    .persona-found { background: var(--success-bg); border: 1px solid hsl(142, 50%, 75%); color: var(--success); padding: var(--space-2) var(--space-3); border-radius: var(--radius); font-size: var(--font-size-xs); font-weight: 500; margin-top: var(--space-2); }
-    .persona-not-found { background: var(--warning-bg); border: 1px solid hsl(38, 90%, 75%); color: hsl(38, 70%, 30%); padding: var(--space-2) var(--space-3); border-radius: var(--radius); font-size: var(--font-size-xs); font-weight: 500; margin-top: var(--space-2); }
+
+    /* Búsqueda cédula inline */
+    .cedula-search { display:flex; gap:var(--space-2); align-items:flex-end; }
+    .cedula-search input { flex:1; }
+    .cedula-search button { height:42px; white-space:nowrap; }
+    .persona-found { background:var(--success-bg); border:1px solid hsl(142,50%,75%); color:var(--success); padding:var(--space-2) var(--space-3); border-radius:var(--radius); font-size:var(--font-size-xs); font-weight:500; margin-top:var(--space-2); }
+    .persona-not-found { background:var(--warning-bg); border:1px solid hsl(38,90%,75%); color:hsl(38,70%,30%); padding:var(--space-2) var(--space-3); border-radius:var(--radius); font-size:var(--font-size-xs); font-weight:500; margin-top:var(--space-2); }
 
     /* Representante selector */
-    .rep-selector { display: flex; gap: var(--space-6); margin-bottom: var(--space-4); }
-    .rep-option { display: flex; align-items: center; gap: var(--space-2); cursor: pointer; font-size: var(--font-size-sm); font-weight: 500; }
-    .rep-option input[type="radio"] { accent-color: var(--primary); width: 18px; height: 18px; }
-    #seccionRepOtro { display: none; margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--border); }
-    #seccionRepOtro.visible { display: block; }
+    .rep-selector { display:flex; gap:var(--space-6); margin-bottom:var(--space-4); }
+    .rep-option { display:flex; align-items:center; gap:var(--space-2); cursor:pointer; font-size:var(--font-size-sm); font-weight:500; }
+    .rep-option input[type="radio"] { accent-color:var(--primary); width:18px; height:18px; }
+    #seccionRepOtro { display:none; margin-top:var(--space-4); padding-top:var(--space-4); border-top:1px solid var(--border); }
+    #seccionRepOtro.visible { display:block; }
 
-    /* Formulario estudiante inline */
-    .modo-registro-activo #modoBusquedaEstudiante { display: none; }
-    .modo-registro-activo #modoRegistroEstudiante { display: block; }
-    #modoRegistroEstudiante { display: none; }
-    
-    .form-inline-title {
-      font-size: var(--font-size-base);
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: var(--space-3);
-      padding-bottom: var(--space-2);
-      border-bottom: 1px dashed var(--border);
-    }
+    /* Modo registro inline */
+    .modo-registro-activo #modoBusquedaEstudiante { display:none; }
+    .modo-registro-activo #modoRegistroEstudiante { display:block; }
+    #modoRegistroEstudiante { display:none; }
+    .form-inline-title { font-size:var(--font-size-base); font-weight:600; color:var(--primary); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px dashed var(--border); }
   </style>
 </head>
 <body class="dashboard-page">
@@ -99,31 +71,31 @@
     </div>
         <nav class="sidebar-nav">
       <a href="/dashboard.html" class="nav-item">
-        <span class="nav-icon">📊</span>
+        <span class="nav-icon"><img src="/icons/home.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Dashboard</span>
       </a>
       <a href="/personas.html" class="nav-item">
-        <span class="nav-icon">👥</span>
+        <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Personas</span>
       </a>
       <a href="/estudiantes.html" class="nav-item">
-        <span class="nav-icon">🎓</span>
+        <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Estudiantes</span>
       </a>
       <a href="/inscripciones.html" class="nav-item active">
-        <span class="nav-icon">📝</span>
+        <span class="nav-icon"><img src="/icons/clipboard-list.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Inscripciones</span>
       </a>
       <a href="/profesores.html" class="nav-item">
-        <span class="nav-icon">👨‍🏫</span>
+        <span class="nav-icon"><img src="/icons/user-check.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Profesores</span>
       </a>
       <a href="/reportes.html" class="nav-item">
-        <span class="nav-icon">📄</span>
+        <span class="nav-icon"><img src="/icons/bar-chart-3.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Reportes y PDFs</span>
       </a>
       <a href="/configuracion.html" class="nav-item">
-        <span class="nav-icon">⚙️</span>
+        <span class="nav-icon"><img src="/icons/settings.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Configuración</span>
       </a>
     </nav>
@@ -142,72 +114,87 @@
     </header>
 
     <main class="main-content" id="mainContent">
-      <div class="page-header">
-        <div>
-          <h1>Inscripciones y Colaboraciones</h1>
-          <div style="display:flex; gap:var(--space-2); margin-top:var(--space-2);">
-            <button class="btn btn-sm btn-primary active" id="tabInscripciones" onclick="mostrarVista('inscripciones')">📋 Inscripciones</button>
-            <button class="btn btn-sm btn-secondary" id="tabColaboraciones" onclick="mostrarVista('colaboraciones')">💰 Colaboraciones</button>
+      <!-- I1: Section header con tabs SVG -->
+      <div class="section-header">
+        <div class="section-header-text">
+          <h2>Inscripciones y Colaboraciones</h2>
+          <p>Gestión de matrícula del año escolar activo</p>
+          <div style="display:flex; gap:var(--space-2); margin-top:var(--space-3);">
+            <button class="btn btn-sm btn-primary" id="tabInscripciones" onclick="mostrarVista('inscripciones')">
+              <img src="/icons/clipboard-list.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+              Inscripciones
+            </button>
+            <button class="btn btn-sm btn-secondary" id="tabColaboraciones" onclick="mostrarVista('colaboraciones')">
+              <img src="/icons/dollar-sign.svg" alt="" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
+              Colaboraciones
+            </button>
           </div>
         </div>
-        <button class="btn btn-primary" id="btnNuevaInscripcion" onclick="abrirModalInscripcion()">+ Nueva Inscripción</button>
+        <div class="section-header-actions">
+          <button class="btn btn-primary" id="btnNuevaInscripcion" onclick="abrirModalInscripcion()">
+            <img src="/icons/plus.svg" alt="" style="width:15px;height:15px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            Nueva Inscripción
+          </button>
+        </div>
       </div>
 
       <div id="alertInscripciones" class="alert" style="display: none;"></div>
 
       <!-- VISTA INSCRIPCIONES -->
       <div id="vistaInscripciones">
-        <!-- Filtros -->
-        <div class="filtros-bar">
-          <div>
-            <label>Año Escolar:</label>
-            <select id="filtroAnio" onchange="cargarSeccionesFiltro(); loadInscripciones();"></select>
+        <!-- I2: Toolbar de filtros mejorado -->
+        <div class="toolbar" style="margin-bottom:var(--space-3); border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
+          <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);white-space:nowrap;">Año:</label>
+          <select id="filtroAnio" onchange="cargarSeccionesFiltro(); loadInscripciones();" style="min-width:130px;"></select>
+          <div class="toolbar-divider"></div>
+          <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);">Grado:</label>
+          <select id="filtroGrado" onchange="cargarSeccionesFiltro(); loadInscripciones();" style="min-width:100px;">
+            <option value="">Todos</option>
+          </select>
+          <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);">Sección:</label>
+          <select id="filtroSeccion" onchange="loadInscripciones();" style="min-width:90px;">
+            <option value="">Todas</option>
+          </select>
+          <div class="toolbar-divider"></div>
+          <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);">Estado:</label>
+          <select id="filtroEstado" onchange="loadInscripciones();" style="min-width:110px;">
+            <option value="">Todos</option>
+            <option value="ACTIVO">Activo</option>
+            <option value="APROBADO">Aprobado</option>
+            <option value="REPROBADO">Reprobado</option>
+            <option value="RETIRADO">Retirado</option>
+          </select>
+          <div class="toolbar-divider"></div>
+          <div class="search-bar">
+            <img src="/icons/search.svg" alt="" class="search-icon">
+            <input type="text" id="filtroBuscar" placeholder="Nombre o código..." onkeydown="if(event.key==='Enter') loadInscripciones()">
           </div>
-          <div>
-            <label>Grado:</label>
-            <select id="filtroGrado" onchange="cargarSeccionesFiltro(); loadInscripciones();">
-              <option value="">Todos</option>
-            </select>
-          </div>
-          <div>
-            <label>Sección:</label>
-            <select id="filtroSeccion" onchange="loadInscripciones()">
-              <option value="">Todas</option>
-            </select>
-          </div>
-          <div>
-            <label>Estado:</label>
-            <select id="filtroEstado" onchange="loadInscripciones()">
-              <option value="">Todos</option>
-              <option value="ACTIVO">Activo</option>
-              <option value="APROBADO">Aprobado</option>
-              <option value="REPROBADO">Reprobado</option>
-              <option value="RETIRADO">Retirado</option>
-            </select>
-          </div>
-          <div>
-            <label>Buscar:</label>
-            <input type="text" id="filtroBuscar" placeholder="Nombre o código..." onkeydown="if(event.key==='Enter')loadInscripciones()">
-          </div>
-          <button class="btn btn-sm btn-primary" onclick="loadInscripciones()">Filtrar</button>
+          <button class="btn btn-sm btn-primary" onclick="loadInscripciones()">
+            <img src="/icons/filter.svg" alt="" style="width:13px;height:13px;filter:invert(1);vertical-align:middle;margin-right:3px;">
+            Filtrar
+          </button>
         </div>
 
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Estudiante</th>
-                <th>Grado — Sección</th>
-                <th>Modalidad</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Colab.</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tbodyInscripciones"></tbody>
-          </table>
+        <!-- I3: Tabla en card con zebra -->
+        <div class="card" style="border-radius:0 0 var(--radius-lg) var(--radius-lg);">
+          <div class="table-container">
+            <table class="table-zebra">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Estudiante</th>
+                  <th>Grado — Sección</th>
+                  <th>Modalidad</th>
+                  <th>Fecha</th>
+                  <th>Estado</th>
+                  <th>Colab.</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tbodyInscripciones"></tbody>
+            </table>
+          </div>
+          <div class="results-count" id="resultsCountInsc"></div>
         </div>
         <div class="pagination" id="paginacion"></div>
       </div>
@@ -875,7 +862,7 @@
   <!-- MODAL CAMBIAR SECCIÓN (solo SUPER_ADMIN) -->
   <div class="modal-overlay" id="modalCambiarSeccion">
     <div class="modal-insc" style="max-width:450px;">
-      <div class="modal-insc-header" style="background:hsl(30,80%,50%);">
+      <div class="modal-insc-header" style="background:var(--warning);">
         <h2>🔄 Cambiar Grado/Sección</h2>
         <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="document.getElementById('modalCambiarSeccion').classList.remove('active')">×</button>
       </div>

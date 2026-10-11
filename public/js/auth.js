@@ -54,7 +54,7 @@ if (document.getElementById('loginForm')) {
     const errorDiv = document.getElementById('loginError');
 
     btn.disabled = true;
-    btn.textContent = 'Iniciando sesión...';
+    btn.classList.add('btn-loading');
     errorDiv.style.display = 'none';
 
     const nombre_usuario = document.getElementById('nombre_usuario').value.trim();
@@ -80,7 +80,7 @@ if (document.getElementById('loginForm')) {
       errorDiv.style.display = 'block';
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Iniciar Sesión';
+      btn.classList.remove('btn-loading');
     }
   });
 }
