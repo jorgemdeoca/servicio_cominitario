@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,11 +15,13 @@
       flex-wrap: wrap;
       gap: var(--space-4);
     }
+
     .search-bar {
       display: flex;
       gap: var(--space-3);
       align-items: center;
     }
+
     .search-bar input {
       width: 280px;
       padding: var(--space-3) var(--space-4);
@@ -28,10 +31,12 @@
       font-size: var(--font-size-sm);
       outline: none;
     }
+
     .search-bar input:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px hsla(215, 60%, 45%, 0.15);
     }
+
     .badge-activo {
       display: inline-block;
       padding: 0.15rem 0.6rem;
@@ -39,8 +44,17 @@
       font-size: var(--font-size-xs);
       font-weight: 600;
     }
-    .badge-activo-si { background: var(--success-bg); color: var(--success); }
-    .badge-activo-no { background: hsl(0, 50%, 93%); color: hsl(0, 50%, 45%); }
+
+    .badge-activo-si {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .badge-activo-no {
+      background: hsl(0, 50%, 93%);
+      color: hsl(0, 50%, 45%);
+    }
+
     .badge-sexo {
       display: inline-block;
       padding: 0.15rem 0.5rem;
@@ -48,14 +62,28 @@
       font-size: var(--font-size-xs);
       font-weight: 600;
     }
-    .badge-sexo-m { background: hsl(215, 50%, 92%); color: hsl(215, 60%, 40%); }
-    .badge-sexo-f { background: hsl(330, 50%, 92%); color: hsl(330, 60%, 40%); }
-    .actions-cell { display: flex; gap: var(--space-2); }
+
+    .badge-sexo-m {
+      background: hsl(215, 50%, 92%);
+      color: hsl(215, 60%, 40%);
+    }
+
+    .badge-sexo-f {
+      background: hsl(330, 50%, 92%);
+      color: hsl(330, 60%, 40%);
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: var(--space-2);
+    }
+
     .form-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--space-4);
     }
+
     .form-row-3 {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
@@ -63,13 +91,14 @@
     }
   </style>
 </head>
+
 <body class="dashboard-page">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <h2>Gestión Escolar</h2>
       <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
     </div>
-        <nav class="sidebar-nav">
+    <nav class="sidebar-nav">
       <a href="/dashboard.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/home.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Dashboard</span>
@@ -99,7 +128,9 @@
         <span class="nav-text">Configuración</span>
       </a>
     </nav>
-    <div class="sidebar-footer"><p>v1.0 — Servicio Comunitario UNEFA</p></div>
+    <div class="sidebar-footer">
+      <p>v1.0 — Servicio Comunitario UNEFA</p>
+    </div>
   </aside>
 
   <div class="main-wrapper">
@@ -122,10 +153,12 @@
         <div class="section-header-actions">
           <div class="search-bar">
             <img src="/icons/search.svg" alt="" class="search-icon">
-            <input type="text" id="inputBuscar" placeholder="Buscar por nombre o cédula..." onkeyup="if(event.key==='Enter') buscarProfesores()">
+            <input type="text" id="inputBuscar" placeholder="Buscar por nombre o cédula..."
+              onkeyup="if(event.key==='Enter') buscarProfesores()">
           </div>
           <button class="btn btn-primary" onclick="abrirModal()">
-            <img src="/icons/plus.svg" alt="" style="width:15px;height:15px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            <img src="/icons/plus.svg" alt=""
+              style="width:15px;height:15px;filter:invert(1);vertical-align:middle;margin-right:4px;">
             Nuevo Profesor
           </button>
         </div>
@@ -170,6 +203,10 @@
               <option value="E">E - Extranjero/a</option>
             </select>
           </div>
+          <div class="form-group" id="grupoNacExactaProfesor" style="display:none;">
+            <label>Nacionalidad Exacta *</label>
+            <input type="text" id="prof_nacionalidad_texto" placeholder="Ej: Colombiano, Ecuatoriano...">
+          </div>
           <div class="form-group">
             <label>Cédula *</label>
             <input type="text" id="prof_cedula" required placeholder="Ej: 12345678">
@@ -200,7 +237,7 @@
           </div>
           <div class="form-group">
             <label>Teléfono</label>
-            <input type="text" id="prof_telefono" placeholder="0412-1234567">
+            <input type="text" id="prof_telefono" placeholder="04121234567">
           </div>
         </div>
         <div class="form-row-3">
@@ -279,5 +316,5 @@
   <script src="/js/auth.js"></script>
   <script src="/js/profesores.js"></script>
 </body>
-</html>
 
+</html>

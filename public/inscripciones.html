@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,67 +10,282 @@
     /* ── Sólo estilos exclusivos de inscripciones (lo global está en styles.css) ── */
 
     /* Modal inscripción */
-    .modal-overlay { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.55); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); z-index:9999; align-items:flex-start; justify-content:center; padding:2rem 1rem; overflow-y:auto; }
-    .modal-overlay.active { display:flex; }
-    .modal-insc { background:var(--bg-white); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); width:95%; max-width:750px; margin:auto; border:1px solid var(--border); }
-    .modal-insc-header { background:var(--primary); color:white; padding:var(--space-4) var(--space-6); border-radius:var(--radius-lg) var(--radius-lg) 0 0; display:flex; justify-content:space-between; align-items:center; }
-    .modal-insc-header h2 { font-size:var(--font-size-base); font-weight:700; margin:0; }
-    .modal-insc-body { padding:var(--space-5) var(--space-6); }
-    .modal-insc-footer { padding:var(--space-4) var(--space-6); border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:var(--space-3); background:var(--bg); border-radius:0 0 var(--radius-lg) var(--radius-lg); }
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 9999;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-insc {
+      background: var(--bg-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 95%;
+      max-width: 750px;
+      margin: auto;
+      border: 1px solid var(--border);
+    }
+
+    .modal-insc-header {
+      background: var(--primary);
+      color: white;
+      padding: var(--space-4) var(--space-6);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-insc-header h2 {
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .modal-insc-body {
+      padding: var(--space-5) var(--space-6);
+    }
+
+    .modal-insc-footer {
+      padding: var(--space-4) var(--space-6);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-3);
+      background: var(--bg);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
 
     /* Secciones de planilla */
-    .planilla-seccion { margin-bottom:var(--space-5); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
-    .planilla-seccion-titulo { background:var(--bg); padding:var(--space-3) var(--space-5); font-size:var(--font-size-sm); font-weight:700; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:var(--space-3); }
-    .planilla-seccion-titulo .seccion-num { background:var(--primary); color:white; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:var(--font-size-xs); font-weight:700; }
-    .planilla-seccion-body { padding:var(--space-5); }
-    .form-row   { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
-    .form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--space-4); }
-    .form-row-4 { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:var(--space-4); }
+    .planilla-seccion {
+      margin-bottom: var(--space-5);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
 
-    .btn-secondary { background:var(--bg-white); color:var(--text); border:1px solid var(--border); }
-    .btn-secondary:hover { background:var(--muted); }
+    .planilla-seccion-titulo {
+      background: var(--bg);
+      padding: var(--space-3) var(--space-5);
+      font-size: var(--font-size-sm);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .planilla-seccion-titulo .seccion-num {
+      background: var(--primary);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-xs);
+      font-weight: 700;
+    }
+
+    .planilla-seccion-body {
+      padding: var(--space-5);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .form-row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .form-row-4 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .btn-secondary {
+      background: var(--bg-white);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: var(--muted);
+    }
 
     /* Búsqueda de estudiante en modal */
-    .estudiante-search { display:flex; gap:var(--space-2); }
-    .estudiante-search input { flex:1; }
-    .estudiante-result table { width:100%; font-size:var(--font-size-sm); }
-    .estudiante-result tr { cursor:pointer; }
-    .estudiante-result tr:hover { background:var(--primary-bg); }
-    .estudiante-selected { background:var(--success-bg); border:1px solid hsl(142,50%,75%); border-radius:var(--radius); padding:var(--space-3) var(--space-4); font-size:var(--font-size-sm); margin-top:var(--space-3); }
+    .estudiante-search {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .estudiante-search input {
+      flex: 1;
+    }
+
+    .estudiante-result table {
+      width: 100%;
+      font-size: var(--font-size-sm);
+    }
+
+    .estudiante-result tr {
+      cursor: pointer;
+    }
+
+    .estudiante-result tr:hover {
+      background: var(--primary-bg);
+    }
+
+    .estudiante-selected {
+      background: var(--success-bg);
+      border: 1px solid hsl(142, 50%, 75%);
+      border-radius: var(--radius);
+      padding: var(--space-3) var(--space-4);
+      font-size: var(--font-size-sm);
+      margin-top: var(--space-3);
+    }
 
     /* Documentos */
-    .docs-grid { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-3); }
-    .doc-check { display:flex; align-items:center; gap:var(--space-2); font-size:var(--font-size-sm); }
-    .doc-check input[type="checkbox"] { accent-color:var(--primary); width:18px; height:18px; }
+    .docs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-3);
+    }
+
+    .doc-check {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--font-size-sm);
+    }
+
+    .doc-check input[type="checkbox"] {
+      accent-color: var(--primary);
+      width: 18px;
+      height: 18px;
+    }
 
     /* Búsqueda cédula inline */
-    .cedula-search { display:flex; gap:var(--space-2); align-items:flex-end; }
-    .cedula-search input { flex:1; }
-    .cedula-search button { height:42px; white-space:nowrap; }
-    .persona-found { background:var(--success-bg); border:1px solid hsl(142,50%,75%); color:var(--success); padding:var(--space-2) var(--space-3); border-radius:var(--radius); font-size:var(--font-size-xs); font-weight:500; margin-top:var(--space-2); }
-    .persona-not-found { background:var(--warning-bg); border:1px solid hsl(38,90%,75%); color:hsl(38,70%,30%); padding:var(--space-2) var(--space-3); border-radius:var(--radius); font-size:var(--font-size-xs); font-weight:500; margin-top:var(--space-2); }
+    .cedula-search {
+      display: flex;
+      gap: var(--space-2);
+      align-items: flex-end;
+    }
+
+    .cedula-search input {
+      flex: 1;
+    }
+
+    .cedula-search button {
+      height: 42px;
+      white-space: nowrap;
+    }
+
+    .persona-found {
+      background: var(--success-bg);
+      border: 1px solid hsl(142, 50%, 75%);
+      color: var(--success);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      margin-top: var(--space-2);
+    }
+
+    .persona-not-found {
+      background: var(--warning-bg);
+      border: 1px solid hsl(38, 90%, 75%);
+      color: hsl(38, 70%, 30%);
+      padding: var(--space-2) var(--space-3);
+      border-radius: var(--radius);
+      font-size: var(--font-size-xs);
+      font-weight: 500;
+      margin-top: var(--space-2);
+    }
 
     /* Representante selector */
-    .rep-selector { display:flex; gap:var(--space-6); margin-bottom:var(--space-4); }
-    .rep-option { display:flex; align-items:center; gap:var(--space-2); cursor:pointer; font-size:var(--font-size-sm); font-weight:500; }
-    .rep-option input[type="radio"] { accent-color:var(--primary); width:18px; height:18px; }
-    #seccionRepOtro { display:none; margin-top:var(--space-4); padding-top:var(--space-4); border-top:1px solid var(--border); }
-    #seccionRepOtro.visible { display:block; }
+    .rep-selector {
+      display: flex;
+      gap: var(--space-6);
+      margin-bottom: var(--space-4);
+    }
+
+    .rep-option {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      cursor: pointer;
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+    }
+
+    .rep-option input[type="radio"] {
+      accent-color: var(--primary);
+      width: 18px;
+      height: 18px;
+    }
+
+    #seccionRepOtro {
+      display: none;
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+
+    #seccionRepOtro.visible {
+      display: block;
+    }
 
     /* Modo registro inline */
-    .modo-registro-activo #modoBusquedaEstudiante { display:none; }
-    .modo-registro-activo #modoRegistroEstudiante { display:block; }
-    #modoRegistroEstudiante { display:none; }
-    .form-inline-title { font-size:var(--font-size-base); font-weight:600; color:var(--primary); margin-bottom:var(--space-3); padding-bottom:var(--space-2); border-bottom:1px dashed var(--border); }
+    .modo-registro-activo #modoBusquedaEstudiante {
+      display: none;
+    }
+
+    .modo-registro-activo #modoRegistroEstudiante {
+      display: block;
+    }
+
+    #modoRegistroEstudiante {
+      display: none;
+    }
+
+    .form-inline-title {
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px dashed var(--border);
+    }
   </style>
 </head>
+
 <body class="dashboard-page">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <h2>Gestión Escolar</h2>
       <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
     </div>
-        <nav class="sidebar-nav">
+    <nav class="sidebar-nav">
       <a href="/dashboard.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/home.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Dashboard</span>
@@ -99,7 +315,9 @@
         <span class="nav-text">Configuración</span>
       </a>
     </nav>
-    <div class="sidebar-footer"><p>v1.0 — Servicio Comunitario UNEFA</p></div>
+    <div class="sidebar-footer">
+      <p>v1.0 — Servicio Comunitario UNEFA</p>
+    </div>
   </aside>
 
   <div class="main-wrapper">
@@ -121,18 +339,21 @@
           <p>Gestión de matrícula del año escolar activo</p>
           <div style="display:flex; gap:var(--space-2); margin-top:var(--space-3);">
             <button class="btn btn-sm btn-primary" id="tabInscripciones" onclick="mostrarVista('inscripciones')">
-              <img src="/icons/clipboard-list.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+              <img src="/icons/clipboard-list.svg" alt=""
+                style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
               Inscripciones
             </button>
             <button class="btn btn-sm btn-secondary" id="tabColaboraciones" onclick="mostrarVista('colaboraciones')">
-              <img src="/icons/dollar-sign.svg" alt="" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
+              <img src="/icons/dollar-sign.svg" alt=""
+                style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
               Colaboraciones
             </button>
           </div>
         </div>
         <div class="section-header-actions">
           <button class="btn btn-primary" id="btnNuevaInscripcion" onclick="abrirModalInscripcion()">
-            <img src="/icons/plus.svg" alt="" style="width:15px;height:15px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            <img src="/icons/plus.svg" alt=""
+              style="width:15px;height:15px;filter:invert(1);vertical-align:middle;margin-right:4px;">
             Nueva Inscripción
           </button>
         </div>
@@ -144,8 +365,10 @@
       <div id="vistaInscripciones">
         <!-- I2: Toolbar de filtros mejorado -->
         <div class="toolbar" style="margin-bottom:var(--space-3); border-radius:var(--radius-lg) var(--radius-lg) 0 0;">
-          <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);white-space:nowrap;">Año:</label>
-          <select id="filtroAnio" onchange="cargarSeccionesFiltro(); loadInscripciones();" style="min-width:130px;"></select>
+          <label
+            style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);white-space:nowrap;">Año:</label>
+          <select id="filtroAnio" onchange="cargarSeccionesFiltro(); loadInscripciones();"
+            style="min-width:130px;"></select>
           <div class="toolbar-divider"></div>
           <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);">Grado:</label>
           <select id="filtroGrado" onchange="cargarSeccionesFiltro(); loadInscripciones();" style="min-width:100px;">
@@ -167,10 +390,12 @@
           <div class="toolbar-divider"></div>
           <div class="search-bar">
             <img src="/icons/search.svg" alt="" class="search-icon">
-            <input type="text" id="filtroBuscar" placeholder="Nombre o código..." onkeydown="if(event.key==='Enter') loadInscripciones()">
+            <input type="text" id="filtroBuscar" placeholder="Nombre o código..."
+              onkeydown="if(event.key==='Enter') loadInscripciones()">
           </div>
           <button class="btn btn-sm btn-primary" onclick="loadInscripciones()">
-            <img src="/icons/filter.svg" alt="" style="width:13px;height:13px;filter:invert(1);vertical-align:middle;margin-right:3px;">
+            <img src="/icons/filter.svg" alt=""
+              style="width:13px;height:13px;filter:invert(1);vertical-align:middle;margin-right:3px;">
             Filtrar
           </button>
         </div>
@@ -210,7 +435,8 @@
     <div class="modal-insc">
       <div class="modal-insc-header">
         <h2 id="modalInscTitulo">📋 Nueva Inscripción</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalInscripcion()">×</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
+          onclick="cerrarModalInscripcion()">×</button>
       </div>
       <form id="formInscripcion">
         <input type="hidden" id="insc_id">
@@ -221,15 +447,17 @@
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">1</span> ESTUDIANTE</div>
             <div class="planilla-seccion-body" id="containerEstudiante">
-              
+
               <!-- MODO BUSCAR ESTUDIANTE -->
               <div id="modoBusquedaEstudiante">
                 <div class="form-group">
                   <label>Buscar estudiante por nombre, apellido o código</label>
                   <div class="estudiante-search">
                     <input type="text" id="insc_buscar_est" placeholder="Ej: Montes de Oca, Jorge...">
-                    <button type="button" class="btn btn-sm btn-primary" onclick="buscarEstudianteInsc()">Buscar</button>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="mostrarFormNuevoEstudiante()" style="margin-left: 1rem;">+ Registrar Nuevo</button>
+                    <button type="button" class="btn btn-sm btn-primary"
+                      onclick="buscarEstudianteInsc()">Buscar</button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="mostrarFormNuevoEstudiante()"
+                      style="margin-left: 1rem;">+ Registrar Nuevo</button>
                   </div>
                 </div>
                 <div class="estudiante-result" id="resultadoEstudiantes"></div>
@@ -239,13 +467,17 @@
 
               <!-- MODO REGISTRAR NUEVO ESTUDIANTE -->
               <div id="modoRegistroEstudiante">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4);">
+                <div
+                  style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-4);">
                   <div class="form-inline-title">Registro de Nuevo Estudiante</div>
-                  <button type="button" class="btn btn-sm btn-secondary" onclick="volverBusquedaEstudiante()">⬅️ Volver a Búsqueda</button>
+                  <button type="button" class="btn btn-sm btn-secondary" onclick="volverBusquedaEstudiante()">⬅️ Volver
+                    a Búsqueda</button>
                 </div>
-                
-                <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
-                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Datos del Estudiante</div>
+
+                <div
+                  style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
+                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Datos del Estudiante
+                  </div>
                   <div class="form-row">
                     <div class="form-group">
                       <label>Primer Apellido *</label>
@@ -266,7 +498,7 @@
                       <input type="text" id="ni_e_segundo_nombre">
                     </div>
                   </div>
-                    <div class="form-row-4">
+                  <div class="form-row-4">
                     <div class="form-group">
                       <label>Nacionalidad *</label>
                       <select id="ni_e_nacionalidad" onchange="toggleNacionalidadTexto()">
@@ -329,14 +561,16 @@
                   </div>
                 </div>
 
-                <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
+                <div
+                  style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
                   <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Datos de la Madre</div>
                   <div class="form-row-3">
                     <div class="form-group">
                       <label>Cédula *</label>
                       <div class="cedula-search">
                         <input type="text" id="ni_m_cedula" placeholder="Ej: 12345678">
-                        <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersonaInsc('madre')">Buscar</button>
+                        <button type="button" class="btn btn-sm btn-primary"
+                          onclick="buscarPersonaInsc('madre')">Buscar</button>
                       </div>
                       <div id="ni_m_status"></div>
                     </div>
@@ -346,6 +580,10 @@
                         <option value="V">V</option>
                         <option value="E">E</option>
                       </select>
+                    </div>
+                    <div class="form-group" id="grupoNacExactaMadreInsc" style="display:none;">
+                      <label>Nacionalidad Exacta</label>
+                      <input type="text" id="ni_m_nacionalidad_texto" placeholder="Ej: Colombiana">
                     </div>
                     <div class="form-group">
                       <label>Fecha de Nac.</label>
@@ -369,7 +607,7 @@
                     </div>
                     <div class="form-group">
                       <label>Teléfono</label>
-                      <input type="text" id="ni_m_telefono" placeholder="0412-1234567">
+                      <input type="text" id="ni_m_telefono" placeholder="04121234567">
                     </div>
                     <div class="form-group">
                       <label>Estado Civil</label>
@@ -389,14 +627,18 @@
                   </div>
                 </div>
 
-                <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
-                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Datos del Padre <span style="font-weight:400; font-size:var(--font-size-xs); color:var(--text-muted);">(Opcional)</span></div>
+                <div
+                  style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border); margin-bottom:var(--space-4);">
+                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Datos del Padre <span
+                      style="font-weight:400; font-size:var(--font-size-xs); color:var(--text-muted);">(Opcional)</span>
+                  </div>
                   <div class="form-row-3">
                     <div class="form-group">
                       <label>Cédula</label>
                       <div class="cedula-search">
                         <input type="text" id="ni_p_cedula" placeholder="Ej: 12345678">
-                        <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersonaInsc('padre')">Buscar</button>
+                        <button type="button" class="btn btn-sm btn-primary"
+                          onclick="buscarPersonaInsc('padre')">Buscar</button>
                       </div>
                       <div id="ni_p_status"></div>
                     </div>
@@ -406,6 +648,10 @@
                         <option value="V">V</option>
                         <option value="E">E</option>
                       </select>
+                    </div>
+                    <div class="form-group" id="grupoNacExactaPadreInsc" style="display:none;">
+                      <label>Nacionalidad Exacta</label>
+                      <input type="text" id="ni_p_nacionalidad_texto" placeholder="Ej: Colombiano">
                     </div>
                     <div class="form-group">
                       <label>Fecha de Nac.</label>
@@ -449,8 +695,10 @@
                   </div>
                 </div>
 
-                <div style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border);">
-                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Representante Legal</div>
+                <div
+                  style="background:var(--bg); padding:var(--space-4); border-radius:var(--radius); border:1px solid var(--border);">
+                  <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--text);">Representante Legal
+                  </div>
                   <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-bottom:var(--space-4);">
                     ¿Quién es el representante legal del estudiante?
                   </p>
@@ -478,7 +726,8 @@
                         <label>Cédula *</label>
                         <div class="cedula-search">
                           <input type="text" id="ni_r_cedula" placeholder="Ej: 12345678">
-                          <button type="button" class="btn btn-sm btn-primary" onclick="buscarPersonaInsc('rep')">Buscar</button>
+                          <button type="button" class="btn btn-sm btn-primary"
+                            onclick="buscarPersonaInsc('rep')">Buscar</button>
                         </div>
                         <div id="ni_r_status"></div>
                       </div>
@@ -488,6 +737,10 @@
                           <option value="V">V</option>
                           <option value="E">E</option>
                         </select>
+                      </div>
+                      <div class="form-group" id="grupoNacExactaRepInsc" style="display:none;">
+                        <label>Nacionalidad Exacta</label>
+                        <input type="text" id="ni_r_nacionalidad_texto" placeholder="Ej: Colombiano/a">
                       </div>
                       <div class="form-group">
                         <label>Fecha Nac.</label>
@@ -613,21 +866,33 @@
 
               <!-- Tabla de pagos existentes (solo visible en edición) -->
               <div id="colabPagosExistentes" style="display:none; margin-top: var(--space-4);">
-                <div style="font-weight:600; margin-bottom:var(--space-3); display:flex; justify-content:space-between; align-items:center;">
+                <div
+                  style="font-weight:600; margin-bottom:var(--space-3); display:flex; justify-content:space-between; align-items:center;">
                   <span>Pagos Registrados</span>
-                  <button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNuevoPago()">+ Registrar Pago</button>
+                  <button type="button" class="btn btn-sm btn-primary" onclick="abrirModalNuevoPago()">+ Registrar
+                    Pago</button>
                 </div>
                 <table style="width:100%; font-size: var(--font-size-sm);">
                   <thead>
-                    <tr><th>Fecha</th><th>Monto (Bs)</th><th>Tipo</th><th>Referencia</th><th></th></tr>
+                    <tr>
+                      <th>Fecha</th>
+                      <th>Monto (Bs)</th>
+                      <th>Tipo</th>
+                      <th>Referencia</th>
+                      <th></th>
+                    </tr>
                   </thead>
                   <tbody id="tbodyColabPagos"></tbody>
                   <tfoot>
                     <tr style="font-weight:700; border-top:2px solid var(--border);">
-                      <td>TOTAL ABONADO</td><td id="colabTotalAbonado">Bs 0.00</td><td colspan="3"></td>
+                      <td>TOTAL ABONADO</td>
+                      <td id="colabTotalAbonado">Bs 0.00</td>
+                      <td colspan="3"></td>
                     </tr>
                     <tr style="font-weight:700; color: var(--error);">
-                      <td>PENDIENTE</td><td id="colabTotalPendiente">Bs 0.00</td><td colspan="3"></td>
+                      <td>PENDIENTE</td>
+                      <td id="colabTotalPendiente">Bs 0.00</td>
+                      <td colspan="3"></td>
                     </tr>
                   </tfoot>
                 </table>
@@ -640,7 +905,8 @@
             <div class="planilla-seccion-titulo"><span class="seccion-num">4</span> DOCUMENTOS CONSIGNADOS</div>
             <div class="planilla-seccion-body">
               <div style="margin-bottom: var(--space-3);">
-                <button type="button" class="btn btn-sm" onclick="toggleTodosDocumentos()" id="btnToggleDocs">☑ Seleccionar Todos</button>
+                <button type="button" class="btn btn-sm" onclick="toggleTodosDocumentos()" id="btnToggleDocs">☑
+                  Seleccionar Todos</button>
               </div>
               <div class="docs-grid">
                 <label class="doc-check"><input type="checkbox" id="doc_partida"> Partida de Nacimiento</label>
@@ -657,7 +923,8 @@
 
           <!-- Sección 5: Datos Variables -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">5</span> DATOS VARIABLES (Actualizables)</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">5</span> DATOS VARIABLES (Actualizables)
+            </div>
             <div class="planilla-seccion-body">
               <div class="form-row">
                 <div class="form-group">
@@ -670,13 +937,18 @@
                 </div>
               </div>
               <div class="form-row-4">
-                <div class="form-group"><label>Talla (cm)</label><input type="text" id="insc_talla" placeholder="Ej: 120"></div>
-                <div class="form-group"><label>Peso (Kg)</label><input type="text" id="insc_peso" placeholder="Ej: 25"></div>
-                <div class="form-group"><label>Talla Camisa</label><input type="text" id="insc_talla_camisa" placeholder="Ej: 12"></div>
-                <div class="form-group"><label>Talla Pantalón</label><input type="text" id="insc_talla_pantalon" placeholder="Ej: 12"></div>
+                <div class="form-group"><label>Talla (cm)</label><input type="text" id="insc_talla"
+                    placeholder="Ej: 120"></div>
+                <div class="form-group"><label>Peso (Kg)</label><input type="text" id="insc_peso" placeholder="Ej: 25">
+                </div>
+                <div class="form-group"><label>Talla Camisa</label><input type="text" id="insc_talla_camisa"
+                    placeholder="Ej: 12"></div>
+                <div class="form-group"><label>Talla Pantalón</label><input type="text" id="insc_talla_pantalon"
+                    placeholder="Ej: 12"></div>
               </div>
               <div class="form-row">
-                <div class="form-group" style="max-width: 25%;"><label>Talla Zapato</label><input type="text" id="insc_talla_zapato" placeholder="Ej: 36"></div>
+                <div class="form-group" style="max-width: 25%;"><label>Talla Zapato</label><input type="text"
+                    id="insc_talla_zapato" placeholder="Ej: 36"></div>
               </div>
             </div>
           </div>
@@ -757,10 +1029,13 @@
 
           <!-- Sección 8: Información Médica y Social -->
           <div class="planilla-seccion" id="seccion_medica_social">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">8</span> INFORMACIÓN MÉDICA E INTEGRACIÓN SOCIAL</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">8</span> INFORMACIÓN MÉDICA E INTEGRACIÓN
+              SOCIAL</div>
             <div class="planilla-seccion-body">
-              <div id="seccion_solo_inicial" style="background:var(--primary-bg); padding:1rem; border-radius:var(--radius); margin-bottom:1rem;">
-                <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--primary-dark);">Datos del Parto (Solo Inicial)</div>
+              <div id="seccion_solo_inicial"
+                style="background:var(--primary-bg); padding:1rem; border-radius:var(--radius); margin-bottom:1rem;">
+                <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--primary-dark);">Datos del Parto
+                  (Solo Inicial)</div>
                 <div class="form-row-3">
                   <div class="form-group">
                     <label>Condición del parto</label>
@@ -791,7 +1066,8 @@
                 </div>
               </div>
 
-              <div style="font-weight:600; margin-bottom:var(--space-3);">Aspectos Físicos y Médicos (Para ambas fichas)</div>
+              <div style="font-weight:600; margin-bottom:var(--space-3);">Aspectos Físicos y Médicos (Para ambas fichas)
+              </div>
               <div class="form-row">
                 <div class="form-group">
                   <label>¿Posee todas las vacunas?</label>
@@ -836,7 +1112,8 @@
                 <input type="text" id="insc_enfermedades">
               </div>
 
-              <div style="font-weight:600; margin-top:var(--space-4); margin-bottom:var(--space-3);">Integración Social</div>
+              <div style="font-weight:600; margin-top:var(--space-4); margin-bottom:var(--space-3);">Integración Social
+              </div>
               <div class="docs-grid">
                 <label class="doc-check"><input type="checkbox" id="insc_int_pasivo"> Pasivo</label>
                 <label class="doc-check"><input type="checkbox" id="insc_int_inquieto"> Inquieto</label>
@@ -864,11 +1141,13 @@
     <div class="modal-insc" style="max-width:450px;">
       <div class="modal-insc-header" style="background:var(--warning);">
         <h2>🔄 Cambiar Grado/Sección</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="document.getElementById('modalCambiarSeccion').classList.remove('active')">×</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
+          onclick="document.getElementById('modalCambiarSeccion').classList.remove('active')">×</button>
       </div>
       <div class="modal-insc-body">
         <div id="alertCambioSeccion" class="alert" style="display:none;"></div>
-        <div id="cambioSeccionInfo" style="margin-bottom:var(--space-4);padding:var(--space-3);background:var(--bg);border-radius:8px;"></div>
+        <div id="cambioSeccionInfo"
+          style="margin-bottom:var(--space-4);padding:var(--space-3);background:var(--bg);border-radius:8px;"></div>
         <div class="form-group">
           <label>Nuevo Grado *</label>
           <select id="cs_grado" onchange="cargarSeccionesCambio()">
@@ -883,7 +1162,8 @@
         </div>
       </div>
       <div class="modal-insc-footer">
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalCambiarSeccion').classList.remove('active')">Cancelar</button>
+        <button type="button" class="btn btn-secondary"
+          onclick="document.getElementById('modalCambiarSeccion').classList.remove('active')">Cancelar</button>
         <button type="button" class="btn btn-primary" onclick="guardarCambioSeccion()">Guardar Cambio</button>
       </div>
     </div>
@@ -894,7 +1174,8 @@
     <div class="modal-insc" style="max-width:450px;">
       <div class="modal-insc-header">
         <h2>📄 Documentos Consignados</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="document.getElementById('modalDocumentos').classList.remove('active')">×</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
+          onclick="document.getElementById('modalDocumentos').classList.remove('active')">×</button>
       </div>
       <div class="modal-insc-body">
         <div id="alertDocs" class="alert" style="display:none;"></div>
@@ -911,7 +1192,8 @@
         </div>
       </div>
       <div class="modal-insc-footer">
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalDocumentos').classList.remove('active')">Cancelar</button>
+        <button type="button" class="btn btn-secondary"
+          onclick="document.getElementById('modalDocumentos').classList.remove('active')">Cancelar</button>
         <button type="button" class="btn btn-primary" onclick="guardarDocumentos()">Guardar Documentos</button>
       </div>
     </div>
@@ -922,12 +1204,14 @@
     <div class="modal-insc" style="max-width:650px;">
       <div class="modal-insc-header">
         <h2>📋 Datos de la Inscripción</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="document.getElementById('modalVerInscripcion').classList.remove('active')">×</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
+          onclick="document.getElementById('modalVerInscripcion').classList.remove('active')">×</button>
       </div>
       <div class="modal-insc-body" style="max-height:75vh;overflow-y:auto;" id="verInscripcionBody">
       </div>
       <div class="modal-insc-footer">
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('modalVerInscripcion').classList.remove('active')">Cerrar</button>
+        <button type="button" class="btn btn-secondary"
+          onclick="document.getElementById('modalVerInscripcion').classList.remove('active')">Cerrar</button>
       </div>
     </div>
   </div>
@@ -937,7 +1221,8 @@
     <div class="modal-insc" style="max-width:450px;">
       <div class="modal-insc-header">
         <h2>💰 Registrar Pago</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalNuevoPago()">×</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
+          onclick="cerrarModalNuevoPago()">×</button>
       </div>
       <div class="modal-insc-body">
         <div id="alertPago" class="alert" style="display:none;"></div>
@@ -947,7 +1232,8 @@
         </div>
         <div class="form-group">
           <label>Tipo de Pago *</label>
-          <select id="np_tipo_pago" onchange="document.getElementById('np_grupo_ref').style.display = this.value === 'PAGO_MOVIL' ? 'block' : 'none'">
+          <select id="np_tipo_pago"
+            onchange="document.getElementById('np_grupo_ref').style.display = this.value === 'PAGO_MOVIL' ? 'block' : 'none'">
             <option value="EFECTIVO">Efectivo</option>
             <option value="PAGO_MOVIL">Pago Móvil</option>
           </select>
@@ -969,7 +1255,8 @@
     <div class="modal-insc" style="max-width:600px;">
       <div class="modal-insc-header">
         <h2>💰 Colaboración</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalVerColab()">×</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
+          onclick="cerrarModalVerColab()">×</button>
       </div>
       <div class="modal-insc-body" style="max-height:70vh;overflow-y:auto;">
         <div id="alertVerColab" class="alert" style="display:none;"></div>
@@ -994,7 +1281,8 @@
         </div>
 
         <div style="text-align:right;margin-bottom:var(--space-3);">
-          <button type="button" class="btn btn-sm btn-primary" onclick="guardarDatosColab()">💾 Guardar Datos Colaboración</button>
+          <button type="button" class="btn btn-sm btn-primary" onclick="guardarDatosColab()">💾 Guardar Datos
+            Colaboración</button>
         </div>
 
         <!-- Resumen de pagos -->
@@ -1011,17 +1299,28 @@
         </div>
 
         <!-- Tabla de pagos -->
-        <div style="font-weight:600;margin-bottom:var(--space-2);display:flex;justify-content:space-between;align-items:center;">
+        <div
+          style="font-weight:600;margin-bottom:var(--space-2);display:flex;justify-content:space-between;align-items:center;">
           <span>Pagos Registrados</span>
-          <button type="button" class="btn btn-sm btn-primary" onclick="abrirNuevoPagoDesdeVerColab()">+ Nuevo Pago</button>
+          <button type="button" class="btn btn-sm btn-primary" onclick="abrirNuevoPagoDesdeVerColab()">+ Nuevo
+            Pago</button>
         </div>
         <table style="width:100%;font-size:var(--font-size-sm);">
-          <thead><tr><th>Fecha</th><th>Monto</th><th>Tipo</th><th>Referencia</th><th></th></tr></thead>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Monto</th>
+              <th>Tipo</th>
+              <th>Referencia</th>
+              <th></th>
+            </tr>
+          </thead>
           <tbody id="vc_tbody_pagos"></tbody>
         </table>
 
         <!-- Formulario nuevo pago inline -->
-        <div id="vc_form_nuevo_pago" style="display:none;background:var(--bg);padding:var(--space-3);border-radius:8px;margin-top:var(--space-3);border:1px solid var(--border);">
+        <div id="vc_form_nuevo_pago"
+          style="display:none;background:var(--bg);padding:var(--space-3);border-radius:8px;margin-top:var(--space-3);border:1px solid var(--border);">
           <h4 style="margin-bottom:var(--space-2);">Registrar Pago</h4>
           <div class="form-row">
             <div class="form-group">
@@ -1030,7 +1329,8 @@
             </div>
             <div class="form-group">
               <label>Tipo *</label>
-              <select id="vc_pago_tipo" onchange="document.getElementById('vc_pago_ref_group').style.display = this.value === 'PAGO_MOVIL' ? 'block' : 'none'">
+              <select id="vc_pago_tipo"
+                onchange="document.getElementById('vc_pago_ref_group').style.display = this.value === 'PAGO_MOVIL' ? 'block' : 'none'">
                 <option value="EFECTIVO">Efectivo</option>
                 <option value="PAGO_MOVIL">Pago Móvil</option>
               </select>
@@ -1041,8 +1341,10 @@
             <input type="text" id="vc_pago_referencia" placeholder="N° de referencia">
           </div>
           <div style="text-align:right;margin-top:var(--space-2);">
-            <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('vc_form_nuevo_pago').style.display='none'">Cancelar</button>
-            <button type="button" class="btn btn-sm btn-primary" onclick="guardarPagoDesdeVerColab()">Guardar Pago</button>
+            <button type="button" class="btn btn-sm btn-secondary"
+              onclick="document.getElementById('vc_form_nuevo_pago').style.display='none'">Cancelar</button>
+            <button type="button" class="btn btn-sm btn-primary" onclick="guardarPagoDesdeVerColab()">Guardar
+              Pago</button>
           </div>
         </div>
       </div>
@@ -1056,5 +1358,5 @@
   <script src="/js/auth.js"></script>
   <script src="/js/inscripciones.js"></script>
 </body>
-</html>
 
+</html>

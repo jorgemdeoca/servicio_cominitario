@@ -361,13 +361,20 @@
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Estos datos se utilizarán para generar las planillas, constancias y reportes.</p>
           <form id="formEscuela" class="form-grid">
             <div class="form-group full-width">
-              <label>Logo de la Institución (Opcional, PNG/JPG)</label>
-              <div style="display:flex; align-items:center; gap:1rem;">
-                <img id="previewLogo" src="" alt="Logo actual"
-                     style="width:80px;height:80px;object-fit:contain;border:1px solid var(--border);border-radius:8px;display:none;">
-                <div>
-                  <input type="file" id="cfg_logo" accept="image/png, image/jpeg" onchange="previewLogoFile(this)">
-                  <small style="color:var(--text-muted);">El logo se mostrará en las planillas de inscripción.</small>
+              <label>Logo de la Institución</label>
+              <div style="display:flex; align-items:flex-start; gap:1.25rem; flex-wrap:wrap;">
+                <div style="flex-shrink:0; width:100px; height:100px; border:2px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--bg-subtle, #f8f9fa); overflow:hidden;">
+                  <img id="previewLogo" src="" alt="Logo"
+                       style="width:100%;height:100%;object-fit:contain;display:none;">
+                  <span id="logoPlaceholder" style="font-size:2rem; color:var(--text-muted);">🏫</span>
+                </div>
+                <div style="flex:1; min-width:200px;">
+                  <input type="file" id="cfg_logo" accept="image/png, image/jpeg" onchange="previewLogoFile(this)" style="margin-bottom:0.5rem;">
+                  <small style="display:block; color:var(--text-muted); line-height:1.5;">
+                    Formatos: <strong>PNG o JPEG</strong> · Tamaño máximo: <strong>500 KB</strong><br>
+                    Dimensiones: mínimo <strong>80×80px</strong>, máximo <strong>2000×2000px</strong><br>
+                    El logo aparecerá en las planillas y reportes impresos.
+                  </small>
                 </div>
               </div>
             </div>
@@ -468,6 +475,86 @@
 
       <!-- TAB 6: Sistema (solo SUPER_ADMIN) -->
       <div id="tab-sistema" class="tab-panel">
+
+        <!-- BACKUP -->
+        <div class="config-form-card" style="max-width: 600px; margin-bottom: var(--space-6);">
+          <h3 style="display:flex;align-items:center;gap:var(--space-2);">
+            <img src="/icons/database.svg" alt="" class="nav-icon-img" style="width:20px;height:20px;opacity:0.7;">
+            Copia de Seguridad
+          </h3>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:var(--space-5);">
+            Exporte o importe la base de datos completa del sistema.
+          </p>
+
+          <!-- Info último backup -->
+          <div id="backupInfo" class="alert" style="display:none; background:var(--info-bg); color:var(--info); border:1px solid var(--info); margin-bottom:var(--space-5);"></div>
+
+          <!-- EXPORTAR -->
+          <div style="margin-bottom: var(--space-5);">
+            <h4 style="font-size:0.95rem; margin-bottom:var(--space-2);">
+              <img src="/icons/download.svg" alt="" style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
+              Exportar Backup
+            </h4>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:var(--space-3);">
+              Descarga un archivo <code>.sql</code> con todos los registros del sistema.
+            </p>
+            <button class="btn btn-primary" id="btnExportarBackup" style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="/icons/download.svg" alt="" style="width:16px;height:16px;filter:brightness(10);"> Descargar Backup
+            </button>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:var(--space-4) 0;">
+
+          <!-- IMPORTAR -->
+          <div style="margin-bottom: var(--space-5);">
+            <h4 style="font-size:0.95rem; margin-bottom:var(--space-2);">
+              <img src="/icons/upload.svg" alt="" style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
+              Importar Backup
+            </h4>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:var(--space-3);">
+              Restaura la base de datos desde un archivo <code>.sql</code> previamente exportado.
+            </p>
+            <div style="background:var(--warning-bg); border:1px solid var(--warning); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); margin-bottom:var(--space-3); font-size:0.8rem; color:var(--warning);">
+              <strong>⚠️ Atención:</strong> Esta acción <strong>reemplazará todos los datos actuales</strong> con los del archivo importado. Se recomienda exportar un backup antes de importar.
+            </div>
+            <input type="file" id="inputBackupFile" accept=".sql" style="display:none;">
+            <div style="display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap;">
+              <button class="btn btn-secondary" id="btnSeleccionarBackup" style="display:inline-flex;align-items:center;gap:6px;">
+                <img src="/icons/upload.svg" alt="" style="width:16px;height:16px;opacity:0.6;"> Seleccionar archivo .sql
+              </button>
+              <span id="backupFileName" style="font-size:0.8rem;color:var(--text-muted);"></span>
+            </div>
+            <button class="btn" id="btnImportarBackup" style="display:none; margin-top:var(--space-3); background:var(--error); color:white; border:none;">
+              <img src="/icons/alert-circle.svg" alt="" style="width:16px;height:16px;filter:brightness(10);margin-right:4px;"> Restaurar Backup
+            </button>
+          </div>
+
+          <hr style="border:none;border-top:1px solid var(--border);margin:var(--space-4) 0;">
+
+          <!-- RECORDATORIO -->
+          <div>
+            <h4 style="font-size:0.95rem; margin-bottom:var(--space-2);">
+              <img src="/icons/calendar.svg" alt="" style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
+              Recordatorio de Backup
+            </h4>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:var(--space-3);">
+              Configura cada cuánto mostrar un aviso en el Dashboard para recordar hacer backup.
+            </p>
+            <div class="form-group" style="max-width:260px; margin-bottom:var(--space-3);">
+              <select id="selFrecuenciaBackup" class="form-control">
+                <option value="SEMANAL">Semanal (cada 7 días)</option>
+                <option value="QUINCENAL">Quincenal (cada 15 días)</option>
+                <option value="MENSUAL" selected>Mensual (cada 30 días)</option>
+                <option value="DESACTIVADO">No recordar</option>
+              </select>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnGuardarFrecuencia">
+              Guardar preferencia
+            </button>
+          </div>
+        </div>
+
+        <!-- CONTROL DEL SISTEMA -->
         <div class="config-form-card" style="max-width: 600px;">
           <h3>⚙️ Control del Sistema</h3>
           <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Opciones de administración del servidor.</p>

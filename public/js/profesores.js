@@ -4,6 +4,16 @@ let searchTimeout = null;
 document.addEventListener('DOMContentLoaded', () => {
   loadProfesores();
 
+  // === Validaciones en tiempo real ===
+  validarSoloLetras('prof_apellidos');
+  validarSoloLetras('prof_nombres');
+  validarSoloNumeros('prof_cedula');
+  validarSoloNumeros('prof_telefono');
+  validarMayorDeEdad('prof_fecha_nacimiento');
+  // Dirección: permite todos los caracteres
+  // Nacionalidad exacta: campo extra cuando selecciona Extranjero
+  configurarNacionalidadExacta('prof_nacionalidad', 'grupoNacExactaProfesor', 'prof_nacionalidad_texto');
+
   document.getElementById('formProfesor').addEventListener('submit', guardarProfesor);
 
   const inputBuscar = document.getElementById('inputBuscar');
@@ -111,6 +121,10 @@ function abrirModal(profesor = null) {
     titulo.textContent = 'Editar Profesor';
     document.getElementById('prof_id').value = profesor.id;
     document.getElementById('prof_nacionalidad').value = profesor.nacionalidad || 'V';
+    if (profesor.nacionalidad_texto) {
+      document.getElementById('prof_nacionalidad_texto').value = profesor.nacionalidad_texto;
+    }
+    document.getElementById('prof_nacionalidad').dispatchEvent(new Event('change'));
     document.getElementById('prof_cedula').value = profesor.cedula;
     document.getElementById('prof_apellidos').value = profesor.apellidos;
     document.getElementById('prof_nombres').value = profesor.nombres;
@@ -132,6 +146,7 @@ function abrirModal(profesor = null) {
     document.getElementById('prof_estado_nacimiento').value = profesor.estado_nacimiento || '';
   } else {
     titulo.textContent = 'Nuevo Profesor';
+    setTimeout(() => document.getElementById('prof_nacionalidad').dispatchEvent(new Event('change')), 0);
   }
 
   modal.classList.add('active');
@@ -160,9 +175,17 @@ async function editarProfesor(id) {
 async function guardarProfesor(e) {
   e.preventDefault();
 
+  // Bloquear si es menor de edad
+  if (!esMayorDeEdad('prof_fecha_nacimiento')) {
+    showAlert('alertModal', 'No se puede registrar: el profesor debe ser mayor de edad (mínimo 18 años).', 'error');
+    document.getElementById('prof_fecha_nacimiento').focus();
+    return;
+  }
+
   const id = document.getElementById('prof_id').value;
   const data = {
     nacionalidad: document.getElementById('prof_nacionalidad').value,
+    nacionalidad_texto: document.getElementById('prof_nacionalidad').value === 'V' ? null : (document.getElementById('prof_nacionalidad_texto').value.trim() || null),
     cedula: document.getElementById('prof_cedula').value.trim(),
     apellidos: document.getElementById('prof_apellidos').value.trim(),
     nombres: document.getElementById('prof_nombres').value.trim(),

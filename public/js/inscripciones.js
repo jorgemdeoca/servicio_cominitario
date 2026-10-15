@@ -38,6 +38,50 @@ document.addEventListener('DOMContentLoaded', async () => {
       titulo.closest('.planilla-seccion').classList.toggle('collapsed');
     });
   });
+
+  // === Validaciones en tiempo real — Inscripciones ===
+  // Datos del estudiante (nuevo registro)
+  validarSoloLetras('ni_e_primer_apellido');
+  validarSoloLetras('ni_e_segundo_apellido');
+  validarSoloLetras('ni_e_primer_nombre');
+  validarSoloLetras('ni_e_segundo_nombre');
+  validarSoloNumeros('ni_e_codigo_escolar');
+  validarSoloLetras('ni_e_lugar_nacimiento');
+  validarSoloLetras('ni_e_estado_nacimiento');
+  // Fecha de nacimiento del estudiante: NO se valida mayor de edad
+  // Nacionalidad exacta del estudiante ya tiene toggleNacionalidadTexto
+  validarSoloLetras('ni_e_nacionalidad_texto');
+
+  // Datos de la Madre
+  validarSoloNumeros('ni_m_cedula');
+  validarSoloLetras('ni_m_apellidos');
+  validarSoloLetras('ni_m_nombres');
+  validarSoloNumeros('ni_m_telefono');
+  validarMayorDeEdad('ni_m_fecha_nacimiento');
+  configurarNacionalidadExacta('ni_m_nacionalidad', 'grupoNacExactaMadreInsc', 'ni_m_nacionalidad_texto');
+
+  // Datos del Padre
+  validarSoloNumeros('ni_p_cedula');
+  validarSoloLetras('ni_p_apellidos');
+  validarSoloLetras('ni_p_nombres');
+  validarSoloNumeros('ni_p_telefono');
+  validarMayorDeEdad('ni_p_fecha_nacimiento');
+  configurarNacionalidadExacta('ni_p_nacionalidad', 'grupoNacExactaPadreInsc', 'ni_p_nacionalidad_texto');
+
+  // Representante Legal (Otra Persona)
+  validarSoloNumeros('ni_r_cedula');
+  validarSoloLetras('ni_r_apellidos');
+  validarSoloLetras('ni_r_nombres');
+  validarSoloNumeros('ni_r_telefono');
+  validarMayorDeEdad('ni_r_fecha_nacimiento');
+  configurarNacionalidadExacta('ni_r_nacionalidad', 'grupoNacExactaRepInsc', 'ni_r_nacionalidad_texto');
+
+  // Datos Variables — tallas y pesos (solo números)
+  validarSoloNumeros('insc_talla');
+  validarSoloNumeros('insc_peso');
+  validarSoloNumeros('insc_talla_camisa');
+  validarSoloNumeros('insc_talla_pantalon');
+  validarSoloNumeros('insc_talla_zapato');
 });
 
 function configurarBusquedaEnTiempoReal(inputId, minLength, searchFn) {
@@ -260,8 +304,8 @@ async function loadInscripciones() {
           <img src="/icons/x.svg" alt="" style="width:10px;height:10px;filter:invert(0.4) sepia(1) saturate(5) hue-rotate(320deg);"> Sin colab.
         </span>`;
       } else {
-        const abonado = colab.pagos.reduce((s, p) => s + p.monto, 0);
-        if (abonado >= colab.monto_total && colab.monto_total > 0) {
+        const abonado = colab.pagos.reduce((s, p) => s + parseFloat(p.monto), 0);
+        if (abonado >= parseFloat(colab.monto_total) && parseFloat(colab.monto_total) > 0) {
           colabBadge = `<span class="badge badge-green" style="cursor:pointer;" title="Pagado — clic para ver" onclick="verColaboracionDesdeTabla(${insc.id})">
             <img src="/icons/circle-check.svg" alt="" style="width:10px;height:10px;filter:invert(0.4) sepia(1) saturate(5) hue-rotate(100deg);"> Pagado
           </span>`;
@@ -438,6 +482,9 @@ function limpiarCamposPersonaInsc(prefix) {
   document.getElementById(`${prefix}_apellidos`).value = '';
   document.getElementById(`${prefix}_nombres`).value = '';
   document.getElementById(`${prefix}_nacionalidad`).value = 'V';
+  const nacTextoInsc = document.getElementById(`${prefix}_nacionalidad_texto`);
+  if (nacTextoInsc) nacTextoInsc.value = '';
+  document.getElementById(`${prefix}_nacionalidad`).dispatchEvent(new Event('change'));
   document.getElementById(`${prefix}_fecha_nacimiento`).value = '';
   document.getElementById(`${prefix}_profesion`).value = '';
   document.getElementById(`${prefix}_telefono`).value = '';
@@ -469,6 +516,8 @@ async function buscarPersonaInsc(tipo) {
         document.getElementById(`${prefix}_apellidos`).value = persona.apellidos;
         document.getElementById(`${prefix}_nombres`).value = persona.nombres;
         document.getElementById(`${prefix}_nacionalidad`).value = persona.nacionalidad;
+        // Trigger nationality toggle
+        document.getElementById(`${prefix}_nacionalidad`).dispatchEvent(new Event('change'));
         if (persona.fecha_nacimiento) {
           document.getElementById(`${prefix}_fecha_nacimiento`).value = persona.fecha_nacimiento.substring(0, 10);
         }
@@ -541,6 +590,17 @@ function validarFormularioInscripcion() {
         errores.push({ campo: 'ni_r_apellidos', mensaje: 'Apellidos del representante son obligatorios.', seccionIdx: 0 });
       if (!document.getElementById('ni_r_nombres').value.trim())
         errores.push({ campo: 'ni_r_nombres', mensaje: 'Nombres del representante son obligatorios.', seccionIdx: 0 });
+    }
+
+    // Validación mayoría de edad para adultos (el estudiante SÍ puede ser menor de edad)
+    if (!esMayorDeEdad('ni_m_fecha_nacimiento')) {
+      errores.push({ campo: 'ni_m_fecha_nacimiento', mensaje: 'La madre debe ser mayor de edad (mínimo 18 años).', seccionIdx: 0 });
+    }
+    if (!esMayorDeEdad('ni_p_fecha_nacimiento')) {
+      errores.push({ campo: 'ni_p_fecha_nacimiento', mensaje: 'El padre debe ser mayor de edad (mínimo 18 años).', seccionIdx: 0 });
+    }
+    if (repEs === 'OTRO' && !esMayorDeEdad('ni_r_fecha_nacimiento')) {
+      errores.push({ campo: 'ni_r_fecha_nacimiento', mensaje: 'El representante legal debe ser mayor de edad (mínimo 18 años).', seccionIdx: 0 });
     }
   }
 
@@ -1256,23 +1316,30 @@ async function cargarResumenColaboraciones() {
           <span style="font-size: 1.2em; color: var(--success); display: inline-block; margin-top: 3px;">${formatBs(data.total_global)}</span>
         </div>
       </div>
-      <div class="filtros-bar" style="margin-bottom: var(--space-4); background: white; padding: var(--space-3); border-radius: var(--radius); border: 1px solid var(--border);">
-        <div style="flex:1;">
-          <label>Grado:</label>
-          <select id="filtroColabGrado" onchange="actualizarSelectSeccionesColab()">
-            <option value="">Todos</option>
-            ${data.grados.map(g => `<option value="${g.grado_id}">${g.grado_nombre}</option>`).join('')}
-          </select>
+      <div style="background:var(--bg-white);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-4) var(--space-5);margin-bottom:var(--space-5);box-shadow:var(--shadow-sm);">
+        <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-3);">
+          <img src="/icons/search.svg" alt="" style="width:16px;height:16px;opacity:0.5;">
+          <span style="font-size:var(--font-size-sm);font-weight:600;color:var(--text);">Filtros</span>
         </div>
-        <div style="flex:1;">
-          <label>Sección:</label>
-          <select id="filtroColabSeccion" onchange="aplicarFiltrosColaboraciones()">
-            <option value="">Todas</option>
-          </select>
-        </div>
-        <div style="flex:2;">
-          <label>Buscar:</label>
-          <input type="text" id="filtroColabBuscar" placeholder="Representante o estudiante..." oninput="aplicarFiltrosColaboraciones()">
+        <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:180px;">
+            <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);display:block;margin-bottom:var(--space-1);">Grado</label>
+            <select id="filtroColabGrado" onchange="actualizarSelectSeccionesColab()" style="width:100%;height:36px;padding:0 var(--space-3);font-size:var(--font-size-sm);border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-white);color:var(--text);font-family:var(--font);">
+              <option value="">Todos</option>
+              ${data.grados.map(g => `<option value="${g.grado_id}">${g.grado_nombre}</option>`).join('')}
+            </select>
+          </div>
+          <div style="flex:1;min-width:180px;">
+            <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);display:block;margin-bottom:var(--space-1);">Sección</label>
+            <select id="filtroColabSeccion" onchange="aplicarFiltrosColaboraciones()" style="width:100%;height:36px;padding:0 var(--space-3);font-size:var(--font-size-sm);border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-white);color:var(--text);font-family:var(--font);"></select>
+          </div>
+          <div style="flex:2;min-width:220px;">
+            <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);display:block;margin-bottom:var(--space-1);">Buscar</label>
+            <div style="position:relative;">
+              <img src="/icons/search.svg" alt="" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;opacity:0.4;">
+              <input id="filtroColabBuscar" type="text" placeholder="Representante o estudiante..." oninput="aplicarFiltrosColaboraciones()" style="width:100%;height:36px;padding:0 var(--space-3) 0 32px;font-size:var(--font-size-sm);border:1px solid var(--border);border-radius:var(--radius);background:var(--bg-white);color:var(--text);font-family:var(--font);">
+            </div>
+          </div>
         </div>
       </div>
       <div id="colaboracionesContenedorTablas"></div>

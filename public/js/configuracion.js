@@ -30,6 +30,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('formSeccion').addEventListener('submit', createSeccion);
   document.getElementById('s_filtro_anio').addEventListener('change', loadSecciones);
   document.getElementById('formEscuela').addEventListener('submit', saveConfiguracion);
+
+  // === Validaciones en tiempo real — Datos de la Escuela ===
+  validarSoloNumeros('cfg_telefono');
+  validarSoloLetras('cfg_estado');
+  validarSoloLetras('cfg_municipio');
+  validarSoloLetras('cfg_parroquia');
+  validarSoloLetras('cfg_director');
   if (document.getElementById('formUsuario')) {
     document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
     document.getElementById('btnCancelUsuario').addEventListener('click', resetUsuarioForm);
@@ -561,13 +568,14 @@ async function loadConfiguracion() {
     if (conf.membrete) document.getElementById('cfg_membrete').value = conf.membrete;
     if (conf.localidad) document.getElementById('cfg_localidad').value = conf.localidad;
 
-    // Mostrar preview del logo si existe
-    if (conf.logo_institucion_base64) {
-      const previewEl = document.getElementById('previewLogo');
-      if (previewEl) {
-        previewEl.src = conf.logo_institucion_base64;
-        previewEl.style.display = 'block';
-      }
+    // Mostrar preview del logo si existe (cargado desde URL guardada en BD)
+    const previewEl = document.getElementById('previewLogo');
+    const placeholderEl = document.getElementById('logoPlaceholder');
+    if (conf.logo_url && previewEl) {
+      // Añadir cache-buster para que no muestre el logo viejo tras actualizarlo
+      previewEl.src = conf.logo_url + '?v=' + Date.now();
+      previewEl.style.display = 'block';
+      if (placeholderEl) placeholderEl.style.display = 'none';
     }
     
   } catch (error) {
@@ -575,19 +583,68 @@ async function loadConfiguracion() {
   }
 }
 
-// Preview del logo al seleccionar archivo
+// Preview del logo al seleccionar archivo — con validación de tamaño y dimensiones
 function previewLogoFile(input) {
-  if (input.files && input.files[0]) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
+  if (!input.files || !input.files[0]) return;
+
+  const file = input.files[0];
+  const MAX_SIZE_KB = 500;
+
+  // Validar tipo de archivo
+  if (!['image/png', 'image/jpeg'].includes(file.type)) {
+    alert('Solo se permiten imágenes PNG o JPEG.');
+    input.value = '';
+    return;
+  }
+
+  // Validar tamaño (máx 500 KB)
+  if (file.size > MAX_SIZE_KB * 1024) {
+    alert(`El logo no debe superar ${MAX_SIZE_KB} KB. El archivo seleccionado pesa ${Math.round(file.size / 1024)} KB.`);
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const img = new Image();
+    img.onload = function () {
+      const MIN_DIM = 80;
+      const MAX_DIM = 2000;
+      if (img.width < MIN_DIM || img.height < MIN_DIM) {
+        alert(`El logo es muy pequeño (${img.width}×${img.height}px). El mínimo recomendado es ${MIN_DIM}×${MIN_DIM}px.`);
+        input.value = '';
+        const previewEl = document.getElementById('previewLogo');
+        if (previewEl) previewEl.style.display = 'none';
+        return;
+      }
+      if (img.width > MAX_DIM || img.height > MAX_DIM) {
+        alert(`El logo es muy grande (${img.width}×${img.height}px). El máximo permitido es ${MAX_DIM}×${MAX_DIM}px.`);
+        input.value = '';
+        const previewEl = document.getElementById('previewLogo');
+        if (previewEl) previewEl.style.display = 'none';
+        return;
+      }
+      // Todo OK — mostrar preview
       const previewEl = document.getElementById('previewLogo');
+      const placeholderEl = document.getElementById('logoPlaceholder');
       if (previewEl) {
         previewEl.src = e.target.result;
         previewEl.style.display = 'block';
+        if (placeholderEl) placeholderEl.style.display = 'none';
       }
+      // Mostrar info de dimensiones debajo del input
+      let infoEl = document.getElementById('logoInfo');
+      if (!infoEl) {
+        infoEl = document.createElement('small');
+        infoEl.id = 'logoInfo';
+        infoEl.style.cssText = 'display:block;color:var(--success,green);margin-top:4px;';
+        input.parentNode.appendChild(infoEl);
+      }
+      infoEl.textContent = `✓ Logo válido: ${img.width}×${img.height}px · ${Math.round(file.size / 1024)} KB`;
     };
-    reader.readAsDataURL(input.files[0]);
-  }
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 async function saveConfiguracion(e) {
@@ -929,3 +986,127 @@ async function deleteUsuario(id) {
 }
 
 
+
+// ── BACKUP ──────────────────────────────────────────
+
+// Cargar info de último backup y frecuencia (se ejecuta al entrar al tab)
+async function cargarInfoBackup() {
+  try {
+    const res = await apiFetch('/api/backup/recordatorio');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Mostrar fecha último backup
+    if (data.ultimo_backup) {
+      const fecha = new Date(data.ultimo_backup);
+      const infoDiv = document.getElementById('backupInfo');
+      infoDiv.style.display = 'block';
+      infoDiv.innerHTML = '<strong>Último backup:</strong> ' +
+        fecha.toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' }) +
+        ' a las ' + fecha.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Setear select de frecuencia
+    const sel = document.getElementById('selFrecuenciaBackup');
+    if (sel && data.frecuencia) {
+      sel.value = data.frecuencia;
+    }
+  } catch (e) {
+    console.error('Error al cargar info backup:', e);
+  }
+}
+
+// Exportar — descarga directa vía navegador
+document.getElementById('btnExportarBackup')?.addEventListener('click', function () {
+  const btn = this;
+  btn.disabled = true;
+  btn.innerHTML = '<img src="/icons/download.svg" alt="" style="width:16px;height:16px;filter:brightness(10);"> Generando...';
+
+  // Usar window.location.href para descargar (dispara la descarga nativa)
+  window.location.href = '/api/backup/exportar';
+
+  // Re-habilitar botón después de unos segundos
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.innerHTML = '<img src="/icons/download.svg" alt="" style="width:16px;height:16px;filter:brightness(10);"> Descargar Backup';
+    showAlert('alertConfig', 'Backup exportado exitosamente.', 'success');
+    cargarInfoBackup(); // Refrescar fecha
+  }, 3000);
+});
+
+// Importar — seleccionar archivo
+document.getElementById('btnSeleccionarBackup')?.addEventListener('click', function () {
+  document.getElementById('inputBackupFile').click();
+});
+
+document.getElementById('inputBackupFile')?.addEventListener('change', function () {
+  const file = this.files[0];
+  if (file) {
+    document.getElementById('backupFileName').textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB)';
+    document.getElementById('btnImportarBackup').style.display = 'inline-flex';
+  } else {
+    document.getElementById('backupFileName').textContent = '';
+    document.getElementById('btnImportarBackup').style.display = 'none';
+  }
+});
+
+// Importar — ejecutar restauración con doble confirmación
+document.getElementById('btnImportarBackup')?.addEventListener('click', async function () {
+  // Doble confirmación
+  if (!confirm('⚠️ ATENCIÓN: Esta acción REEMPLAZARÁ TODOS los datos actuales de la base de datos con los del archivo seleccionado.\n\n¿Desea continuar?')) return;
+  if (!confirm('⚠️ ÚLTIMA CONFIRMACIÓN:\n\nSe perderán TODOS los datos actuales y se restaurarán los del archivo.\nEsta acción NO se puede deshacer.\n\n¿Está completamente seguro?')) return;
+
+  const file = document.getElementById('inputBackupFile').files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append('backup', file);
+
+  const btn = this;
+  btn.disabled = true;
+  btn.innerHTML = '<img src="/icons/alert-circle.svg" alt="" style="width:16px;height:16px;filter:brightness(10);margin-right:4px;"> Restaurando...';
+
+  try {
+    const res = await fetch('/api/backup/importar', {
+      method: 'POST',
+      body: formData
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showAlert('alertConfig', '✅ Backup restaurado exitosamente. La página se recargará en 3 segundos...', 'success');
+      setTimeout(() => location.reload(), 3000);
+    } else {
+      showAlert('alertConfig', data.error || 'Error al restaurar el backup.', 'error');
+    }
+  } catch (err) {
+    showAlert('alertConfig', 'Error de conexión al restaurar backup.', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<img src="/icons/alert-circle.svg" alt="" style="width:16px;height:16px;filter:brightness(10);margin-right:4px;"> Restaurar Backup';
+  }
+});
+
+// Guardar frecuencia de recordatorio
+document.getElementById('btnGuardarFrecuencia')?.addEventListener('click', async function () {
+  const frecuencia = document.getElementById('selFrecuenciaBackup').value;
+  try {
+    const res = await apiFetch('/api/backup/recordatorio', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ frecuencia })
+    });
+    if (res.ok) {
+      const textos = { SEMANAL: 'semanal', QUINCENAL: 'quincenal', MENSUAL: 'mensual', DESACTIVADO: 'desactivado' };
+      showAlert('alertConfig', 'Frecuencia de recordatorio guardada: ' + textos[frecuencia] + '.', 'success');
+    } else {
+      showAlert('alertConfig', 'Error al guardar la preferencia.', 'error');
+    }
+  } catch (err) {
+    showAlert('alertConfig', 'Error de conexión.', 'error');
+  }
+});
+
+// Cargar info de backup cuando se entra al tab Sistema
+document.querySelector('[data-tab="tab-sistema"]')?.addEventListener('click', function () {
+  cargarInfoBackup();
+});
