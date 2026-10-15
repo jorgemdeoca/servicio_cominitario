@@ -87,6 +87,7 @@ const reportesRoutes = require('./routes/reportes');
 const usuariosRoutes = require('./routes/usuarios');
 const colaboracionesRoutes = require('./routes/colaboraciones');
 const dashboardRoutes = require('./routes/dashboard');
+const backupRoutes = require('./routes/backup');
 
 app.use('/api/anios-escolares', aniosEscolaresRoutes);
 app.use('/api/grados', gradosRoutes);
@@ -100,6 +101,7 @@ app.use('/api/reportes', reportesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/colaboraciones', colaboracionesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/backup', backupRoutes);
 
 // Endpoint para verificar sesión
 app.get('/api/me', (req, res) => {

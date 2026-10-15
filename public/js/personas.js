@@ -6,6 +6,16 @@ let searchTimeout = null;
 document.addEventListener('DOMContentLoaded', () => {
   loadPersonas();
 
+  // === Validaciones en tiempo real ===
+  validarSoloLetras('p_nombres');
+  validarSoloLetras('p_apellidos');
+  validarSoloNumeros('p_cedula');
+  validarSoloNumeros('p_telefono');
+  validarMayorDeEdad('p_fecha_nacimiento');
+  // Dirección y Observaciones: permiten todos los caracteres (no se validan)
+  // Nacionalidad exacta: campo extra cuando selecciona Extranjero
+  configurarNacionalidadExacta('p_nacionalidad', 'grupoNacExactaPersona', 'p_nacionalidad_texto');
+
   document.getElementById('formPersona').addEventListener('submit', guardarPersona);
 
   const inputBuscar = document.getElementById('inputBuscar');
@@ -156,6 +166,11 @@ function abrirModal(persona = null) {
     titulo.textContent = 'Editar Persona';
     document.getElementById('p_id').value = persona.id;
     document.getElementById('p_nacionalidad').value = persona.nacionalidad;
+    if (persona.nacionalidad_texto) {
+      document.getElementById('p_nacionalidad_texto').value = persona.nacionalidad_texto;
+    }
+    // Trigger nationality toggle
+    document.getElementById('p_nacionalidad').dispatchEvent(new Event('change'));
     document.getElementById('p_cedula').value = persona.cedula;
     document.getElementById('p_apellidos').value = persona.apellidos;
     document.getElementById('p_nombres').value = persona.nombres;
@@ -192,9 +207,17 @@ async function editarPersona(id) {
 async function guardarPersona(e) {
   e.preventDefault();
 
+  // Bloquear si es menor de edad
+  if (!esMayorDeEdad('p_fecha_nacimiento')) {
+    showAlert('alertModal', 'No se puede registrar: la persona debe ser mayor de edad (mínimo 18 años).', 'error');
+    document.getElementById('p_fecha_nacimiento').focus();
+    return;
+  }
+
   const id = document.getElementById('p_id').value;
   const data = {
     nacionalidad: document.getElementById('p_nacionalidad').value,
+    nacionalidad_texto: document.getElementById('p_nacionalidad').value === 'V' ? null : (document.getElementById('p_nacionalidad_texto').value.trim() || null),
     cedula: document.getElementById('p_cedula').value.trim(),
     apellidos: document.getElementById('p_apellidos').value.trim(),
     nombres: document.getElementById('p_nombres').value.trim(),

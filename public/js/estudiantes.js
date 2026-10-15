@@ -3,6 +3,51 @@ let busquedaActual = '';
 
 document.addEventListener('DOMContentLoaded', () => {
   loadEstudiantes();
+
+  // === Validaciones en tiempo real — Datos del estudiante ===
+  validarSoloLetras('e_primer_apellido');
+  validarSoloLetras('e_segundo_apellido');
+  validarSoloLetras('e_primer_nombre');
+  validarSoloLetras('e_segundo_nombre');
+  validarSoloNumeros('e_codigo_escolar');
+  validarSoloLetras('e_lugar_nacimiento');
+  validarSoloLetras('e_estado_nacimiento');
+  // Fecha de nacimiento del estudiante: NO se valida mayor de edad (es niño)
+  // Nacionalidad exacta del estudiante
+  configurarNacionalidadExacta('e_nacionalidad', 'grupoNacExactaEstudiante', 'e_nacionalidad_texto');
+
+  // === Validaciones — Datos de la Madre ===
+  validarSoloNumeros('m_cedula');
+  validarSoloLetras('m_apellidos');
+  validarSoloLetras('m_nombres');
+  validarSoloNumeros('m_telefono');
+  validarMayorDeEdad('m_fecha_nacimiento');
+  configurarNacionalidadExacta('m_nacionalidad', 'grupoNacExactaMadre', 'm_nacionalidad_texto');
+  // Dirección: permite todos los caracteres
+
+  // === Validaciones — Datos del Padre ===
+  validarSoloNumeros('p_cedula');
+  validarSoloLetras('p_apellidos');
+  validarSoloLetras('p_nombres');
+  validarSoloNumeros('p_telefono');
+  validarMayorDeEdad('p_fecha_nacimiento');
+  configurarNacionalidadExacta('p_nacionalidad', 'grupoNacExactaPadre', 'p_nacionalidad_texto');
+
+  // === Validaciones — Representante Legal (Otra Persona) ===
+  validarSoloNumeros('r_cedula');
+  validarSoloLetras('r_apellidos');
+  validarSoloLetras('r_nombres');
+  validarSoloNumeros('r_telefono');
+  validarMayorDeEdad('r_fecha_nacimiento');
+  configurarNacionalidadExacta('r_nacionalidad', 'grupoNacExactaRep', 'r_nacionalidad_texto');
+
+  // === Validaciones — Datos Variables ===
+  validarSoloNumeros('dv_talla');
+  validarSoloNumeros('dv_peso');
+  validarSoloNumeros('dv_talla_camisa');
+  validarSoloNumeros('dv_talla_pantalon');
+  validarSoloNumeros('dv_talla_zapato');
+
   document.getElementById('formPlanilla').addEventListener('submit', guardarEstudiante);
   document.getElementById('inputBuscar').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') buscarEstudiantes();
@@ -200,6 +245,10 @@ function limpiarCamposPersona(prefix) {
   document.getElementById(`${prefix}_apellidos`).value = '';
   document.getElementById(`${prefix}_nombres`).value = '';
   document.getElementById(`${prefix}_nacionalidad`).value = 'V';
+  // Limpiar y ocultar campo de nacionalidad exacta
+  const nacTexto = document.getElementById(`${prefix}_nacionalidad_texto`);
+  if (nacTexto) nacTexto.value = '';
+  document.getElementById(`${prefix}_nacionalidad`).dispatchEvent(new Event('change'));
   document.getElementById(`${prefix}_fecha_nacimiento`).value = '';
   document.getElementById(`${prefix}_profesion`).value = '';
   document.getElementById(`${prefix}_telefono`).value = '';
@@ -231,6 +280,8 @@ async function buscarPersona(tipo) {
       document.getElementById(`${prefix}_apellidos`).value = persona.apellidos;
       document.getElementById(`${prefix}_nombres`).value = persona.nombres;
       document.getElementById(`${prefix}_nacionalidad`).value = persona.nacionalidad;
+      // Trigger nationality toggle para mostrar/ocultar campo extra
+      document.getElementById(`${prefix}_nacionalidad`).dispatchEvent(new Event('change'));
       if (persona.fecha_nacimiento) {
         document.getElementById(`${prefix}_fecha_nacimiento`).value = persona.fecha_nacimiento.substring(0, 10);
       }
@@ -385,9 +436,33 @@ async function editarEstudiante(id) {
 // ==========================================
 async function guardarEstudiante(e) {
   e.preventDefault();
+  hideAlert('alertPlanilla');
 
   const id = document.getElementById('e_id').value;
   const representante_es = document.querySelector('input[name="representante_es"]:checked').value;
+
+  // Validar mayoría de edad para adultos (el estudiante SÍ puede ser menor de edad)
+  if (!esMayorDeEdad('m_fecha_nacimiento')) {
+    showAlert('alertPlanilla', 'No se puede registrar: la madre debe ser mayor de edad (mínimo 18 años).', 'error');
+    const campo = document.getElementById('m_fecha_nacimiento');
+    campo.focus();
+    campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  if (!esMayorDeEdad('p_fecha_nacimiento')) {
+    showAlert('alertPlanilla', 'No se puede registrar: el padre debe ser mayor de edad (mínimo 18 años).', 'error');
+    const campo = document.getElementById('p_fecha_nacimiento');
+    campo.focus();
+    campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+  if (representante_es === 'OTRO' && !esMayorDeEdad('r_fecha_nacimiento')) {
+    showAlert('alertPlanilla', 'No se puede registrar: el representante legal debe ser mayor de edad (mínimo 18 años).', 'error');
+    const campo = document.getElementById('r_fecha_nacimiento');
+    campo.focus();
+    campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
 
   // Construir el objeto completo
   const body = {

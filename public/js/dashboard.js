@@ -1,6 +1,9 @@
 // Dashboard - Carga de estadísticas reales
 document.addEventListener('DOMContentLoaded', function() {
-  cargarDashboard();
+  cargarDashboard().catch(() => {
+    // Retry una vez si falla (ej. servidor recién iniciado)
+    setTimeout(() => cargarDashboard(), 1500);
+  });
 });
 
 async function cargarDashboard() {
@@ -212,3 +215,68 @@ function countUp(el, target, duration) {
   }
   requestAnimationFrame(update);
 }
+
+// ── RECORDATORIO DE BACKUP ──────────────────────────
+async function verificarRecordatorioBackup() {
+  try {
+    // Solo para SUPER_ADMIN
+    const meRes = await apiFetch('/api/me');
+    const meData = await meRes.json();
+    if (!meData.usuario || meData.usuario.rol !== 'SUPER_ADMIN') return;
+
+    const res = await apiFetch('/api/backup/recordatorio');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (data.frecuencia === 'DESACTIVADO') return;
+
+    // Calcular si ya pasó el intervalo desde el último backup
+    var ahora = new Date();
+    var ultimo = data.ultimo_backup ? new Date(data.ultimo_backup) : null;
+
+    var diasIntervalo = { 'SEMANAL': 7, 'QUINCENAL': 15, 'MENSUAL': 30 }[data.frecuencia] || 30;
+
+    var mostrar = false;
+    if (!ultimo) {
+      mostrar = true;
+    } else if ((ahora - ultimo) > diasIntervalo * 24 * 60 * 60 * 1000) {
+      mostrar = true;
+    }
+
+    if (!mostrar) return;
+
+    // Verificar si el usuario descartó hoy (por sesión de navegador)
+    var hoy = ahora.toISOString().slice(0, 10);
+    if (sessionStorage.getItem('backupReminderDismissed') === hoy) return;
+
+    // Mostrar banner
+    var banner = document.getElementById('backupReminder');
+    if (banner) {
+      banner.style.display = 'block';
+
+      // Texto contextual
+      var textoEl = document.getElementById('backupReminderText');
+      if (textoEl) {
+        if (ultimo) {
+          var diasPasados = Math.floor((ahora - ultimo) / (24 * 60 * 60 * 1000));
+          textoEl.textContent = 'Último backup: ' +
+            ultimo.toLocaleDateString('es-VE', { year: 'numeric', month: 'long', day: 'numeric' }) +
+            '. Han pasado ' + diasPasados + ' días.';
+        } else {
+          textoEl.textContent = 'No se ha registrado ningún backup. Se recomienda crear uno ahora.';
+        }
+      }
+    }
+  } catch (e) {
+    // Silencioso — no bloquear el dashboard si falla
+  }
+}
+
+function descartarRecordatorioBackup() {
+  var banner = document.getElementById('backupReminder');
+  if (banner) banner.style.display = 'none';
+  sessionStorage.setItem('backupReminderDismissed', new Date().toISOString().slice(0, 10));
+}
+
+// Ejecutar al cargar
+verificarRecordatorioBackup();

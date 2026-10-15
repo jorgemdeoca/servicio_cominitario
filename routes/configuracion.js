@@ -28,12 +28,32 @@ router.put('/', soloSuperAdmin, async (req, res) => {
     const path = require('path');
 
     if (datos.logo_institucion_base64) {
-      const base64Data = datos.logo_institucion_base64.replace(/^data:image\/\w+;base64,/, "");
+      const dataUrl = datos.logo_institucion_base64;
+
+      // Validar que sea una imagen PNG o JPEG
+      if (!/^data:image\/(png|jpeg|jpg);base64,/.test(dataUrl)) {
+        return res.status(400).json({ error: 'El logo debe ser una imagen PNG o JPEG.' });
+      }
+
+      const base64Data = dataUrl.replace(/^data:image\/\w+;base64,/, '');
       const buffer = Buffer.from(base64Data, 'base64');
-      const logoPath = path.join(__dirname, '../public/img/logo_escuela.png');
+
+      // Validar tamaño máximo: 500 KB
+      const maxBytes = 500 * 1024;
+      if (buffer.length > maxBytes) {
+        return res.status(400).json({ error: 'El logo no debe superar 500 KB.' });
+      }
+
+      // Guardar el archivo en disco
+      const imgDir = path.join(__dirname, '../public/img');
+      if (!fs.existsSync(imgDir)) fs.mkdirSync(imgDir, { recursive: true });
+      const logoPath = path.join(imgDir, 'logo_escuela.png');
       fs.writeFileSync(logoPath, buffer);
-      
-      // Eliminar del objeto para no guardarlo en la base de datos
+
+      // Guardar la URL relativa en BD (en lugar del base64 pesado)
+      datos.logo_url = '/img/logo_escuela.png';
+
+      // Eliminar el base64 — no se guarda en BD
       delete datos.logo_institucion_base64;
     }
 
