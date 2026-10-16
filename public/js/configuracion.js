@@ -227,8 +227,8 @@ async function loadAniosEscolares() {
       const fin = formatearFecha(anio.fecha_fin);
       
       let badge = anio.activo 
-        ? '<span class="badge badge-green no-dot">Activo</span>' 
-        : '<span class="badge badge-gray no-dot">Inactivo</span>';
+        ? '<span class="badge badge-green no-dot badge-lg">Activo</span>' 
+        : '<span class="badge badge-gray no-dot badge-lg">Inactivo</span>';
         
       let btnActivar = anio.activo 
         ? '' 
@@ -274,6 +274,24 @@ async function createAnioEscolar(e) {
     showAlert('alertConfig', 'Seleccione el año de inicio', 'error');
     return;
   }
+
+  // Verificar si hay un año escolar activo
+  try {
+    const checkRes = await apiFetch('/api/anios-escolares');
+    if (checkRes && checkRes.ok) {
+      const anios = await checkRes.json();
+      const anioActivo = anios.find(a => a.activo);
+      if (anioActivo) {
+        await alertDialog({
+          title: 'No se puede crear un nuevo año escolar',
+          message: 'El año escolar <strong>"' + anioActivo.nombre + '"</strong> se encuentra activo.<br><br>Debe finalizar (desactivar) el año escolar activo antes de crear uno nuevo.',
+          type: 'warning',
+          confirmText: 'Entendido'
+        });
+        return;
+      }
+    }
+  } catch (err) { /* continuar */ }
   
   const data = {
     nombre: `${inicioVal}-${finVal}`,
@@ -302,10 +320,19 @@ async function createAnioEscolar(e) {
 }
 
 async function activarAnio(id) {
+  var aceptar = await confirmDialog({
+    title: 'Activar Año Escolar',
+    message: 'Al activar este año escolar, <strong>todos los demás años se desactivarán automáticamente</strong>.<br><br>¿Desea continuar?',
+    type: 'info',
+    icon: '/icons/circle-check.svg',
+    confirmText: 'Sí, activar',
+    cancelText: 'Cancelar'
+  });
+  if (!aceptar) return;
   try {
     const res = await apiFetch(`/api/anios-escolares/${id}/activar`, { method: 'PUT' });
     if (res && res.ok) {
-      showAlert('alertConfig', 'Año escolar activado', 'success');
+      showAlert('alertConfig', 'Año escolar activado exitosamente', 'success');
       loadAniosEscolares();
     }
   } catch (error) {
@@ -314,7 +341,14 @@ async function activarAnio(id) {
 }
 
 async function finalizarAnio(id) {
-  if (!confirm('¿Está seguro de finalizar este año escolar? Se mantendrá en el historial pero quedará inactivo.')) return;
+  var aceptar = await confirmDialog({
+    title: 'Finalizar Año Escolar',
+    message: '¿Está seguro de finalizar este año escolar?<br><br>Se mantendrá en el historial pero quedará <strong>inactivo</strong>. No se eliminarán inscripciones ni datos.',
+    type: 'warning',
+    confirmText: 'Sí, finalizar',
+    cancelText: 'Cancelar'
+  });
+  if (!aceptar) return;
   try {
     const res = await apiFetch(`/api/anios-escolares/${id}/finalizar`, { method: 'PUT' });
     if (res && res.ok) {
