@@ -243,3 +243,122 @@ function esMayorDeEdad(inputId) {
   }
   return edad >= 18;
 }
+
+/**
+ * Muestra un modal de confirmación estilizado (reemplaza confirm() del navegador).
+ * @param {Object} opts - Opciones del diálogo
+ * @param {string} opts.title - Título del diálogo
+ * @param {string} opts.message - Mensaje descriptivo
+ * @param {string} opts.type - Tipo visual: 'info' | 'warning' | 'danger' | 'success'
+ * @param {string} opts.icon - Ruta al icono SVG (por defecto según type)
+ * @param {string} opts.confirmText - Texto del botón de confirmar (default: 'Aceptar')
+ * @param {string} opts.cancelText - Texto del botón de cancelar (default: 'Cancelar')
+ * @param {string} opts.confirmClass - Clase CSS del botón confirmar (default según type)
+ * @returns {Promise<boolean>} - true si confirma, false si cancela
+ */
+function confirmDialog(opts = {}) {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById('confirmDialog');
+    if (!overlay) { resolve(confirm(opts.message || '¿Está seguro?')); return; }
+
+    var type = opts.type || 'warning';
+    var defaultIcons = {
+      info: '/icons/alert-circle.svg',
+      warning: '/icons/alert-triangle.svg',
+      danger: '/icons/alert-triangle.svg',
+      success: '/icons/circle-check.svg'
+    };
+
+    // Configurar contenido
+    document.getElementById('confirmTitle').textContent = opts.title || '¿Está seguro?';
+    document.getElementById('confirmMessage').innerHTML = opts.message || 'Esta acción no se puede deshacer.';
+
+    var iconDiv = document.getElementById('confirmIcon');
+    iconDiv.className = 'confirm-icon ' + type;
+    document.getElementById('confirmIconImg').src = opts.icon || defaultIcons[type] || defaultIcons.warning;
+
+    var btnOk = document.getElementById('confirmBtnOk');
+    var btnCancel = document.getElementById('confirmBtnCancel');
+    btnOk.textContent = opts.confirmText || 'Aceptar';
+    btnCancel.textContent = opts.cancelText || 'Cancelar';
+
+    // Estilo del botón según tipo
+    btnOk.className = 'btn';
+    if (opts.confirmClass) {
+      btnOk.className += ' ' + opts.confirmClass;
+    } else if (type === 'danger') {
+      btnOk.style.cssText = 'background:var(--error);color:white;border:none;';
+    } else if (type === 'warning') {
+      btnOk.style.cssText = 'background:var(--warning);color:white;border:none;';
+    } else {
+      btnOk.className += ' btn-primary';
+      btnOk.style.cssText = '';
+    }
+
+    // Mostrar
+    overlay.classList.add('active');
+
+    function cleanup() {
+      overlay.classList.remove('active');
+      btnOk.removeEventListener('click', onConfirm);
+      btnCancel.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      btnOk.style.cssText = '';
+    }
+    function onConfirm() { cleanup(); resolve(true); }
+    function onCancel()  { cleanup(); resolve(false); }
+    function onOverlay(e) { if (e.target === overlay) { cleanup(); resolve(false); } }
+
+    btnOk.addEventListener('click', onConfirm);
+    btnCancel.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
+  });
+}
+
+/**
+ * Muestra un modal de alerta (sin botón cancelar) — reemplaza alert() del navegador.
+ * @param {Object} opts - Mismas opciones que confirmDialog pero sin cancelar
+ * @returns {Promise<void>}
+ */
+function alertDialog(opts = {}) {
+  return new Promise(function(resolve) {
+    var overlay = document.getElementById('confirmDialog');
+    if (!overlay) { alert(opts.message || 'Aviso'); resolve(); return; }
+
+    var type = opts.type || 'info';
+    var defaultIcons = {
+      info: '/icons/alert-circle.svg',
+      warning: '/icons/alert-triangle.svg',
+      danger: '/icons/alert-triangle.svg',
+      success: '/icons/circle-check.svg'
+    };
+
+    document.getElementById('confirmTitle').textContent = opts.title || 'Aviso';
+    document.getElementById('confirmMessage').innerHTML = opts.message || '';
+
+    var iconDiv = document.getElementById('confirmIcon');
+    iconDiv.className = 'confirm-icon ' + type;
+    document.getElementById('confirmIconImg').src = opts.icon || defaultIcons[type] || defaultIcons.info;
+
+    var btnOk = document.getElementById('confirmBtnOk');
+    var btnCancel = document.getElementById('confirmBtnCancel');
+    btnOk.textContent = opts.confirmText || 'Entendido';
+    btnCancel.style.display = 'none';
+    btnOk.className = 'btn btn-primary';
+    btnOk.style.cssText = '';
+
+    overlay.classList.add('active');
+
+    function cleanup() {
+      overlay.classList.remove('active');
+      btnOk.removeEventListener('click', onOk);
+      overlay.removeEventListener('click', onOverlay);
+      btnCancel.style.display = '';
+    }
+    function onOk() { cleanup(); resolve(); }
+    function onOverlay(e) { if (e.target === overlay) { cleanup(); resolve(); } }
+
+    btnOk.addEventListener('click', onOk);
+    overlay.addEventListener('click', onOverlay);
+  });
+}

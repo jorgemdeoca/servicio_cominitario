@@ -601,6 +601,21 @@
     </div>
   </div>
 
+  <!-- Modal de Confirmación Personalizado (reutilizable) -->
+  <div class="confirm-overlay" id="confirmDialog">
+    <div class="confirm-box">
+      <div class="confirm-icon" id="confirmIcon">
+        <img id="confirmIconImg" src="/icons/alert-circle.svg" alt="">
+      </div>
+      <div class="confirm-title" id="confirmTitle">¿Está seguro?</div>
+      <div class="confirm-message" id="confirmMessage">Esta acción no se puede deshacer.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="confirmBtnCancel">Cancelar</button>
+        <button class="btn btn-primary" id="confirmBtnOk">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/utils.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/configuracion.js"></script>
