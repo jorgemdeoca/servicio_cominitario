@@ -341,6 +341,24 @@ async function activarAnio(id) {
 }
 
 async function finalizarAnio(id) {
+  // Verificar literales pendientes antes de finalizar
+  try {
+    var checkRes = await apiFetch('/api/inscripciones/sin-literal?anio_escolar_id=' + id);
+    if (checkRes && checkRes.ok) {
+      var checkData = await checkRes.json();
+      if (checkData.sinLiteral > 0) {
+        var accion = await confirmDialog({
+          title: 'Literales pendientes',
+          message: 'Hay <strong>' + checkData.sinLiteral + ' estudiante' + (checkData.sinLiteral > 1 ? 's' : '') + '</strong> que aún no ' + (checkData.sinLiteral > 1 ? 'tienen' : 'tiene') + ' literal asignado en este año escolar.<br><br>Se recomienda asignar los literales antes de finalizar.',
+          type: 'warning',
+          confirmText: 'Finalizar de todos modos',
+          cancelText: 'Cancelar'
+        });
+        if (!accion) return;
+      }
+    }
+  } catch (err) { /* continuar */ }
+
   var aceptar = await confirmDialog({
     title: 'Finalizar Año Escolar',
     message: '¿Está seguro de finalizar este año escolar?<br><br>Se mantendrá en el historial pero quedará <strong>inactivo</strong>. No se eliminarán inscripciones ni datos.',

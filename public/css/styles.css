@@ -1388,3 +1388,30 @@ select {
   .main-wrapper { margin-left: 0 !important; }
   .main-content { padding: 0 !important; }
 }
+
+/* ========================================
+   LITERALES — Select inline
+   ======================================== */
+.literal-select-inline {
+  width: 70px;
+  padding: 4px 6px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  border: 2px solid var(--primary-light);
+  border-radius: var(--radius);
+  background: var(--bg-white);
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  text-align: center;
+}
+.literal-select-inline:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.literal-badge {
+  transition: transform 0.1s ease;
+}
+.literal-badge:hover {
+  transform: scale(1.1);
+}
