@@ -252,7 +252,7 @@ async function loadInscripciones() {
     tbody.innerHTML = '';
 
     if (data.datos.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="8">
+      tbody.innerHTML = `<tr><td colspan="9">
         <div class="empty-state">
           <img src="/icons/clipboard-list.svg" alt="" class="empty-state-icon">
           <h3>No se encontraron inscripciones</h3>
@@ -325,6 +325,24 @@ async function loadInscripciones() {
       const btnRetirar = insc.estado === 'ACTIVO'
         ? `<button class="btn-icon danger" onclick="retirarEstudiante(${insc.id})" title="Retirar estudiante" aria-label="Retirar"><img src="/icons/x.svg" alt="Retirar"></button>`
         : '';
+      const nombreEscaped = nombre.replace(/'/g, "\\'");
+      const btnHistorial = `<button class="btn-icon" onclick="verHistorial(${est.id}, '${nombreEscaped}')" title="Historial académico" aria-label="Historial"><img src="/icons/layers.svg" alt="Historial"></button>`;
+
+      // Literal badge con edición inline
+      const literalConfig = {
+        'A': { cls: 'badge-green', label: 'A' },
+        'B': { cls: 'badge-blue', label: 'B' },
+        'C': { cls: 'badge-orange', label: 'C' },
+        'D': { cls: 'badge-red', label: 'D' },
+        'E': { cls: 'badge-red', label: 'E' }
+      };
+      let literalBadge;
+      if (insc.literal && literalConfig[insc.literal]) {
+        const lc = literalConfig[insc.literal];
+        literalBadge = `<span class="badge ${lc.cls} no-dot literal-badge" data-insc-id="${insc.id}" onclick="editarLiteralInline(this, ${insc.id}, '${insc.literal}')" title="Click para cambiar literal" style="cursor:pointer;font-weight:700;font-size:0.85rem;">${lc.label}</span>`;
+      } else {
+        literalBadge = `<span class="badge badge-gray no-dot literal-badge" data-insc-id="${insc.id}" onclick="editarLiteralInline(this, ${insc.id}, '')" title="Click para asignar literal" style="cursor:pointer;font-size:0.75rem;">Sin asignar</span>`;
+      }
 
       tr.innerHTML = `
         <td style="font-size:var(--font-size-xs);color:var(--text-muted);font-weight:600;">${(paginaActual - 1) * 20 + i + 1}</td>
@@ -338,10 +356,11 @@ async function loadInscripciones() {
         <td>${modalidadBadge}</td>
         <td style="font-size:var(--font-size-sm);">${fecha}</td>
         <td>${estadoBadge}</td>
+        <td>${literalBadge}</td>
         <td>${colabBadge}</td>
         <td>
           <div class="actions-cell">
-            ${btnVer}${btnDocs}${btnCambio}${btnRetirar}
+            ${btnVer}${btnDocs}${btnHistorial}${btnCambio}${btnRetirar}
           </div>
         </td>
       `;
@@ -685,7 +704,6 @@ async function guardarInscripcion(e) {
       anio_escolar_id: parseInt(document.getElementById('insc_anio').value),
       fecha_inscripcion: document.getElementById('insc_fecha').value,
       modalidad: document.getElementById('insc_modalidad').value,
-      literal: document.getElementById('insc_literal').value || null,
       doc_partida_nacimiento: document.getElementById('doc_partida').checked,
       doc_boleta_promocion: document.getElementById('doc_boleta').checked,
       doc_ci_madre: document.getElementById('doc_ci_madre').checked,
@@ -1942,4 +1960,185 @@ async function _vcEliminarPago(pagoId) {
   } catch (e) {
     showAlert('alertVerColab', 'Error al eliminar pago', 'error');
   }
+}
+
+// ==========================================
+// LITERALES — Edición Inline + Historial
+// ==========================================
+
+/**
+ * Reemplaza el badge del literal con un <select> inline para edición rápida.
+ * @param {HTMLElement} badgeEl - El badge clicado
+ * @param {number} inscId - ID de la inscripción
+ * @param {string} valorActual - Literal actual ('A'-'E' o '')
+ */
+function editarLiteralInline(badgeEl, inscId, valorActual) {
+  // Evitar abrir múltiples selects
+  if (badgeEl.tagName === 'SELECT') return;
+  
+  var td = badgeEl.parentElement;
+  var select = document.createElement('select');
+  select.className = 'literal-select-inline';
+  select.innerHTML = `
+    <option value="">—</option>
+    <option value="A" ${valorActual === 'A' ? 'selected' : ''}>A</option>
+    <option value="B" ${valorActual === 'B' ? 'selected' : ''}>B</option>
+    <option value="C" ${valorActual === 'C' ? 'selected' : ''}>C</option>
+    <option value="D" ${valorActual === 'D' ? 'selected' : ''}>D</option>
+    <option value="E" ${valorActual === 'E' ? 'selected' : ''}>E</option>
+  `;
+  
+  td.innerHTML = '';
+  td.appendChild(select);
+  select.focus();
+  
+  // Al cambiar, guardar
+  select.addEventListener('change', function() {
+    guardarLiteral(inscId, select.value, td);
+  });
+  
+  // Si pierde foco sin cambiar, restaurar badge
+  select.addEventListener('blur', function() {
+    setTimeout(function() {
+      // Solo restaurar si el select sigue en el DOM (no fue reemplazado por guardarLiteral)
+      if (td.contains(select)) {
+        restaurarBadgeLiteral(td, inscId, valorActual);
+      }
+    }, 150);
+  });
+}
+
+/**
+ * Guarda el literal vía PUT y actualiza el badge.
+ */
+async function guardarLiteral(inscId, nuevoLiteral, td) {
+  try {
+    var res = await apiFetch('/api/inscripciones/' + inscId, {
+      method: 'PUT',
+      body: JSON.stringify({ literal: nuevoLiteral || null })
+    });
+    if (res && res.ok) {
+      restaurarBadgeLiteral(td, inscId, nuevoLiteral);
+      showAlert('alertInscripciones', 'Literal ' + (nuevoLiteral ? '"' + nuevoLiteral + '"' : '') + ' guardado correctamente', 'success');
+    } else {
+      showAlert('alertInscripciones', 'Error al guardar literal', 'error');
+      restaurarBadgeLiteral(td, inscId, nuevoLiteral);
+    }
+  } catch (e) {
+    showAlert('alertInscripciones', 'Error de conexión', 'error');
+  }
+}
+
+/**
+ * Restaura el badge visual del literal en la celda.
+ */
+function restaurarBadgeLiteral(td, inscId, literal) {
+  var config = {
+    'A': { cls: 'badge-green', label: 'A' },
+    'B': { cls: 'badge-blue', label: 'B' },
+    'C': { cls: 'badge-orange', label: 'C' },
+    'D': { cls: 'badge-red', label: 'D' },
+    'E': { cls: 'badge-red', label: 'E' }
+  };
+  
+  if (literal && config[literal]) {
+    var c = config[literal];
+    td.innerHTML = '<span class="badge ' + c.cls + ' no-dot literal-badge" data-insc-id="' + inscId + '" onclick="editarLiteralInline(this, ' + inscId + ', \'' + literal + '\')" title="Click para cambiar literal" style="cursor:pointer;font-weight:700;font-size:0.85rem;">' + c.label + '</span>';
+  } else {
+    td.innerHTML = '<span class="badge badge-gray no-dot literal-badge" data-insc-id="' + inscId + '" onclick="editarLiteralInline(this, ' + inscId + ', \'\')" title="Click para asignar literal" style="cursor:pointer;font-size:0.75rem;">Sin asignar</span>';
+  }
+}
+
+// ==========================================
+// HISTORIAL ACADÉMICO
+// ==========================================
+
+/**
+ * Abre modal de historial académico del estudiante.
+ */
+async function verHistorial(estudianteId, nombreEstudiante) {
+  var modal = document.getElementById('modalHistorial');
+  if (!modal) return;
+
+  document.getElementById('historial-nombre').textContent = nombreEstudiante;
+  document.getElementById('historial-contenido').innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:2rem;">Cargando historial...</p>';
+  modal.classList.add('active');
+
+  try {
+    var res = await apiFetch('/api/inscripciones/historial/' + estudianteId);
+    if (!res || !res.ok) {
+      document.getElementById('historial-contenido').innerHTML = '<p style="text-align:center;color:var(--error);">Error al cargar historial</p>';
+      return;
+    }
+    var data = await res.json();
+    renderHistorial(data);
+  } catch (e) {
+    document.getElementById('historial-contenido').innerHTML = '<p style="text-align:center;color:var(--error);">Error de conexión</p>';
+  }
+}
+
+function renderHistorial(data) {
+  var contenedor = document.getElementById('historial-contenido');
+  
+  if (!data || data.length === 0) {
+    contenedor.innerHTML = '<div class="empty-state" style="padding:2rem;"><img src="/icons/clipboard-list.svg" alt="" class="empty-state-icon"><h3>Sin historial</h3><p>Este estudiante no tiene inscripciones previas registradas en el sistema.</p></div>';
+    return;
+  }
+
+  // Separar por nivel
+  var inicial = data.filter(function(d) { return d.grado_nivel === 'INICIAL'; });
+  var primaria = data.filter(function(d) { return d.grado_nivel === 'PRIMARIA'; });
+
+  var html = '';
+
+  if (inicial.length > 0) {
+    html += '<h4 style="margin:0 0 var(--space-3) 0;color:var(--primary);font-size:0.9rem;">Educación Inicial (Preescolar)</h4>';
+    html += renderTablaHistorial(inicial);
+  }
+  
+  if (primaria.length > 0) {
+    if (inicial.length > 0) html += '<div style="margin-top:var(--space-4);"></div>';
+    html += '<h4 style="margin:0 0 var(--space-3) 0;color:var(--primary);font-size:0.9rem;">Educación Primaria</h4>';
+    html += renderTablaHistorial(primaria);
+  }
+
+  contenedor.innerHTML = html;
+}
+
+function renderTablaHistorial(items) {
+  var literalBadges = {
+    'A': '<span class="badge badge-green no-dot" style="font-weight:700;">A</span>',
+    'B': '<span class="badge badge-blue no-dot" style="font-weight:700;">B</span>',
+    'C': '<span class="badge badge-orange no-dot" style="font-weight:700;">C</span>',
+    'D': '<span class="badge badge-red no-dot" style="font-weight:700;">D</span>',
+    'E': '<span class="badge badge-red no-dot" style="font-weight:700;">E</span>'
+  };
+  var estadoBadges = {
+    'ACTIVO': '<span class="badge badge-green no-dot">Activo</span>',
+    'APROBADO': '<span class="badge badge-teal no-dot">Aprobado</span>',
+    'REPROBADO': '<span class="badge badge-red no-dot">Reprobado</span>',
+    'RETIRADO': '<span class="badge badge-gray no-dot">Retirado</span>'
+  };
+
+  var html = '<table style="width:100%;"><thead><tr>';
+  html += '<th>Año Escolar</th><th>Grado</th><th>Sección</th><th>Literal</th><th>Estado</th>';
+  html += '</tr></thead><tbody>';
+  
+  items.forEach(function(item) {
+    html += '<tr>';
+    html += '<td><strong>' + item.anio_escolar + '</strong></td>';
+    html += '<td>' + item.grado + '</td>';
+    html += '<td style="text-align:center;">' + item.seccion + '</td>';
+    html += '<td>' + (literalBadges[item.literal] || '<span class="badge badge-gray no-dot" style="font-size:0.7rem;">—</span>') + '</td>';
+    html += '<td>' + (estadoBadges[item.estado] || item.estado) + '</td>';
+    html += '</tr>';
+  });
+  
+  html += '</tbody></table>';
+  return html;
+}
+
+function cerrarModalHistorial() {
+  var modal = document.getElementById('modalHistorial');
+  if (modal) modal.classList.remove('active');
 }

@@ -412,6 +412,7 @@
                   <th>Modalidad</th>
                   <th>Fecha</th>
                   <th>Estado</th>
+                  <th>Literal</th>
                   <th>Colab.</th>
                   <th>Acciones</th>
                 </tr>
@@ -811,17 +812,7 @@
                     <option value="PROSECUCION">Prosecución</option>
                   </select>
                 </div>
-                <div class="form-group">
-                  <label>Literal</label>
-                  <select id="insc_literal">
-                    <option value="">— Sin asignar —</option>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                    <option value="D">D</option>
-                    <option value="E">E</option>
-                  </select>
-                </div>
+              </div>
               </div>
             </div>
           </div>
@@ -1350,6 +1341,40 @@
       </div>
       <div class="modal-insc-footer">
         <button type="button" class="btn btn-secondary" onclick="cerrarModalVerColab()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Historial Académico -->
+  <div class="modal-overlay" id="modalHistorial">
+    <div class="modal-insc" style="max-width:600px;">
+      <div class="modal-insc-header">
+        <h3>📚 Historial Académico</h3>
+        <button type="button" class="modal-close-btn" onclick="cerrarModalHistorial()">✕</button>
+      </div>
+      <div class="modal-insc-body" style="padding:var(--space-4) var(--space-5);">
+        <p style="margin:0 0 var(--space-4) 0;font-weight:600;color:var(--text);" id="historial-nombre">—</p>
+        <div id="historial-contenido">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+      <div class="modal-insc-footer">
+        <button type="button" class="btn btn-secondary" onclick="cerrarModalHistorial()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmación Personalizado (reutilizable) -->
+  <div class="confirm-overlay" id="confirmDialog">
+    <div class="confirm-box">
+      <div class="confirm-icon" id="confirmIcon">
+        <img id="confirmIconImg" src="/icons/alert-circle.svg" alt="">
+      </div>
+      <div class="confirm-title" id="confirmTitle">¿Está seguro?</div>
+      <div class="confirm-message" id="confirmMessage">Esta acción no se puede deshacer.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="confirmBtnCancel">Cancelar</button>
+        <button class="btn btn-primary" id="confirmBtnOk">Aceptar</button>
       </div>
     </div>
   </div>

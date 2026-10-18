@@ -90,6 +90,68 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/inscripciones/historial/:estudiante_id - Historial académico del estudiante
+router.get('/historial/:estudiante_id', async (req, res) => {
+  try {
+    const estudianteId = parseInt(req.params.estudiante_id);
+
+    const inscripciones = await req.prisma.inscripciones.findMany({
+      where: {
+        estudiante_id: estudianteId,
+        eliminado: false
+      },
+      include: {
+        seccion: {
+          include: { grado: { select: { nombre: true, nivel: true, orden: true } } }
+        },
+        anio_escolar: { select: { nombre: true } }
+      },
+      orderBy: [
+        { anio_escolar: { nombre: 'asc' } },
+        { seccion: { grado: { orden: 'asc' } } }
+      ]
+    });
+
+    const historial = inscripciones.map(insc => ({
+      anio_escolar: insc.anio_escolar.nombre,
+      grado: insc.seccion.grado.nombre,
+      grado_nivel: insc.seccion.grado.nivel,
+      seccion: insc.seccion.letra,
+      literal: insc.literal,
+      estado: insc.estado
+    }));
+
+    res.json(historial);
+  } catch (error) {
+    console.error('Error al obtener historial:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
+// GET /api/inscripciones/sin-literal - Contar inscripciones activas sin literal
+router.get('/sin-literal', async (req, res) => {
+  try {
+    const { anio_escolar_id } = req.query;
+    if (!anio_escolar_id) {
+      return res.status(400).json({ error: 'anio_escolar_id es requerido.' });
+    }
+
+    const count = await req.prisma.inscripciones.count({
+      where: {
+        anio_escolar_id: parseInt(anio_escolar_id),
+        eliminado: false,
+        estado: 'ACTIVO',
+        literal: null
+      }
+    });
+
+    res.json({ sinLiteral: count });
+  } catch (error) {
+    console.error('Error al contar sin literal:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
 // GET /api/inscripciones/:id - Obtener una inscripción completa
 router.get('/:id', async (req, res) => {
   try {
@@ -593,6 +655,9 @@ router.put('/:id', async (req, res) => {
           data[campo] = body[campo] ? parseInt(body[campo]) : null;
         } else if (campo === 'fecha_retiro') {
           data[campo] = body[campo] ? new Date(body[campo]) : null;
+        } else if (campo === 'literal') {
+          // Literal: string vacío → null (Prisma enum no acepta "")
+          data[campo] = body[campo] || null;
         } else {
           data[campo] = body[campo];
         }
