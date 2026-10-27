@@ -362,3 +362,81 @@ function alertDialog(opts = {}) {
     overlay.addEventListener('click', onOverlay);
   });
 }
+
+
+// =========================================================
+// SISTEMA DE COPIADO RÁPIDO AL PORTAPAPELES
+// =========================================================
+
+/**
+ * Copia un texto al portapapeles y muestra feedback visual en el ícono.
+ * @param {string} texto - Texto a copiar
+ * @param {HTMLElement} iconoEl - Elemento del ícono que disparó la copia (para feedback)
+ */
+async function copiarAlPortapapeles(texto, iconoEl) {
+  if (!texto || texto === '—') return;
+  try {
+    await navigator.clipboard.writeText(texto);
+    // Feedback visual: cambiar a check verde
+    if (iconoEl) {
+      var originalSrc = iconoEl.src || '';
+      var originalClass = iconoEl.className;
+      iconoEl.src = '/icons/copy-check.svg';
+      iconoEl.classList.add('copied');
+      setTimeout(function() {
+        iconoEl.src = originalSrc || '/icons/copy.svg';
+        iconoEl.classList.remove('copied');
+      }, 1500);
+    }
+  } catch (err) {
+    // Fallback para navegadores que no soportan clipboard API
+    var textArea = document.createElement('textarea');
+    textArea.value = texto;
+    textArea.style.cssText = 'position:fixed;left:-9999px;';
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    if (iconoEl) {
+      iconoEl.src = '/icons/copy-check.svg';
+      iconoEl.classList.add('copied');
+      setTimeout(function() {
+        iconoEl.src = '/icons/copy.svg';
+        iconoEl.classList.remove('copied');
+      }, 1500);
+    }
+  }
+}
+
+/**
+ * Genera el HTML de un ícono de copiar inline.
+ * @param {string} valor - Valor a copiar al hacer clic
+ * @returns {string} HTML del ícono (o vacío si el valor es nulo/vacío)
+ */
+function iconoCopiar(valor) {
+  if (!valor || valor === '—' || valor === '--') return '';
+  var valorEscapado = valor.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return ' <img src="/icons/copy.svg" class="copy-icon" title="Copiar" onclick="copiarAlPortapapeles(\'' + valorEscapado + '\', this)" />';
+}
+
+/**
+ * Abre/cierra un menú dropdown de copiado.
+ * @param {Event} e - Evento del clic
+ * @param {string} menuId - ID del menú a togglear
+ */
+function toggleCopyMenu(e, menuId) {
+  e.stopPropagation();
+  // Cerrar todos los otros menús abiertos
+  document.querySelectorAll('.copy-menu-dropdown.active').forEach(function(m) {
+    if (m.id !== menuId) m.classList.remove('active');
+  });
+  var menu = document.getElementById(menuId);
+  if (menu) menu.classList.toggle('active');
+}
+
+// Cerrar menús dropdown al hacer clic fuera
+document.addEventListener('click', function() {
+  document.querySelectorAll('.copy-menu-dropdown.active').forEach(function(m) {
+    m.classList.remove('active');
+  });
+});

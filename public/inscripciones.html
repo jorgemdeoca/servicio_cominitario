@@ -15,8 +15,6 @@
       position: fixed;
       inset: 0;
       background: rgba(15, 23, 42, 0.55);
-      backdrop-filter: blur(3px);
-      -webkit-backdrop-filter: blur(3px);
       z-index: 9999;
       align-items: flex-start;
       justify-content: center;
@@ -305,6 +303,10 @@
       <a href="/profesores.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/user-check.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/asistencia.html" class="nav-item">
+        <span class="nav-icon"><img src="/icons/calendar-check.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Asistencia</span>
       </a>
       <a href="/reportes.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/bar-chart-3.svg" alt="" class="nav-icon-img"></span>
@@ -1198,7 +1200,7 @@
         <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
           onclick="document.getElementById('modalVerInscripcion').classList.remove('active')">×</button>
       </div>
-      <div class="modal-insc-body" style="max-height:75vh;overflow-y:auto;" id="verInscripcionBody">
+      <div class="modal-insc-body" style="max-height:75vh;overflow-y:auto;-webkit-overflow-scrolling:touch;will-change:scroll-position;" id="verInscripcionBody">
       </div>
       <div class="modal-insc-footer">
         <button type="button" class="btn btn-secondary"

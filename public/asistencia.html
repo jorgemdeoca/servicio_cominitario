@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asistencia - Sistema de Gesti&#243;n Escolar</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    /* Filtros superiores */
+    .asist-filtros {
+      display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-3);
+      background:var(--bg-white); padding:var(--space-4);
+      border-radius:var(--radius-lg); border:1px solid var(--border);
+      box-shadow:var(--shadow); margin-bottom:var(--space-4);
+    }
+    .asist-filtros label { font-size:var(--font-size-sm); font-weight:600; color:var(--text); }
+    .asist-filtros select, .asist-filtros input[type="date"] {
+      padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius);
+      font-size:var(--font-size-sm); background:#fff; color:var(--text);
+    }
+    .asist-filtros .filtro-grupo { display:flex; align-items:center; gap:6px; }
+
+    /* Aviso día no laborable */
+    .asist-aviso {
+      display:none; padding:var(--space-3) var(--space-4);
+      border-radius:var(--radius); margin-bottom:var(--space-3);
+      font-size:var(--font-size-sm); font-weight:500;
+    }
+    .asist-aviso.warn { background:var(--warning-bg); color:#92400e; border:1px solid #fbbf24; }
+    .asist-aviso.info { background:var(--info-bg); color:#0f766e; border:1px solid #5eead4; }
+
+    /* Tabla de asistencia */
+    .asist-card {
+      background:var(--bg-white); border-radius:var(--radius-lg);
+      border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden;
+      margin-bottom:var(--space-4);
+    }
+    .asist-card-header {
+      padding:var(--space-3) var(--space-4);
+      border-bottom:1px solid var(--border);
+      display:flex; justify-content:space-between; align-items:center;
+    }
+    .asist-card-header h3 { margin:0; font-size:1rem; font-weight:600; color:var(--text); }
+
+    .asist-table-wrap { overflow-x:auto; }
+    .asist-table {
+      width:100%; border-collapse:collapse; font-size:var(--font-size-sm);
+    }
+    .asist-table th {
+      background:var(--primary); color:white; padding:8px 6px;
+      text-align:center; font-weight:600; font-size:0.78rem;
+      white-space:nowrap; border:1px solid rgba(255,255,255,0.15);
+    }
+    .asist-table th.sub-header {
+      background:var(--primary-dark); font-size:0.72rem; padding:5px 4px;
+    }
+    .asist-table td {
+      padding:6px 8px; text-align:center; border:1px solid #e2e8f0;
+      font-size:0.85rem; vertical-align:middle;
+    }
+    .asist-table tbody tr:hover { background:#f8fafc; }
+    .asist-table .td-grado {
+      text-align:left; font-weight:600; color:var(--text);
+      white-space:nowrap; padding-left:12px;
+    }
+    .asist-table .td-readonly { background:#f1f5f9; color:var(--text-muted); font-weight:500; }
+    .asist-table .td-inasist { background:#fef2f2; color:var(--error); font-weight:600; }
+    .asist-table .td-firma { min-width:70px; }
+
+    .asist-input {
+      width:50px; padding:4px 2px; border:1px solid var(--border);
+      border-radius:4px; text-align:center; font-size:0.85rem;
+      font-weight:600; color:var(--primary);
+      transition:border-color 0.2s;
+    }
+    .asist-input:focus { border-color:var(--primary-light); outline:none; box-shadow:0 0 0 2px rgba(37,99,235,0.15); }
+    .asist-input:disabled { background:#f1f5f9; color:var(--text-muted); cursor:not-allowed; }
+    .asist-input.error { border-color:var(--error); background:#fef2f2; }
+
+    /* Separador visual entre niveles */
+    .asist-table .fila-separador td {
+      background:var(--primary-bg); padding:4px; font-weight:700;
+      color:var(--primary); font-size:0.8rem; text-align:left; padding-left:12px;
+    }
+
+    /* Tabla resumen */
+    .resumen-card {
+      background:var(--bg-white); border-radius:var(--radius-lg);
+      border:1px solid var(--border); box-shadow:var(--shadow);
+      padding:var(--space-4); margin-bottom:var(--space-4);
+    }
+    .resumen-card h4 { margin:0 0 var(--space-3) 0; font-size:0.95rem; color:var(--text); }
+    .resumen-table {
+      border-collapse:collapse; font-size:var(--font-size-sm);
+    }
+    .resumen-table th {
+      background:var(--primary); color:white; padding:6px 16px;
+      text-align:center; font-weight:600; font-size:0.78rem;
+      border:1px solid rgba(255,255,255,0.15);
+    }
+    .resumen-table td {
+      padding:6px 16px; text-align:center; border:1px solid #e2e8f0;
+      font-weight:600; font-size:0.85rem;
+    }
+    .resumen-table .td-label { text-align:left; font-weight:700; color:var(--primary); }
+
+    /* Botones de acción */
+    .asist-acciones {
+      display:flex; gap:var(--space-3); flex-wrap:wrap; margin-bottom:var(--space-4);
+    }
+
+    /* Modal días no laborables */
+    .dnl-lista { max-height:300px; overflow-y:auto; }
+    .dnl-item {
+      display:flex; justify-content:space-between; align-items:center;
+      padding:8px 12px; border-bottom:1px solid #f1f5f9;
+      font-size:var(--font-size-sm);
+    }
+    .dnl-item:last-child { border-bottom:none; }
+    .dnl-fecha { font-weight:600; color:var(--text); min-width:100px; }
+    .dnl-motivo { color:var(--text-muted); flex:1; margin:0 12px; }
+    .dnl-form {
+      display:flex; gap:var(--space-2); align-items:end;
+      padding:var(--space-3); background:#f8fafc; border-radius:var(--radius);
+      margin-bottom:var(--space-3);
+    }
+    .dnl-form label { font-size:var(--font-size-xs); font-weight:600; color:var(--text-muted); }
+    .dnl-form input, .dnl-form select { padding:5px 8px; border:1px solid var(--border); border-radius:4px; font-size:var(--font-size-sm); }
+
+    /* Modal overlay (shared pattern) */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      z-index: 9999;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      overflow-y: auto;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-insc {
+      background: var(--bg-white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      width: 95%;
+      max-width: 750px;
+      margin: auto;
+      border: 1px solid var(--border);
+    }
+    .modal-insc-header {
+      background: var(--primary);
+      color: white;
+      padding: var(--space-4) var(--space-6);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-insc-header h2 {
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      margin: 0;
+    }
+    .modal-insc-body {
+      padding: var(--space-5) var(--space-6);
+    }
+
+    @media (max-width: 768px) {
+      .asist-filtros { flex-direction:column; align-items:stretch; }
+      .asist-acciones { flex-direction:column; }
+    }
+  </style>
+</head>
+<body class="asistencia-page">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Gesti&#243;n Escolar</h2>
+      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Ju&#225;res"</p>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard.html" class="nav-item">
+        <span class="nav-icon"><img src="/icons/home.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      <a href="/personas.html" class="nav-item">
+        <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Personas</span>
+      </a>
+      <a href="/estudiantes.html" class="nav-item">
+        <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Estudiantes</span>
+      </a>
+      <a href="/inscripciones.html" class="nav-item">
+        <span class="nav-icon"><img src="/icons/clipboard-list.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Inscripciones</span>
+      </a>
+      <a href="/profesores.html" class="nav-item">
+        <span class="nav-icon"><img src="/icons/user-check.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Profesores</span>
+      </a>
+      <a href="/asistencia.html" class="nav-item active">
+        <span class="nav-icon"><img src="/icons/calendar-check.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Asistencia</span>
+      </a>
+      <a href="/reportes.html" class="nav-item">
+        <span class="nav-icon"><img src="/icons/bar-chart-3.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Reportes y PDFs</span>
+      </a>
+      <a href="/configuracion.html" class="nav-item">
+        <span class="nav-icon"><img src="/icons/settings.svg" alt="" class="nav-icon-img"></span>
+        <span class="nav-text">Configuraci&#243;n</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <p>v1.0 &#8212; Servicio Comunitario UNEFA</p>
+    </div>
+  </aside>
+
+  <div class="main-wrapper">
+    <header class="main-header">
+      <button class="menu-toggle" id="menuToggle">&#9776;</button>
+      <div class="header-info">
+        <span class="header-year" id="headerYear">A&#241;o Escolar: &#8212;</span>
+      </div>
+      <div class="header-user">
+        <span id="headerUserName">&#8212;</span>
+        <span class="header-role" id="headerUserRole">&#8212;</span>
+        <button class="btn btn-sm btn-logout" id="btnLogout">Cerrar Sesi&#243;n</button>
+      </div>
+    </header>
+
+    <main class="main-content" id="mainContent">
+      <!-- FILTROS -->
+      <div class="asist-filtros">
+        <div class="filtro-grupo">
+          <label for="filtroAnio">A&#241;o Escolar:</label>
+          <select id="filtroAnio"></select>
+        </div>
+        <div class="filtro-grupo">
+          <label for="filtroFecha">Fecha:</label>
+          <input type="date" id="filtroFecha">
+        </div>
+        <div class="filtro-grupo" style="flex:1;min-width:200px;">
+          <label for="selectDocente">Docente de guardia:</label>
+          <select id="selectDocente" class="select-docente" style="width:100%;max-width:350px;">
+            <option value="">Seleccione un docente...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- BOTONES DE ACCIÓN -->
+      <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;margin-bottom:var(--space-3);">
+        <button class="btn btn-sm" style="background:var(--info);color:white;border:none;" onclick="abrirModalDiasNoLaborables()">
+          <img src="/icons/calendar-check.svg" alt="" style="width:14px;height:14px;filter:brightness(10);vertical-align:middle;margin-right:4px;">
+          D&#237;as no laborables
+        </button>
+        <button class="btn btn-sm btn-primary" onclick="abrirModalPDF()">
+          &#128424; Generar Reporte PDF
+        </button>
+      </div>
+
+      <!-- INFO DOCENTE GUARDADO -->
+      <div id="guardiaInfo" class="asist-aviso info" style="display:none;"></div>
+
+      <!-- AVISO DÍA NO LABORABLE -->
+      <div class="asist-aviso" id="avisoNoLaborable"></div>
+
+      <!-- TABLA DE ASISTENCIA -->
+      <div class="asist-card">
+        <div class="asist-card-header">
+          <h3>&#128203; Asistencia Diaria</h3>
+          <span id="asistFechaLabel" style="font-size:var(--font-size-sm);color:var(--text-muted);"></span>
+        </div>
+        <div class="asist-table-wrap">
+          <table class="asist-table">
+            <thead>
+              <tr>
+                <th rowspan="2" style="min-width:140px;">GRADO Y SECCI&#211;N</th>
+                <th colspan="3">MATR&#205;CULA</th>
+                <th colspan="3">ASISTENCIA</th>
+                <th colspan="3">INASISTENCIA</th>
+                <th rowspan="2" class="td-firma">FIRMA</th>
+              </tr>
+              <tr>
+                <th class="sub-header">V</th>
+                <th class="sub-header">H</th>
+                <th class="sub-header">T</th>
+                <th class="sub-header">V</th>
+                <th class="sub-header">H</th>
+                <th class="sub-header">T</th>
+                <th class="sub-header">V</th>
+                <th class="sub-header">H</th>
+                <th class="sub-header">T</th>
+              </tr>
+            </thead>
+            <tbody id="asistTableBody">
+              <tr><td colspan="11" style="padding:30px;color:var(--text-muted);">Seleccione un a&#241;o escolar y una fecha para cargar la asistencia.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RESUMEN POR NIVEL -->
+      <div class="resumen-card">
+        <h4>&#128202; Resumen por Nivel</h4>
+        <table class="resumen-table" id="resumenTable">
+          <thead>
+            <tr>
+              <th>NIVEL</th>
+              <th>V</th>
+              <th>H</th>
+              <th>T</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="td-label">PREESCOLAR</td><td id="resPreV">0</td><td id="resPreH">0</td><td id="resPreT">0</td></tr>
+            <tr><td class="td-label">B&#193;SICA</td><td id="resBasV">0</td><td id="resBasH">0</td><td id="resBasT">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- BOTÓN GUARDAR -->
+      <div class="asist-acciones">
+        <button class="btn btn-primary" id="btnGuardarAsistencia" onclick="guardarTodas()" disabled>
+          &#128190; Guardar Asistencia
+        </button>
+        <span id="asistGuardadoMsg" style="font-size:var(--font-size-sm);color:var(--success);align-self:center;display:none;">
+          &#10004; Asistencia guardada correctamente
+        </span>
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: Días No Laborables -->
+  <div class="modal-overlay" id="modalDiasNoLab">
+    <div class="modal-insc" style="max-width:550px;">
+      <div class="modal-insc-header">
+        <h2>&#128197; D&#237;as No Laborables</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalDiasNoLab()">&#215;</button>
+      </div>
+      <div class="modal-insc-body" style="max-height:65vh;overflow-y:auto;">
+        <!-- Formulario agregar -->
+        <div class="dnl-form">
+          <div>
+            <label>Fecha</label><br>
+            <input type="date" id="dnlFecha" style="width:140px;">
+          </div>
+          <div style="flex:1;">
+            <label>Motivo (opcional)</label><br>
+            <input type="text" id="dnlMotivo" placeholder="Ej: Feriado nacional" style="width:100%;">
+          </div>
+          <button class="btn btn-sm btn-primary" onclick="agregarDiaNoLaborable()">Agregar</button>
+        </div>
+        <!-- Lista -->
+        <div class="dnl-lista" id="dnlLista">
+          <p style="text-align:center;color:var(--text-muted);padding:20px;">Cargando...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Seleccionar Docente de Guardia para PDF -->
+  <div class="modal-overlay" id="modalPDF">
+    <div class="modal-insc" style="max-width:450px;">
+      <div class="modal-insc-header">
+        <h2>&#128424; Generar Reporte de Asistencia</h2>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalPDF()">&#215;</button>
+      </div>
+      <div class="modal-insc-body" style="padding:var(--space-4);">
+        <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-bottom:var(--space-3);">
+          Fecha: <strong id="pdfFechaLabel"></strong>
+        </p>
+        <div style="margin-bottom:var(--space-4);">
+          <label style="font-weight:600;font-size:var(--font-size-sm);display:block;margin-bottom:4px;">Docente de guardia:</label>
+          <select id="pdfDocente" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:var(--font-size-sm);">
+            <option value="">Seleccione un docente...</option>
+          </select>
+        </div>
+        <p style="font-size:var(--font-size-xs);color:var(--text-muted);background:#f8fafc;padding:10px;border-radius:var(--radius);">
+          Se generar&#225; el PDF con los datos de asistencia del d&#237;a seleccionado con el formato institucional.
+        </p>
+        <div style="display:flex;gap:var(--space-2);justify-content:flex-end;margin-top:var(--space-4);">
+          <button class="btn" onclick="cerrarModalPDF()">Cancelar</button>
+          <button class="btn btn-primary" onclick="generarPDFAsistencia()">Generar PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM DIALOG TEMPLATE -->
+  <div class="confirm-overlay" id="confirmDialog">
+    <div class="confirm-box">
+      <div class="confirm-icon" id="confirmIcon">
+        <img id="confirmIconImg" src="/icons/alert-circle.svg" alt="">
+      </div>
+      <div class="confirm-title" id="confirmTitle">&#191;Est&#225; seguro?</div>
+      <div class="confirm-message" id="confirmMessage">Esta acci&#243;n no se puede deshacer.</div>
+      <div class="confirm-actions">
+        <button class="btn" id="confirmBtnCancel">Cancelar</button>
+        <button class="btn btn-primary" id="confirmBtnOk">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/libs/jspdf.umd.min.js"></script>
+  <script src="/libs/jspdf.plugin.autotable.min.js"></script>
+  <script src="/js/pdf-asistencia.js"></script>
+  <script src="/js/asistencia.js"></script>
+</body>
+</html>
