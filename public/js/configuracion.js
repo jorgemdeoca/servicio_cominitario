@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
   validarSoloLetras('cfg_municipio');
   validarSoloLetras('cfg_parroquia');
   validarSoloLetras('cfg_director');
+  validarSoloNumeros('cfg_cedula_director');
   if (document.getElementById('formUsuario')) {
     document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
     document.getElementById('btnCancelUsuario').addEventListener('click', resetUsuarioForm);
@@ -616,6 +617,7 @@ async function loadConfiguracion() {
     if (conf.municipio) document.getElementById('cfg_municipio').value = conf.municipio;
     if (conf.parroquia) document.getElementById('cfg_parroquia').value = conf.parroquia;
     if (conf.director) document.getElementById('cfg_director').value = conf.director;
+    if (conf.cedula_director) document.getElementById('cfg_cedula_director').value = conf.cedula_director;
     if (conf.direccion) document.getElementById('cfg_direccion').value = conf.direccion;
     if (conf.membrete) document.getElementById('cfg_membrete').value = conf.membrete;
     if (conf.localidad) document.getElementById('cfg_localidad').value = conf.localidad;
@@ -709,6 +711,7 @@ async function saveConfiguracion(e) {
     municipio: document.getElementById('cfg_municipio').value,
     parroquia: document.getElementById('cfg_parroquia').value,
     director: document.getElementById('cfg_director').value,
+    cedula_director: document.getElementById('cfg_cedula_director').value,
     direccion: document.getElementById('cfg_direccion').value,
     membrete: document.getElementById('cfg_membrete').value,
     localidad: document.getElementById('cfg_localidad').value

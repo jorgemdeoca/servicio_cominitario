@@ -327,6 +327,7 @@ async function loadInscripciones() {
         : '';
       const nombreEscaped = nombre.replace(/'/g, "\\'");
       const btnHistorial = `<button class="btn-icon" onclick="verHistorial(${est.id}, '${nombreEscaped}')" title="Historial académico" aria-label="Historial"><img src="/icons/layers.svg" alt="Historial"></button>`;
+      const btnConstancia = `<button class="btn-icon" onclick="generarConstanciaEstudio(${insc.id})" title="Constancia de Estudio" aria-label="Constancia"><img src="/icons/printer.svg" alt="Constancia"></button>`;
 
       // Literal badge con edición inline
       const literalConfig = {
@@ -360,7 +361,7 @@ async function loadInscripciones() {
         <td>${colabBadge}</td>
         <td>
           <div class="actions-cell">
-            ${btnVer}${btnDocs}${btnHistorial}${btnCambio}${btnRetirar}
+            ${btnVer}${btnDocs}${btnConstancia}${btnHistorial}${btnCambio}${btnRetirar}
           </div>
         </td>
       `;
@@ -2242,4 +2243,47 @@ function buildCopyMenuPersona(p, menuId) {
   items += copyMenuItem('Nombres y Apellidos', nombresApellidos);
 
   return '<div id="' + menuId + '" class="copy-menu-dropdown">' + items + '</div>';
+}
+
+
+// ==========================================
+// CONSTANCIA DE ESTUDIO
+// ==========================================
+async function generarConstanciaEstudio(inscripcionId) {
+  try {
+    var res = await apiFetch('/api/reportes/constancia?inscripcion_id=' + inscripcionId);
+    if (!res) return;
+    if (!res.ok) {
+      var err = await res.json();
+      await alertDialog({
+        title: 'Error',
+        message: err.error || 'No se pudo obtener los datos de la constancia.',
+        type: 'error',
+        confirmText: 'Aceptar'
+      });
+      return;
+    }
+    var datos = await res.json();
+
+    // Verificar datos mínimos del director
+    if (!datos.config.director || !datos.config.cedula_director) {
+      await alertDialog({
+        title: 'Datos incompletos',
+        message: 'Debe configurar el <strong>Nombre</strong> y la <strong>Cédula del Director/a</strong> en la sección de Configuración antes de generar constancias.',
+        type: 'warning',
+        confirmText: 'Entendido'
+      });
+      return;
+    }
+
+    await generarPDFConstancia(datos);
+  } catch (error) {
+    console.error('Error generando constancia:', error);
+    await alertDialog({
+      title: 'Error',
+      message: 'Ocurrió un error al generar la constancia de estudio.',
+      type: 'error',
+      confirmText: 'Aceptar'
+    });
+  }
 }
