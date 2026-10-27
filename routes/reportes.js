@@ -195,4 +195,84 @@ router.get('/estadisticas', async (req, res) => {
   }
 });
 
+// GET /api/reportes/constancia?inscripcion_id=X
+router.get('/constancia', async (req, res) => {
+  try {
+    const { inscripcion_id } = req.query;
+    if (!inscripcion_id) return res.status(400).json({ error: 'El parámetro inscripcion_id es obligatorio.' });
+
+    const inscripcion = await req.prisma.inscripciones.findUnique({
+      where: { id: parseInt(inscripcion_id) },
+      include: {
+        estudiante: true,
+        seccion: {
+          include: {
+            grado: true,
+            anio_escolar: true
+          }
+        },
+        anio_escolar: true
+      }
+    });
+
+    if (!inscripcion || inscripcion.eliminado) {
+      return res.status(404).json({ error: 'Inscripción no encontrada.' });
+    }
+
+    const configs = await req.prisma.configuracion.findMany();
+    const config = {};
+    for (const c of configs) config[c.clave] = c.valor;
+
+    const e = inscripcion.estudiante;
+    const grado = inscripcion.seccion.grado;
+
+    // Construir nombre completo
+    const nombreCompleto = [e.primer_nombre, e.segundo_nombre, e.primer_apellido, e.segundo_apellido]
+      .filter(Boolean).join(' ');
+
+    // Determinar nivel de educación
+    let nivelEducacion = 'Educación Básica';
+    if (grado.nivel === 'INICIAL') {
+      nivelEducacion = 'Educación Inicial';
+    }
+
+    // Género: niño / niña
+    const genero = e.sexo === 'F' ? 'niña' : 'niño';
+    const nacido = e.sexo === 'F' ? 'nacida' : 'nacido';
+    const portador = e.sexo === 'F' ? 'portadora' : 'portador';
+
+    // Formatear fecha de nacimiento
+    let fechaNacFormateada = '';
+    if (e.fecha_nacimiento) {
+      fechaNacFormateada = new Date(e.fecha_nacimiento).toLocaleDateString('es-VE', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+      });
+    }
+
+    // Grado y sección display
+    const gradoSeccion = grado.nombre + ' "' + inscripcion.seccion.letra + '"';
+
+    res.json({
+      config,
+      estudiante: {
+        nombre_completo: nombreCompleto,
+        codigo_escolar: e.codigo_escolar || '',
+        fecha_nacimiento: fechaNacFormateada,
+        lugar_nacimiento: e.lugar_nacimiento || '',
+        estado_nacimiento: e.estado_nacimiento || '',
+        sexo: e.sexo,
+        genero,
+        nacido,
+        portador
+      },
+      grado_seccion: gradoSeccion,
+      nivel_educacion: nivelEducacion,
+      anio_escolar: inscripcion.anio_escolar
+    });
+  } catch (error) {
+    console.error('Error en reporte constancia:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
 module.exports = router;
