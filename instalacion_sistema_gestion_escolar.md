@@ -205,12 +205,13 @@ datasource db {
 
 ### Paso 5.2 — Escribir la configuración
 
-Abrir el archivo `.env` con el Bloc de Notas y escribir exactamente estas 3 líneas:
+Abrir el archivo `.env` con el Bloc de Notas y escribir exactamente estas 4 líneas:
 
 ```env
 DATABASE_URL="mysql://root@localhost:3306/gestion_escolar"
 SESSION_SECRET="gestion-escolar-aquilino-juares-2026"
 PORT=3000
+MYSQL_BIN_PATH="C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin"
 ```
 
 Guardar el archivo (Ctrl + S).
@@ -262,6 +263,32 @@ SESSION_SECRET="mi-escuela-secreta-2026-lara"
 #### `PORT` — Puerto del Servidor
 
 El puerto donde el sistema escuchará las conexiones. `3000` es el valor estándar. Los usuarios accederán al sistema escribiendo `http://[IP]:3000` en el navegador.
+
+#### `MYSQL_BIN_PATH` — Ruta de los Binarios de MySQL (para Backups)
+
+El sistema de **respaldos** (exportar e importar backups `.sql`) necesita los programas `mysqldump.exe` y `mysql.exe` que vienen incluidos con Laragon. Esta variable le indica al sistema **dónde encontrar esos programas**.
+
+El valor por defecto es `C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin`, pero la **versión de MySQL puede variar** dependiendo de cuándo se descargó Laragon. Para verificar cuál es la versión correcta en tu PC:
+
+1. Abrir el Explorador de Archivos
+2. Navegar a `C:\laragon\bin\mysql\`
+3. Ver el nombre de la carpeta (ej: `mysql-8.0.30-winx64`, `mysql-8.4.3-winx64`, etc.)
+4. Colocar la ruta completa hasta `\bin` en el `.env`
+
+**Ejemplos según la versión de MySQL:**
+
+```env
+# Si la carpeta es mysql-8.0.30-winx64:
+MYSQL_BIN_PATH="C:\laragon\bin\mysql\mysql-8.0.30-winx64\bin"
+
+# Si la carpeta es mysql-8.4.3-winx64 (por defecto):
+MYSQL_BIN_PATH="C:\laragon\bin\mysql\mysql-8.4.3-winx64\bin"
+
+# Si Laragon está instalado en otra ubicación:
+MYSQL_BIN_PATH="D:\laragon\bin\mysql\mysql-8.4.3-winx64\bin"
+```
+
+> **⚠️ IMPORTANTE:** Si esta ruta es incorrecta, el sistema funcionará normalmente **EXCEPTO** la función de exportar/importar backups de la base de datos. Asegúrate de verificar la carpeta correcta.
 
 ---
 

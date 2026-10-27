@@ -980,6 +980,13 @@ async function verInscripcion(id) {
     const padre = est.padre;
     const rep = est.representante;
 
+    // Combinaciones de nombre del estudiante (con espacio entre campos)
+    const estNombres = [est.primer_nombre, est.segundo_nombre].filter(Boolean).join(' ');
+    const estApellidos = [est.primer_apellido, est.segundo_apellido].filter(Boolean).join(' ');
+    const estNombreApellido = [est.primer_nombre, est.primer_apellido].filter(Boolean).join(' ');
+    const estNombresApellidos = [est.primer_nombre, est.segundo_nombre, est.primer_apellido, est.segundo_apellido].filter(Boolean).join(' ');
+    const estFechaNac = formatearFecha(est.fecha_nacimiento);
+
     // Documentos
     const docs = [
       ['Partida de Nacimiento', insc.doc_partida_nacimiento],
@@ -995,51 +1002,76 @@ async function verInscripcion(id) {
       `<span style="margin-right:12px;">${val ? '✅' : '❌'} ${label}</span>`
     ).join('');
 
-    // Helper para persona
-    const personaInfo = (p, rol) => {
+    // Helper: genera opciones del menú de copiado del estudiante
+    const menuEstudiante = buildCopyMenuEstudiante(est, estNombres, estApellidos, estNombreApellido, estNombresApellidos, estFechaNac);
+
+    // Helper para persona con íconos de copiar
+    const personaInfoConCopia = (p, rol, menuId) => {
       if (!p) return `<div style="color:var(--text-muted);">No registrado</div>`;
+      const nombreCompleto = `${p.apellidos}, ${p.nombres}`;
+      const cedulaConNac = p.nacionalidad ? `${p.nacionalidad}-${p.cedula}` : p.cedula;
+      const menuPersona = buildCopyMenuPersona(p, menuId);
       return `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
-          <div><strong>Nombre:</strong> ${p.apellidos}, ${p.nombres}</div>
-          <div><strong>Cédula:</strong> ${p.cedula || '—'}</div>
-          <div><strong>Teléfono:</strong> ${p.telefono || '—'}</div>
-          <div><strong>Profesión:</strong> ${p.profesion || '—'}</div>
-          <div><strong>Dirección:</strong> ${p.direccion || '—'}</div>
-          <div><strong>Estado Civil:</strong> ${p.estado_civil || '—'}</div>
+          <div class="vi-dato"><strong>Nombre:</strong> ${nombreCompleto}${iconoCopiar(nombreCompleto)}</div>
+          <div class="vi-dato"><strong>Cédula:</strong> ${p.cedula || '—'}${iconoCopiar(p.cedula)}</div>
+          <div class="vi-dato"><strong>Teléfono:</strong> ${p.telefono || '—'}${iconoCopiar(p.telefono)}</div>
+          <div class="vi-dato"><strong>Profesión:</strong> ${p.profesion || '—'}${iconoCopiar(p.profesion)}</div>
+          <div class="vi-dato"><strong>Dirección:</strong> ${p.direccion || '—'}${iconoCopiar(p.direccion)}</div>
+          <div class="vi-dato"><strong>Estado Civil:</strong> ${p.estado_civil || '—'}</div>
+        </div>
+      `;
+    };
+
+    // Helper: sub-header de familia con menú de copiar
+    const familiaSubHeader = (label, p, menuId) => {
+      if (!p) {
+        return `<div style="font-weight:600;margin-bottom:4px;color:var(--primary);">${label}</div>`;
+      }
+      const menuHtml = buildCopyMenuPersona(p, menuId);
+      return `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+          <div style="font-weight:600;color:var(--primary);">${label}</div>
+          <div class="copy-menu-wrapper">
+            <button class="copy-menu-trigger-sm" onclick="toggleCopyMenu(event, '${menuId}')">
+              <img src="/icons/copy.svg" /> Copiar ▾
+            </button>
+            ${menuHtml}
+          </div>
         </div>
       `;
     };
 
     document.getElementById('verInscripcionBody').innerHTML = `
-      <style>
-        .vi-section { margin-bottom:var(--space-3); }
-        .vi-header { display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:8px 12px;background:var(--primary);color:white;border-radius:6px;margin-bottom:4px; }
-        .vi-header h3 { margin:0;font-size:0.95rem; }
-        .vi-toggle { font-size:0.8rem;opacity:0.8; }
-        .vi-body { padding:8px 12px; }
-        .vi-grid { display:grid;grid-template-columns:1fr 1fr;gap:3px 16px;font-size:0.9rem; }
-        .vi-dato { font-size:0.9rem;margin-bottom:2px; }
-      </style>
 
       <!-- ESTUDIANTE - siempre visible -->
       <div class="vi-section">
-        <div class="vi-header" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'none' ? 'block' : 'none'">
-          <h3>👤 Estudiante</h3><span class="vi-toggle">▼</span>
+        <div class="vi-header">
+          <h3 onclick="this.parentElement.nextElementSibling.style.display = this.parentElement.nextElementSibling.style.display === 'none' ? 'block' : 'none'" style="cursor:pointer;flex:1;">👤 Estudiante</h3>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="copy-menu-wrapper">
+              <button class="copy-menu-trigger" onclick="toggleCopyMenu(event, 'copyMenuEst')">
+                <img src="/icons/copy.svg" /> Copiar ▾
+              </button>
+              ${menuEstudiante}
+            </div>
+            <span class="vi-toggle" onclick="var body=this.closest('.vi-header').nextElementSibling; body.style.display = body.style.display === 'none' ? 'block' : 'none'" style="cursor:pointer;">▼</span>
+          </div>
         </div>
         <div class="vi-body">
           <div class="vi-grid">
-            <div class="vi-dato"><strong>Nombre:</strong> ${nombre}</div>
+            <div class="vi-dato"><strong>Nombre:</strong> ${nombre}${iconoCopiar(nombre)}</div>
             <div class="vi-dato"><strong>Edad:</strong> ${edad} años</div>
             <div class="vi-dato"><strong>Sexo:</strong> ${est.sexo === 'M' ? 'Masculino' : 'Femenino'}</div>
-            <div class="vi-dato"><strong>F. Nacimiento:</strong> ${formatearFecha(est.fecha_nacimiento)}</div>
-            <div class="vi-dato"><strong>Lugar Nac.:</strong> ${est.lugar_nacimiento || '—'}</div>
-            <div class="vi-dato"><strong>Estado Nac.:</strong> ${est.estado_nacimiento || '—'}</div>
+            <div class="vi-dato"><strong>F. Nacimiento:</strong> ${estFechaNac}${iconoCopiar(estFechaNac !== '--' ? estFechaNac : null)}</div>
+            <div class="vi-dato"><strong>Lugar Nac.:</strong> ${est.lugar_nacimiento || '—'}${iconoCopiar(est.lugar_nacimiento)}</div>
+            <div class="vi-dato"><strong>Estado Nac.:</strong> ${est.estado_nacimiento || '—'}${iconoCopiar(est.estado_nacimiento)}</div>
             <div class="vi-dato"><strong>Nacionalidad:</strong> ${est.nacionalidad}${est.nacionalidad_texto ? ' — ' + est.nacionalidad_texto : ''}</div>
-            <div class="vi-dato"><strong>Cód. Escolar:</strong> ${est.codigo_escolar || '—'}</div>
+            <div class="vi-dato"><strong>Cód. Escolar:</strong> ${est.codigo_escolar || '—'}${iconoCopiar(est.codigo_escolar)}</div>
             <div class="vi-dato"><strong>Lateralidad:</strong> ${est.lateralidad || '—'}</div>
             <div class="vi-dato"><strong>Tipo Sangre:</strong> ${est.tipo_sangre || '—'}</div>
-            <div class="vi-dato"><strong>Dirección Actual:</strong> ${insc.direccion || '—'}</div>
-            <div class="vi-dato"><strong>Teléfono:</strong> ${insc.telefono || '—'}</div>
+            <div class="vi-dato"><strong>Dirección Actual:</strong> ${insc.direccion || '—'}${iconoCopiar(insc.direccion)}</div>
+            <div class="vi-dato"><strong>Teléfono:</strong> ${insc.telefono || '—'}${iconoCopiar(insc.telefono)}</div>
           </div>
         </div>
       </div>
@@ -1051,12 +1083,12 @@ async function verInscripcion(id) {
         </div>
         <div class="vi-body">
           <div class="vi-grid">
-            <div class="vi-dato"><strong>Grado/Sección:</strong> ${gradoSec}</div>
-            <div class="vi-dato"><strong>Año Escolar:</strong> ${insc.anio_escolar.nombre}</div>
+            <div class="vi-dato"><strong>Grado/Sección:</strong> ${gradoSec}${iconoCopiar(gradoSec !== '—' ? gradoSec : null)}</div>
+            <div class="vi-dato"><strong>Año Escolar:</strong> ${insc.anio_escolar.nombre}${iconoCopiar(insc.anio_escolar.nombre)}</div>
             <div class="vi-dato"><strong>Modalidad:</strong> ${insc.modalidad}</div>
             <div class="vi-dato"><strong>Estado:</strong> ${insc.estado}</div>
             <div class="vi-dato"><strong>Fecha:</strong> ${formatearFecha(insc.fecha_inscripcion)}</div>
-            <div class="vi-dato"><strong>Procedencia:</strong> ${insc.institucion_procedencia || insc.escuela_procedencia || '—'}</div>
+            <div class="vi-dato"><strong>Procedencia:</strong> ${insc.institucion_procedencia || insc.escuela_procedencia || '—'}${iconoCopiar(insc.institucion_procedencia || insc.escuela_procedencia)}</div>
             <div class="vi-dato"><strong>Talla:</strong> ${insc.talla || '—'}</div>
             <div class="vi-dato"><strong>Peso:</strong> ${insc.peso || '—'}</div>
             <div class="vi-dato"><strong>Talla Camisa:</strong> ${insc.talla_camisa || '—'}</div>
@@ -1074,16 +1106,16 @@ async function verInscripcion(id) {
         </div>
         <div class="vi-body">
           <div style="margin-bottom:8px;padding:6px;background:var(--bg);border-radius:6px;">
-            <div style="font-weight:600;margin-bottom:4px;color:var(--primary);">Madre</div>
-            ${personaInfo(madre)}
+            ${familiaSubHeader('Madre', madre, 'copyMenuMadre')}
+            ${personaInfoConCopia(madre, 'madre', 'copyMenuMadre')}
           </div>
           <div style="margin-bottom:8px;padding:6px;background:var(--bg);border-radius:6px;">
-            <div style="font-weight:600;margin-bottom:4px;color:var(--primary);">Padre</div>
-            ${personaInfo(padre)}
+            ${familiaSubHeader('Padre', padre, 'copyMenuPadre')}
+            ${personaInfoConCopia(padre, 'padre', 'copyMenuPadre')}
           </div>
           <div style="padding:6px;background:var(--bg);border-radius:6px;">
-            <div style="font-weight:600;margin-bottom:4px;color:var(--primary);">Representante</div>
-            ${personaInfo(rep)}
+            ${familiaSubHeader('Representante', rep, 'copyMenuRep')}
+            ${personaInfoConCopia(rep, 'representante', 'copyMenuRep')}
           </div>
         </div>
       </div>
@@ -2141,4 +2173,73 @@ function renderTablaHistorial(items) {
 function cerrarModalHistorial() {
   var modal = document.getElementById('modalHistorial');
   if (modal) modal.classList.remove('active');
+}
+
+
+// =========================================================
+// SISTEMA DE COPIADO RÁPIDO — Builders de menús dropdown
+// =========================================================
+
+/**
+ * Genera un menú item para copiar un valor.
+ * @param {string} label - Texto del item del menú
+ * @param {string} valor - Valor a copiar
+ * @returns {string} HTML del item (o vacío si el valor es nulo)
+ */
+function copyMenuItem(label, valor) {
+  if (!valor || valor === '—' || valor === '--') return '';
+  var valorEscapado = valor.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  return '<button class="copy-menu-item" onclick="copiarAlPortapapeles(\'' + valorEscapado + '\', this.querySelector(\'img\')); event.stopPropagation();"><img src="/icons/copy.svg" /> ' + label + '</button>';
+}
+
+/**
+ * Genera el HTML del menú dropdown de copiado para un ESTUDIANTE.
+ */
+function buildCopyMenuEstudiante(est, estNombres, estApellidos, estNombreApellido, estNombresApellidos, estFechaNac) {
+  var items = '';
+
+  // Sección: Individuales
+  items += '<div class="copy-menu-separator">Individuales</div>';
+  items += copyMenuItem('Primer Nombre', est.primer_nombre);
+  items += copyMenuItem('Segundo Nombre', est.segundo_nombre);
+  items += copyMenuItem('Primer Apellido', est.primer_apellido);
+  items += copyMenuItem('Segundo Apellido', est.segundo_apellido);
+  items += copyMenuItem('Cédula Escolar', est.codigo_escolar);
+  if (estFechaNac && estFechaNac !== '--') {
+    items += copyMenuItem('Fecha de Nacimiento', estFechaNac);
+  }
+
+  // Sección: Combinaciones
+  items += '<div class="copy-menu-separator">Combinaciones</div>';
+  items += copyMenuItem('Nombres', estNombres);
+  items += copyMenuItem('Apellidos', estApellidos);
+  items += copyMenuItem('Nombre y Apellido', estNombreApellido);
+  items += copyMenuItem('Nombres y Apellidos', estNombresApellidos);
+
+  return '<div id="copyMenuEst" class="copy-menu-dropdown">' + items + '</div>';
+}
+
+/**
+ * Genera el HTML del menú dropdown de copiado para una PERSONA (madre/padre/representante).
+ */
+function buildCopyMenuPersona(p, menuId) {
+  if (!p) return '';
+  var items = '';
+  var cedulaConNac = p.nacionalidad ? (p.nacionalidad + '-' + p.cedula) : p.cedula;
+  var nombresApellidos = [p.nombres, p.apellidos].filter(Boolean).join(' ');
+
+  // Sección: Individuales
+  items += '<div class="copy-menu-separator">Individuales</div>';
+  items += copyMenuItem('Nombres', p.nombres);
+  items += copyMenuItem('Apellidos', p.apellidos);
+  items += copyMenuItem('Cédula', p.cedula);
+  items += copyMenuItem('Cédula con Nac.', cedulaConNac);
+  items += copyMenuItem('Teléfono', p.telefono);
+  items += copyMenuItem('Dirección', p.direccion);
+
+  // Sección: Combinación
+  items += '<div class="copy-menu-separator">Combinación</div>';
+  items += copyMenuItem('Nombres y Apellidos', nombresApellidos);
+
+  return '<div id="' + menuId + '" class="copy-menu-dropdown">' + items + '</div>';
 }

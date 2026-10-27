@@ -67,6 +67,8 @@ model anios_escolares {
   // Relaciones
   secciones     secciones[]
   inscripciones inscripciones[]
+  dias_no_laborables dias_no_laborables[]
+  guardias      asistencia_guardia[]
 }
 
 // ============================================
@@ -83,6 +85,7 @@ model secciones {
   anio_escolar anios_escolares @relation(fields: [anio_escolar_id], references: [id])
   inscripciones inscripciones[]
   profesores    profesores_secciones[]
+  asistencia_diaria asistencia_diaria[]
 
   // Índices
   @@index([grado_id])
@@ -242,6 +245,7 @@ model profesores {
 
   // Relaciones
   secciones profesores_secciones[]
+  guardias  asistencia_guardia[]
 
   // Índices
   @@index([apellidos])
@@ -435,4 +439,55 @@ model colaboracion_pagos {
 enum colaboracion_pagos_tipo {
   EFECTIVO
   PAGO_MOVIL
+}
+
+
+// ============================================
+// TABLA 12: ASISTENCIA DIARIA (un registro por sección por día)
+// ============================================
+model asistencia_diaria {
+  id                  Int      @id @default(autoincrement())
+  seccion_id          Int
+  fecha               DateTime @db.Date
+  varones_asistentes  Int      @default(0)
+  hembras_asistentes  Int      @default(0)
+
+  seccion secciones @relation(fields: [seccion_id], references: [id], onDelete: Cascade)
+
+  @@unique([seccion_id, fecha])
+  @@index([seccion_id])
+  @@index([fecha])
+}
+
+// ============================================
+// TABLA 13: DÍAS NO LABORABLES
+// ============================================
+model dias_no_laborables {
+  id              Int      @id @default(autoincrement())
+  fecha           DateTime @db.Date
+  motivo          String?  @db.VarChar(200)
+  anio_escolar_id Int
+
+  anio_escolar anios_escolares @relation(fields: [anio_escolar_id], references: [id], onDelete: Cascade)
+
+  @@unique([fecha, anio_escolar_id])
+  @@index([anio_escolar_id])
+}
+
+
+// ============================================
+// TABLA 14: GUARDIA DIARIA (docente de guardia por día)
+// ============================================
+model asistencia_guardia {
+  id              Int      @id @default(autoincrement())
+  fecha           DateTime @db.Date
+  anio_escolar_id Int
+  profesor_id     Int
+
+  anio_escolar anios_escolares @relation(fields: [anio_escolar_id], references: [id], onDelete: Cascade)
+  profesor     profesores      @relation(fields: [profesor_id], references: [id])
+
+  @@unique([fecha, anio_escolar_id])
+  @@index([anio_escolar_id])
+  @@index([profesor_id])
 }
