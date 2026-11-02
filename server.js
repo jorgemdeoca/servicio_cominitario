@@ -110,6 +110,59 @@ app.get('/api/me', (req, res) => {
   res.json({ usuario: req.session.usuario });
 });
 
+// Buscador global — busca estudiantes inscritos en el año activo
+app.get('/api/busqueda-global', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) return res.json([]);
+
+    const anioActivo = await prisma.anios_escolares.findFirst({ where: { activo: true } });
+    if (!anioActivo) return res.json([]);
+
+    const terms = q.trim().split(/\s+/);
+    const inscripciones = await prisma.inscripciones.findMany({
+      where: {
+        eliminado: false,
+        estado: { not: 'RETIRADO' },
+        anio_escolar_id: anioActivo.id,
+        estudiante: {
+          eliminado: false,
+          AND: terms.map(t => ({
+            OR: [
+              { primer_nombre: { contains: t } },
+              { primer_apellido: { contains: t } },
+              { segundo_apellido: { contains: t } },
+              { codigo_escolar: { contains: t } }
+            ]
+          }))
+        }
+      },
+      take: 8,
+      orderBy: { estudiante: { primer_apellido: 'asc' } },
+      include: {
+        estudiante: {
+          include: {
+            representante: true,
+            madre: true,
+            padre: true
+          }
+        },
+        seccion: {
+          include: {
+            grado: true,
+            anio_escolar: true
+          }
+        },
+        anio_escolar: true
+      }
+    });
+    res.json(inscripciones);
+  } catch (error) {
+    console.error('Error en búsqueda global:', error);
+    res.status(500).json({ error: 'Error en la búsqueda' });
+  }
+});
+
 // Endpoint para apagar el sistema (solo SUPER_ADMIN)
 app.post('/api/sistema/apagar', soloSuperAdmin, async (req, res) => {
   console.log('\n  ⚠️  Apagado solicitado por: ' + req.session.usuario.nombre);

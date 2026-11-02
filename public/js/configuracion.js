@@ -15,6 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Auto-seleccionar tab desde URL hash (para sidebar centralizado)
+  var hashTab = window.location.hash;
+  if (hashTab) {
+    var tabId = hashTab.replace('#', '');
+    var hashBtn = document.querySelector('[data-tab="' + tabId + '"]');
+    if (hashBtn) hashBtn.click();
+  }
+
   // Init Form Anio Escolar selects
   initAnioEscolarSelects();
 

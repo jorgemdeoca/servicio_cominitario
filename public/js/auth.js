@@ -91,7 +91,8 @@ if (!document.getElementById('loginForm')) {
   fetchConfigPublica().then(config => {
     const yearEl = document.getElementById('headerYear');
     if (yearEl) {
-      yearEl.textContent = `Año Escolar: ${config.anio_escolar || '—'}`;
+      yearEl.innerHTML = '<span class="year-bar"></span> Año Escolar Activo: <strong>' + (config.anio_escolar || '—') + '</strong>';
+      yearEl.classList.add('year-active');
     }
     const schoolNameEl = document.querySelector('.sidebar-school-name');
     if (schoolNameEl) {
@@ -114,10 +115,13 @@ if (!document.getElementById('loginForm')) {
     window._userRol = usuario.rol;
 
     // Lógica de roles
+    // Aplicar roles al sidebar centralizado
+    if (typeof window.applySidebarRoles === 'function') {
+      window.applySidebarRoles(usuario.rol);
+    }
+
     if (usuario.rol === 'SUPER_ADMIN') {
-      // Mostrar items de menú de configuración (ocultos por CSS por defecto)
-      const configNavs = document.querySelectorAll('a[href="/configuracion.html"]');
-      configNavs.forEach(el => el.classList.add('visible'));
+      // (roles del sidebar ya aplicados arriba)
     } else {
       // Bloquear acceso directo a la página de configuración
       if (window.location.pathname.endsWith('/configuracion.html')) {
