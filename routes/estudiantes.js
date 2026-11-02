@@ -66,6 +66,66 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/estudiantes/buscar-simple - Búsqueda ligera para el wizard de representantes
+router.get('/buscar-simple', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) {
+      return res.json([]);
+    }
+
+    const terminos = q.trim().split(/\s+/).filter(t => t.length > 0);
+    const camposBusqueda = (t) => ([
+      { primer_nombre: { contains: t } },
+      { primer_apellido: { contains: t } },
+      { segundo_nombre: { contains: t } },
+      { segundo_apellido: { contains: t } },
+      { codigo_escolar: { contains: t } }
+    ]);
+
+    const where = { eliminado: false };
+    if (terminos.length > 1) {
+      where.AND = terminos.map(t => ({ OR: camposBusqueda(t) }));
+    } else {
+      where.OR = camposBusqueda(terminos[0]);
+    }
+
+    const estudiantes = await req.prisma.estudiantes.findMany({
+      where,
+      select: {
+        id: true,
+        primer_nombre: true,
+        segundo_nombre: true,
+        primer_apellido: true,
+        segundo_apellido: true,
+        codigo_escolar: true,
+        sexo: true,
+        fecha_nacimiento: true,
+        madre: { select: { id: true, nombres: true, apellidos: true, cedula: true } },
+        padre: { select: { id: true, nombres: true, apellidos: true, cedula: true } },
+        representante: { select: { id: true, nombres: true, apellidos: true, cedula: true } },
+        inscripciones: {
+          where: { eliminado: false, anio_escolar: { activo: true } },
+          select: {
+            id: true,
+            seccion: { include: { grado: true } },
+            anio_escolar: { select: { nombre: true } }
+          },
+          take: 1,
+          orderBy: { fecha_inscripcion: 'desc' }
+        }
+      },
+      orderBy: { primer_apellido: 'asc' },
+      take: 10,
+    });
+
+    res.json(estudiantes);
+  } catch (error) {
+    console.error('Error en buscar-simple:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
 // GET /api/estudiantes/:id - Obtener un estudiante con todas sus relaciones
 router.get('/:id', async (req, res) => {
   try {
