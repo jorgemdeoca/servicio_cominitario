@@ -24,12 +24,14 @@
       display: flex;
       align-items: center;
       gap: var(--space-3);
-      transition: box-shadow 0.2s, border-color 0.2s;
+      transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+      cursor: pointer;
     }
 
     .dash-stat:hover {
       box-shadow: 0 4px 6px rgba(15, 23, 42, 0.08);
       border-color: #cbd5e1;
+      transform: translateY(-2px);
     }
 
     .dash-stat-icon {
@@ -386,59 +388,210 @@
         grid-template-columns: 1fr;
       }
     }
+
+    /* ====== BUSCADOR GLOBAL ====== */
+    .global-search-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 420px;
+      margin: 0 var(--space-4);
+    }
+    .global-search-box {
+      display: flex;
+      align-items: center;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 0 12px;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .global-search-box:focus-within {
+      background: #fff;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .global-search-icon {
+      width: 16px;
+      height: 16px;
+      opacity: 0.4;
+      flex-shrink: 0;
+    }
+    .global-search-box input {
+      border: none;
+      background: transparent;
+      padding: 8px 10px;
+      font-size: var(--font-size-sm);
+      width: 100%;
+      outline: none;
+      color: var(--text);
+    }
+    .global-search-box input::placeholder {
+      color: #94a3b8;
+    }
+    .search-hint {
+      font-size: 11px;
+      color: #94a3b8;
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+      font-family: inherit;
+      border: none;
+    }
+    .global-search-box:focus-within .search-hint {
+      display: none;
+    }
+
+    /* Dropdown de resultados */
+    .global-search-results {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(15,23,42,0.15);
+      max-height: 520px;
+      overflow-y: auto;
+      z-index: 200;
+    }
+    .global-search-results.active {
+      display: block;
+    }
+    .search-empty {
+      padding: 24px;
+      text-align: center;
+      color: #94a3b8;
+      font-size: var(--font-size-sm);
+    }
+    .search-result-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.15s;
+    }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:hover { background: #f8fafc; }
+    .search-result-item.expanded { background: #f8fafc; cursor: default; }
+    .sr-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .sr-name {
+      font-weight: 600;
+      font-size: var(--font-size-sm);
+      color: var(--text);
+    }
+    .sr-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: #dbeafe;
+      color: #1e40af;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .sr-sub {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* Panel expandido del estudiante */
+    .sr-detail {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+    }
+    .sr-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+      font-size: 12px;
+    }
+    .sr-detail-grid dt {
+      color: #94a3b8;
+      font-weight: 500;
+    }
+    .sr-detail-grid dd {
+      color: var(--text);
+      font-weight: 600;
+      margin: 0;
+    }
+    .sr-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 10px;
+      margin-bottom: 4px;
+      padding-top: 8px;
+      border-top: 1px dashed #e2e8f0;
+    }
+    .sr-section-title:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+    .sr-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    .sr-actions button {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .sr-actions button:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    .sr-actions button.btn-primary-sm {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .sr-actions button.btn-primary-sm:hover {
+      background: var(--primary-hover);
+    }
+
+    @media (max-width: 768px) {
+      .global-search-wrapper {
+        display: none;
+      }
+    }
   </style>
 </head>
 
 <body class="dashboard-page">
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h2>Gesti&#243;n Escolar</h2>
-      <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Ju&#225;res"</p>
-    </div>
-    <nav class="sidebar-nav">
-      <a href="/dashboard.html" class="nav-item active">
-        <span class="nav-icon"><img src="/icons/home.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Dashboard</span>
-      </a>
-      <a href="/personas.html" class="nav-item">
-        <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Representantes</span>
-      </a>
-      <a href="/estudiantes.html" class="nav-item">
-        <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Estudiantes</span>
-      </a>
-      <a href="/inscripciones.html" class="nav-item">
-        <span class="nav-icon"><img src="/icons/clipboard-list.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Inscripciones</span>
-      </a>
-      <a href="/profesores.html" class="nav-item">
-        <span class="nav-icon"><img src="/icons/user-check.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Profesores</span>
-      </a>
-      <a href="/asistencia.html" class="nav-item">
-        <span class="nav-icon"><img src="/icons/calendar-check.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Asistencia</span>
-      </a>
-      <a href="/reportes.html" class="nav-item">
-        <span class="nav-icon"><img src="/icons/bar-chart-3.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Reportes y PDFs</span>
-      </a>
-      <a href="/configuracion.html" class="nav-item">
-        <span class="nav-icon"><img src="/icons/settings.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Configuraci&#243;n</span>
-      </a>
-    </nav>
-    <div class="sidebar-footer">
-      <p>v1.0 &#8212; Servicio Comunitario UNEFA</p>
-    </div>
-  </aside>
+  <aside class="sidebar" id="sidebar"></aside>
 
   <div class="main-wrapper">
     <header class="main-header">
       <button class="menu-toggle" id="menuToggle">&#9776;</button>
       <div class="header-info">
         <span class="header-year" id="headerYear">A&#241;o Escolar: &#8212;</span>
+        <!-- BUSCADOR GLOBAL -->
+        <div class="global-search-wrapper">
+          <div class="global-search-box">
+            <img src="/icons/search.svg" class="global-search-icon" alt="">
+            <input type="text" id="globalSearch" placeholder="Buscar estudiante inscrito..." autocomplete="off">
+            <kbd class="search-hint">Nombre o c&#233;dula</kbd>
+          </div>
+          <div class="global-search-results" id="globalSearchResults"></div>
+        </div>
       </div>
       <div class="header-user">
         <span id="headerUserName">&#8212;</span>
@@ -450,28 +603,28 @@
     <main class="main-content" id="mainContent">
       <!-- STAT CARDS -->
       <div class="dash-stats">
-        <div class="dash-stat">
+        <div class="dash-stat" onclick="window.location.href='/estudiantes.html'" title="Ir a Estudiantes">
           <div class="dash-stat-icon blue">&#127891;</div>
           <div>
             <div class="dash-stat-number" id="statEstudiantes">&#8212;</div>
             <div class="dash-stat-label">Estudiantes</div>
           </div>
         </div>
-        <div class="dash-stat">
+        <div class="dash-stat" onclick="window.location.href='/personas.html'" title="Ir a Representantes">
           <div class="dash-stat-icon teal">&#128101;</div>
           <div>
             <div class="dash-stat-number" id="statPersonas">&#8212;</div>
-            <div class="dash-stat-label">Personas</div>
+            <div class="dash-stat-label">Padres/Representantes</div>
           </div>
         </div>
-        <div class="dash-stat">
+        <div class="dash-stat" onclick="window.location.href='/inscripciones.html'" title="Ir a Inscripciones">
           <div class="dash-stat-icon green">&#128203;</div>
           <div>
             <div class="dash-stat-number" id="statInscripciones">&#8212;</div>
             <div class="dash-stat-label">Inscritos (A&#241;o Activo)</div>
           </div>
         </div>
-        <div class="dash-stat">
+        <div class="dash-stat" onclick="window.location.href='/profesores.html'" title="Ir a Docentes">
           <div class="dash-stat-icon purple">&#128104;&#8205;&#127979;</div>
           <div>
             <div class="dash-stat-number" id="statProfesores">&#8212;</div>
@@ -566,8 +719,13 @@
       </div>
     </main>
   </div>
+  <script src="/libs/jspdf.umd.min.js"></script>
+  <script src="/libs/jspdf.plugin.autotable.min.js"></script>
+  <script src="/js/sidebar.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/auth.js"></script>
+  <script src="/js/pdf-generator.js"></script>
+  <script src="/js/pdf-constancia.js"></script>
   <script src="/js/dashboard.js"></script>
 </body>
 

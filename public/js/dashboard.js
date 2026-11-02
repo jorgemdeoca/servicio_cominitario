@@ -280,3 +280,272 @@ function descartarRecordatorioBackup() {
 
 // Ejecutar al cargar
 verificarRecordatorioBackup();
+
+
+// =========================================================
+// BUSCADOR GLOBAL DE ESTUDIANTES INSCRITOS
+// =========================================================
+
+(function() {
+  var searchInput = document.getElementById('globalSearch');
+  var resultsBox = document.getElementById('globalSearchResults');
+  if (!searchInput || !resultsBox) return;
+
+  var debounceTimer = null;
+  var expandedId = null;
+
+  // Cerrar resultados al hacer clic fuera
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.global-search-wrapper')) {
+      resultsBox.classList.remove('active');
+      expandedId = null;
+    }
+  });
+
+  // Listener de búsqueda con debounce
+  searchInput.addEventListener('input', function() {
+    var q = this.value.trim();
+    clearTimeout(debounceTimer);
+    expandedId = null;
+
+    if (q.length < 2) {
+      resultsBox.classList.remove('active');
+      resultsBox.innerHTML = '';
+      return;
+    }
+
+    debounceTimer = setTimeout(function() {
+      buscarEstudiantes(q);
+    }, 400);
+  });
+
+  // Focus → mostrar resultados si hay
+  searchInput.addEventListener('focus', function() {
+    if (resultsBox.innerHTML && this.value.trim().length >= 2) {
+      resultsBox.classList.add('active');
+    }
+  });
+
+  // ESC → cerrar
+  searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      resultsBox.classList.remove('active');
+      this.blur();
+    }
+  });
+
+  async function buscarEstudiantes(q) {
+    try {
+      var res = await apiFetch('/api/busqueda-global?q=' + encodeURIComponent(q));
+      if (!res) return;
+      var data = await res.json();
+
+      if (!data || data.length === 0) {
+        resultsBox.innerHTML = '<div class="search-empty">' +
+          '<div style="font-size:1.5rem;margin-bottom:6px">🔍</div>' +
+          'No se encontraron estudiantes inscritos con ese criterio' +
+          '</div>';
+        resultsBox.classList.add('active');
+        return;
+      }
+
+      var html = '';
+      for (var i = 0; i < data.length; i++) {
+        var insc = data[i];
+        var est = insc.estudiante;
+        var sec = insc.seccion;
+        var nombre = est.primer_apellido + ' ' + (est.segundo_apellido || '') + ', ' + est.primer_nombre + ' ' + (est.segundo_nombre || '');
+        nombre = nombre.replace(/\s+/g, ' ').trim();
+        var gradoSeccion = sec.grado.nombre + ' "' + sec.letra + '"';
+
+        html += '<div class="search-result-item" data-insc-id="' + insc.id + '" onclick="window._expandResult(' + insc.id + ', this)">';
+        html += '  <div class="sr-header">';
+        html += '    <span class="sr-name">' + escHtml(nombre) + '</span>';
+        html += '    <span class="sr-badge">' + escHtml(gradoSeccion) + '</span>';
+        html += '  </div>';
+        html += '  <div class="sr-sub">';
+        html += '    Cód: ' + (est.codigo_escolar || '—') + ' &bull; ';
+        html += '    ' + (est.sexo === 'F' ? 'Femenino' : 'Masculino');
+        html += '  </div>';
+        html += '</div>';
+      }
+
+      resultsBox.innerHTML = html;
+      resultsBox.classList.add('active');
+
+      // Guardar datos para acceso rápido
+      window._searchData = {};
+      for (var j = 0; j < data.length; j++) {
+        window._searchData[data[j].id] = data[j];
+      }
+
+    } catch (error) {
+      console.error('Error en búsqueda global:', error);
+    }
+  }
+
+  // Escapar HTML
+  function escHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // Formatear fecha DD/MM/YYYY
+  function fmtFecha(iso) {
+    if (!iso) return '—';
+    var d = iso.substring(0, 10).split('-');
+    return d[2] + '/' + d[1] + '/' + d[0];
+  }
+
+  // Calcular edad
+  function calcEdad(iso) {
+    if (!iso) return '—';
+    var nac = new Date(iso);
+    var hoy = new Date();
+    var edad = hoy.getFullYear() - nac.getFullYear();
+    var m = hoy.getMonth() - nac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+    return edad + ' años';
+  }
+
+  // Expandir un resultado para mostrar todos los datos
+  window._expandResult = function(inscId, el) {
+    // Si ya está expandido, colapsar
+    if (expandedId === inscId) {
+      var detailEl = el.querySelector('.sr-detail');
+      if (detailEl) detailEl.remove();
+      el.classList.remove('expanded');
+      expandedId = null;
+      return;
+    }
+
+    // Colapsar el anterior
+    var prevExpanded = resultsBox.querySelector('.search-result-item.expanded');
+    if (prevExpanded) {
+      var prevDetail = prevExpanded.querySelector('.sr-detail');
+      if (prevDetail) prevDetail.remove();
+      prevExpanded.classList.remove('expanded');
+    }
+
+    expandedId = inscId;
+    el.classList.add('expanded');
+
+    var insc = window._searchData[inscId];
+    if (!insc) return;
+
+    var est = insc.estudiante;
+    var rep = est.representante;
+    var madre = est.madre;
+    var padre = est.padre;
+    var sec = insc.seccion;
+
+    var nombreEst = [est.primer_nombre, est.segundo_nombre, est.primer_apellido, est.segundo_apellido].filter(Boolean).join(' ');
+
+    var detail = '<div class="sr-detail">';
+
+    // Datos del estudiante
+    detail += '<div class="sr-section-title">📋 Datos del Estudiante</div>';
+    detail += '<div class="sr-detail-grid">';
+    detail += '<dt>Nombre completo</dt><dd>' + escHtml(nombreEst) + '</dd>';
+    detail += '<dt>Cédula escolar</dt><dd>' + (est.codigo_escolar || '—') + '</dd>';
+    detail += '<dt>Fecha nacimiento</dt><dd>' + fmtFecha(est.fecha_nacimiento) + '</dd>';
+    detail += '<dt>Edad</dt><dd>' + calcEdad(est.fecha_nacimiento) + '</dd>';
+    detail += '<dt>Sexo</dt><dd>' + (est.sexo === 'F' ? 'Femenino' : 'Masculino') + '</dd>';
+    detail += '<dt>Grado / Sección</dt><dd>' + escHtml(sec.grado.nombre) + ' "' + escHtml(sec.letra) + '"</dd>';
+    detail += '</div>';
+
+    // Representante
+    if (rep) {
+      detail += '<div class="sr-section-title">👤 Representante</div>';
+      detail += '<div class="sr-detail-grid">';
+      detail += '<dt>Nombre</dt><dd>' + escHtml(rep.nombres) + ' ' + escHtml(rep.apellidos) + '</dd>';
+      detail += '<dt>Cédula</dt><dd>' + (rep.nacionalidad || 'V') + '-' + (rep.cedula || '—') + '</dd>';
+      detail += '<dt>Teléfono</dt><dd>' + (rep.telefono || '—') + '</dd>';
+      detail += '</div>';
+    }
+
+    // Madre
+    if (madre && madre.id !== (rep && rep.id)) {
+      detail += '<div class="sr-section-title">👩 Madre</div>';
+      detail += '<div class="sr-detail-grid">';
+      detail += '<dt>Nombre</dt><dd>' + escHtml(madre.nombres) + ' ' + escHtml(madre.apellidos) + '</dd>';
+      detail += '<dt>Cédula</dt><dd>' + (madre.nacionalidad || 'V') + '-' + (madre.cedula || '—') + '</dd>';
+      detail += '</div>';
+    }
+
+    // Padre
+    if (padre && padre.id !== (rep && rep.id)) {
+      detail += '<div class="sr-section-title">👨 Padre</div>';
+      detail += '<div class="sr-detail-grid">';
+      detail += '<dt>Nombre</dt><dd>' + escHtml(padre.nombres) + ' ' + escHtml(padre.apellidos) + '</dd>';
+      detail += '<dt>Cédula</dt><dd>' + (padre.nacionalidad || 'V') + '-' + (padre.cedula || '—') + '</dd>';
+      detail += '</div>';
+    }
+
+    // Dirección
+    if (insc.direccion) {
+      detail += '<div class="sr-section-title">📍 Dirección Actual</div>';
+      detail += '<div style="font-size:12px;color:var(--text)">' + escHtml(insc.direccion) + '</div>';
+    }
+
+    // Botones de acción
+    detail += '<div class="sr-actions">';
+    detail += '<button class="btn-primary-sm" onclick="event.stopPropagation(); window._generarConstanciaBG(' + insc.id + ')">📄 Constancia de Estudio</button>';
+    detail += '<button onclick="event.stopPropagation(); window._generarFichaBG(' + insc.id + ', \'INICIAL\')">📋 Ficha Inicial (7p)</button>';
+    detail += '<button onclick="event.stopPropagation(); window._generarFichaBG(' + insc.id + ', \'PRIMARIA\')">📋 Ficha Primaria (5p)</button>';
+    detail += '</div>';
+
+    detail += '</div>';
+
+    el.insertAdjacentHTML('beforeend', detail);
+  };
+
+  // Generar Constancia de Estudio desde el buscador
+  window._generarConstanciaBG = async function(inscripcionId) {
+    try {
+      var res = await apiFetch('/api/reportes/constancia?inscripcion_id=' + inscripcionId);
+      if (!res) return;
+      if (!res.ok) {
+        var err = await res.json();
+        await alertDialog({ title: 'Error', message: err.error || 'No se pudo obtener los datos.', type: 'error' });
+        return;
+      }
+      var datos = await res.json();
+      if (!datos.config.director || !datos.config.cedula_director) {
+        await alertDialog({
+          title: 'Datos incompletos',
+          message: 'Debe configurar el <strong>Nombre</strong> y la <strong>Cédula del Director/a</strong> en Configuración.',
+          type: 'warning'
+        });
+        return;
+      }
+      await generarPDFConstancia(datos);
+    } catch (error) {
+      console.error('Error constancia:', error);
+      await alertDialog({ title: 'Error', message: 'Error al generar la constancia.', type: 'error' });
+    }
+  };
+
+  // Generar Ficha de Inscripción desde el buscador
+  window._generarFichaBG = async function(inscripcionId, tipo) {
+    try {
+      var res = await apiFetch('/api/reportes/ficha-inscripcion?inscripcion_id=' + inscripcionId);
+      if (!res) return;
+      if (!res.ok) {
+        var err = await res.json();
+        await alertDialog({ title: 'Error', message: err.error || 'No se pudo obtener los datos.', type: 'error' });
+        return;
+      }
+      var datos = await res.json();
+      if (tipo === 'INICIAL') {
+        await generarPDFFichaInicial(datos);
+      } else {
+        await generarPDFFichaPrimaria(datos);
+      }
+    } catch (error) {
+      console.error('Error ficha:', error);
+      await alertDialog({ title: 'Error', message: 'Error al generar la ficha.', type: 'error' });
+    }
+  };
+
+})();

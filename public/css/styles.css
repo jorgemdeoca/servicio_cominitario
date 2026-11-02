@@ -453,8 +453,26 @@ a {
 
 .header-year {
   font-size: var(--font-size-sm);
-  color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-year .year-bar {
+  width: 4px;
+  height: 18px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.header-year.year-active {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+.header-year.year-active .year-bar {
+  background: #10b981;
 }
 
 .header-user {
@@ -642,12 +660,29 @@ tbody tr:last-child td {
 
 /* (Modal + btn-secondary movidos a bloque G10 mejorado más abajo) */
 
-/* Ocultar Configuración por defecto - JS lo muestra para SUPER_ADMIN */
-a.nav-item[href="/configuracion.html"] {
-  display: none !important;
+/* ========================================
+   SIDEBAR — Grupos con jerarquía
+   ======================================== */
+.nav-group {
+  margin-bottom: 0.25rem;
 }
-a.nav-item[href="/configuracion.html"].visible {
-  display: flex !important;
+.nav-group-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  padding: 1rem 24px 0.35rem 24px;
+  margin-top: 0.15rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.nav-group:first-child .nav-group-title {
+  border-top: none;
+  margin-top: 0;
+}
+/* Grupo ADMINISTRACIÓN oculto por defecto — sidebar.js lo muestra para SUPER_ADMIN */
+.nav-group-admin {
+  display: none;
 }
 
 /* ========================================
