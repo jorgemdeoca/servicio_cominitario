@@ -215,6 +215,16 @@ router.post('/completa', async (req, res) => {
       });
     }
 
+    // Verificar que el año escolar esté activo
+    const anioEscolarCompleta = await req.prisma.anios_escolares.findUnique({
+      where: { id: parseInt(inscData.anio_escolar_id) }
+    });
+    if (!anioEscolarCompleta || !anioEscolarCompleta.activo) {
+      return res.status(400).json({
+        error: 'Solo se pueden inscribir estudiantes en el año escolar activo.'
+      });
+    }
+
     // Verificar código escolar único (fuera de transacción para respuesta rápida)
     if (estData.codigo_escolar) {
       const existeCodigo = await req.prisma.estudiantes.findUnique({
@@ -470,6 +480,16 @@ router.post('/', async (req, res) => {
     if (!estudiante_id || !seccion_id || !anio_escolar_id || !fecha_inscripcion) {
       return res.status(400).json({
         error: 'Estudiante, sección, año escolar y fecha de inscripción son obligatorios.'
+      });
+    }
+
+    // Verificar que el año escolar esté activo
+    const anioEscolar = await req.prisma.anios_escolares.findUnique({
+      where: { id: parseInt(anio_escolar_id) }
+    });
+    if (!anioEscolar || !anioEscolar.activo) {
+      return res.status(400).json({
+        error: 'Solo se pueden inscribir estudiantes en el año escolar activo.'
       });
     }
 

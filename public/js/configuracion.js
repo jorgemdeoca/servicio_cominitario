@@ -38,6 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
   validarSoloLetras('cfg_parroquia');
   validarSoloLetras('cfg_director');
   validarSoloNumeros('cfg_cedula_director');
+  validarSoloNumeros('cfg_telefono_director');
+  validarSoloLetras('cfg_supervisor');
+  validarSoloNumeros('cfg_cedula_supervisor');
+  validarSoloNumeros('cfg_telefono_supervisor');
   if (document.getElementById('formUsuario')) {
     document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
     document.getElementById('btnCancelUsuario').addEventListener('click', resetUsuarioForm);
@@ -612,12 +616,25 @@ async function loadConfiguracion() {
     // Asignar valores a inputs si existen en DB
     if (conf.nombre_escuela) document.getElementById('cfg_nombre_escuela').value = conf.nombre_escuela;
     if (conf.codigo_plantel) document.getElementById('cfg_codigo_plantel').value = conf.codigo_plantel;
+    if (conf.codigo_dependencia) document.getElementById('cfg_codigo_dependencia').value = conf.codigo_dependencia;
+    if (conf.codigo_estadistico) document.getElementById('cfg_codigo_estadistico').value = conf.codigo_estadistico;
+    if (conf.codigo_territorio) document.getElementById('cfg_codigo_territorio').value = conf.codigo_territorio;
+    if (conf.codigo_cnae) document.getElementById('cfg_codigo_cnae').value = conf.codigo_cnae;
+    if (conf.codigo_electoral) document.getElementById('cfg_codigo_electoral').value = conf.codigo_electoral;
+    if (conf.territorio_educativo) document.getElementById('cfg_territorio_educativo').value = conf.territorio_educativo;
     if (conf.telefono) document.getElementById('cfg_telefono').value = conf.telefono;
+    if (conf.correo_institucional) document.getElementById('cfg_correo_institucional').value = conf.correo_institucional;
     if (conf.estado) document.getElementById('cfg_estado').value = conf.estado;
     if (conf.municipio) document.getElementById('cfg_municipio').value = conf.municipio;
     if (conf.parroquia) document.getElementById('cfg_parroquia').value = conf.parroquia;
     if (conf.director) document.getElementById('cfg_director').value = conf.director;
     if (conf.cedula_director) document.getElementById('cfg_cedula_director').value = conf.cedula_director;
+    if (conf.telefono_director) document.getElementById('cfg_telefono_director').value = conf.telefono_director;
+    if (conf.correo_director) document.getElementById('cfg_correo_director').value = conf.correo_director;
+    if (conf.supervisor) document.getElementById('cfg_supervisor').value = conf.supervisor;
+    if (conf.cedula_supervisor) document.getElementById('cfg_cedula_supervisor').value = conf.cedula_supervisor;
+    if (conf.telefono_supervisor) document.getElementById('cfg_telefono_supervisor').value = conf.telefono_supervisor;
+    if (conf.correo_supervisor) document.getElementById('cfg_correo_supervisor').value = conf.correo_supervisor;
     if (conf.direccion) document.getElementById('cfg_direccion').value = conf.direccion;
     if (conf.membrete) document.getElementById('cfg_membrete').value = conf.membrete;
     if (conf.localidad) document.getElementById('cfg_localidad').value = conf.localidad;
@@ -706,12 +723,25 @@ async function saveConfiguracion(e) {
   const data = {
     nombre_escuela: document.getElementById('cfg_nombre_escuela').value,
     codigo_plantel: document.getElementById('cfg_codigo_plantel').value,
+    codigo_dependencia: document.getElementById('cfg_codigo_dependencia').value,
+    codigo_estadistico: document.getElementById('cfg_codigo_estadistico').value,
+    codigo_territorio: document.getElementById('cfg_codigo_territorio').value,
+    codigo_cnae: document.getElementById('cfg_codigo_cnae').value,
+    codigo_electoral: document.getElementById('cfg_codigo_electoral').value,
+    territorio_educativo: document.getElementById('cfg_territorio_educativo').value,
     telefono: document.getElementById('cfg_telefono').value,
+    correo_institucional: document.getElementById('cfg_correo_institucional').value,
     estado: document.getElementById('cfg_estado').value,
     municipio: document.getElementById('cfg_municipio').value,
     parroquia: document.getElementById('cfg_parroquia').value,
     director: document.getElementById('cfg_director').value,
     cedula_director: document.getElementById('cfg_cedula_director').value,
+    telefono_director: document.getElementById('cfg_telefono_director').value,
+    correo_director: document.getElementById('cfg_correo_director').value,
+    supervisor: document.getElementById('cfg_supervisor').value,
+    cedula_supervisor: document.getElementById('cfg_cedula_supervisor').value,
+    telefono_supervisor: document.getElementById('cfg_telefono_supervisor').value,
+    correo_supervisor: document.getElementById('cfg_correo_supervisor').value,
     direccion: document.getElementById('cfg_direccion').value,
     membrete: document.getElementById('cfg_membrete').value,
     localidad: document.getElementById('cfg_localidad').value

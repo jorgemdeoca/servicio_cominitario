@@ -206,31 +206,40 @@ async function generarPDFConstancia(datos) {
   yActual = renderParrafoMixto(doc, partesFecha, marginL, yActual, usableW, lineHeight);
 
   // ==========================================
-  // DATOS DEL DIRECTOR — todo en una misma línea
+  // DATOS DEL DIRECTOR — cada dato en línea separada, centrados
   // ==========================================
   yActual += lineHeight * 1.5;
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(12);
 
-  // DIRECTOR (A).    Nombre y Apellido: [nombre].    Número de C.I: [cédula].
-  var lineaDirector = 'DIRECTOR (A).     Nombre y Apellido: ' + directorNombre + '.     Número de C.I: ' + cedulaDirector + '.';
+  // Línea 1: DIRECTOR (A)
+  doc.setFont('helvetica', 'bold');
+  doc.text('DIRECTOR (A)', centerX, yActual, { align: 'center' });
+  yActual += lineHeight;
 
-  // Si cabe en una línea, centrar; si no, usar el renderizado con wrap
-  var anchoLinea = doc.getTextWidth(lineaDirector);
-  if (anchoLinea <= usableW) {
-    doc.text(lineaDirector, centerX, yActual, { align: 'center' });
-  } else {
-    // Renderizar con wrap si es muy largo
-    var partesDir = [
-      { text: 'DIRECTOR (A).   Nombre y Apellido: ', bold: false },
-      { text: directorNombre, bold: false },
-      { text: '.   Número de C.I: ', bold: false },
-      { text: cedulaDirector, bold: false },
-      { text: '.', bold: false }
-    ];
-    yActual = renderParrafoMixto(doc, partesDir, marginL, yActual, usableW, lineHeight) - lineHeight;
-  }
+  // Línea 2: Nombre y Apellido: [nombre]
+  doc.setFont('helvetica', 'normal');
+  var textoNombre = 'Nombre y Apellido: ';
+  var anchoLabel = doc.getTextWidth(textoNombre);
+  var xInicioNombre = centerX - (anchoLabel + doc.getTextWidth(directorNombre)) / 2;
+  doc.text(textoNombre, xInicioNombre, yActual);
+  doc.setFont('helvetica', 'bold');
+  doc.text(directorNombre, xInicioNombre + anchoLabel, yActual);
+  yActual += lineHeight;
+
+  // Línea 3: Número de C.I: [cédula]
+  doc.setFont('helvetica', 'normal');
+  var textoCedula = 'Número de C.I: ';
+  var anchoLabelCI = doc.getTextWidth(textoCedula);
+  doc.setFont('helvetica', 'bold');
+  var anchoCedula = doc.getTextWidth(cedulaDirector);
+  doc.setFont('helvetica', 'normal');
+  var xInicioCedula = centerX - (anchoLabelCI + anchoCedula) / 2;
+  doc.text(textoCedula, xInicioCedula, yActual);
+  doc.setFont('helvetica', 'bold');
+  doc.text(cedulaDirector, xInicioCedula + anchoLabelCI, yActual);
+  doc.setFont('helvetica', 'normal');
 
   // ==========================================
   // FIRMA Y SELLO — línea horizontal + texto

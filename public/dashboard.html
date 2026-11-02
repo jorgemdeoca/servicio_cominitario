@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,111 +8,387 @@
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     /* Dashboard Styles */
-    .dash-stats { display:grid; grid-template-columns:repeat(4, 1fr); gap:var(--space-4); margin-bottom:var(--space-5); }
+    .dash-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+
     .dash-stat {
-      background:#fff; border-radius:12px; padding:var(--space-4);
-      border:1px solid #e2e8f0;
-      box-shadow:0 1px 3px rgba(15,23,42,0.05);
-      display:flex; align-items:center; gap:var(--space-3);
+      background: #fff;
+      border-radius: 12px;
+      padding: var(--space-4);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
       transition: box-shadow 0.2s, border-color 0.2s;
     }
-    .dash-stat:hover { box-shadow:0 4px 6px rgba(15,23,42,0.08); border-color:#cbd5e1; }
-    .dash-stat-icon {
-      width:52px; height:52px; border-radius:12px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:1.5rem; flex-shrink:0;
-    }
-    .dash-stat-icon.blue { background:#e8f0fe; }
-    .dash-stat-icon.teal { background:#e6fffa; }
-    .dash-stat-icon.green { background:#ecfdf5; }
-    .dash-stat-icon.purple { background:#f5f3ff; }
-    .dash-stat-number { font-size:2rem; font-weight:700; color:#0f172a; line-height:1; }
-    .dash-stat-label { font-size:0.8rem; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; margin-top:2px; }
 
-    .dash-row { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); margin-bottom:var(--space-5); }
+    .dash-stat:hover {
+      box-shadow: 0 4px 6px rgba(15, 23, 42, 0.08);
+      border-color: #cbd5e1;
+    }
+
+    .dash-stat-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .dash-stat-icon.blue {
+      background: #e8f0fe;
+    }
+
+    .dash-stat-icon.teal {
+      background: #e6fffa;
+    }
+
+    .dash-stat-icon.green {
+      background: #ecfdf5;
+    }
+
+    .dash-stat-icon.purple {
+      background: #f5f3ff;
+    }
+
+    .dash-stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #0f172a;
+      line-height: 1;
+    }
+
+    .dash-stat-label {
+      font-size: 0.8rem;
+      color: #64748b;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
+    }
+
+    .dash-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+
     .dash-card {
-      background:#fff; border-radius:12px; border:1px solid #e2e8f0;
-      box-shadow:0 1px 3px rgba(15,23,42,0.05); overflow:hidden;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+      overflow: hidden;
     }
+
     .dash-card-header {
-      padding:var(--space-3) var(--space-4);
-      border-bottom:1px solid #f1f5f9;
-      display:flex; justify-content:space-between; align-items:center;
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .dash-card-header h3 { margin:0; font-size:1rem; font-weight:600; color:#0f172a; }
-    .dash-card-body { padding:var(--space-4); }
+
+    .dash-card-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .dash-card-body {
+      padding: var(--space-4);
+    }
 
     /* Bar chart */
-    .bar-row { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
-    .bar-label { width:120px; font-size:0.82rem; color:#334155; font-weight:500; text-align:right; flex-shrink:0; }
-    .bar-track { flex:1; background:#f1f5f9; border-radius:6px; height:22px; position:relative; overflow:hidden; }
-    .bar-fill { height:100%; border-radius:6px; transition:width 0.6s ease; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; }
-    .bar-fill span { font-size:0.7rem; font-weight:700; color:#fff; }
-    .bar-colors-0 { background:#1a73e8; } .bar-colors-1 { background:#0d9488; }
-    .bar-colors-2 { background:#7c3aed; } .bar-colors-3 { background:#16a34a; }
-    .bar-colors-4 { background:#ea580c; } .bar-colors-5 { background:#dc2626; }
-    .bar-colors-6 { background:#2563eb; } .bar-colors-7 { background:#059669; }
+    .bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .bar-label {
+      width: 120px;
+      font-size: 0.82rem;
+      color: #334155;
+      font-weight: 500;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .bar-track {
+      flex: 1;
+      background: #f1f5f9;
+      border-radius: 6px;
+      height: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      transition: width 0.6s ease;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 6px;
+    }
+
+    .bar-fill span {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .bar-colors-0 {
+      background: #1a73e8;
+    }
+
+    .bar-colors-1 {
+      background: #0d9488;
+    }
+
+    .bar-colors-2 {
+      background: #7c3aed;
+    }
+
+    .bar-colors-3 {
+      background: #16a34a;
+    }
+
+    .bar-colors-4 {
+      background: #ea580c;
+    }
+
+    .bar-colors-5 {
+      background: #dc2626;
+    }
+
+    .bar-colors-6 {
+      background: #2563eb;
+    }
+
+    .bar-colors-7 {
+      background: #059669;
+    }
 
     /* Donut chart (CSS only) */
-    .donut-container { display:flex; align-items:center; justify-content:center; gap:var(--space-5); }
-    .donut-ring { width:140px; height:140px; border-radius:50%; position:relative; }
-    .donut-center { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; }
-    .donut-center .donut-total { font-size:1.5rem; font-weight:700; color:#0f172a; }
-    .donut-center .donut-txt { font-size:0.7rem; color:#64748b; }
-    .donut-legend { display:flex; flex-direction:column; gap:10px; }
-    .donut-legend-item { display:flex; align-items:center; gap:8px; }
-    .donut-dot { width:12px; height:12px; border-radius:3px; flex-shrink:0; }
-    .donut-legend-label { font-size:0.85rem; color:#334155; }
-    .donut-legend-val { font-size:0.85rem; font-weight:700; color:#0f172a; }
+    .donut-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-5);
+    }
+
+    .donut-ring {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      position: relative;
+    }
+
+    .donut-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .donut-center .donut-total {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .donut-center .donut-txt {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    .donut-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .donut-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .donut-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .donut-legend-label {
+      font-size: 0.85rem;
+      color: #334155;
+    }
+
+    .donut-legend-val {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #0f172a;
+    }
 
     /* Alert lists */
     .alert-badge {
-      padding:2px 10px; border-radius:9999px; font-size:0.75rem; font-weight:700;
+      padding: 2px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 700;
     }
-    .alert-badge.warn { background:#fffbeb; color:#ea580c; }
-    .alert-badge.info { background:#e8f0fe; color:#1a73e8; }
+
+    .alert-badge.warn {
+      background: #fffbeb;
+      color: #ea580c;
+    }
+
+    .alert-badge.info {
+      background: #e8f0fe;
+      color: #1a73e8;
+    }
+
     .alert-item {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:10px 0; border-bottom:1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f1f5f9;
     }
-    .alert-item:last-child { border-bottom:none; }
-    .alert-item-info { display:flex; align-items:center; gap:10px; }
+
+    .alert-item:last-child {
+      border-bottom: none;
+    }
+
+    .alert-item-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .alert-avatar {
-      width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center;
-      font-size:0.75rem; font-weight:700; color:#fff; flex-shrink:0;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
     }
-    .alert-name { font-size:0.85rem; font-weight:500; color:#0f172a; }
-    .alert-sub { font-size:0.75rem; color:#64748b; }
+
+    .alert-name {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #0f172a;
+    }
+
+    .alert-sub {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
     .alert-btn {
-      padding:4px 14px; border-radius:6px; font-size:0.75rem; font-weight:600;
-      border:none; cursor:pointer; transition:opacity 0.2s;
+      padding: 4px 14px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
     }
-    .alert-btn:hover { opacity:0.85; }
-    .alert-btn.blue { background:#1a73e8; color:#fff; }
-    .alert-btn.orange { background:#ea580c; color:#fff; }
+
+    .alert-btn:hover {
+      opacity: 0.85;
+    }
+
+    .alert-btn.blue {
+      background: #1a73e8;
+      color: #fff;
+    }
+
+    .alert-btn.orange {
+      background: #ea580c;
+      color: #fff;
+    }
+
     .alert-ver-todos {
-      display:block; text-align:center; padding:10px; font-size:0.82rem;
-      color:#1a73e8; font-weight:600; text-decoration:none; border-top:1px solid #f1f5f9;
+      display: block;
+      text-align: center;
+      padding: 10px;
+      font-size: 0.82rem;
+      color: #1a73e8;
+      font-weight: 600;
+      text-decoration: none;
+      border-top: 1px solid #f1f5f9;
     }
-    .alert-ver-todos:hover { background:#f8fafc; }
+
+    .alert-ver-todos:hover {
+      background: #f8fafc;
+    }
 
     /* Bottom bar */
     .dash-footer {
-      background:linear-gradient(135deg, #1a73e8, #0d47a1); color:#fff;
-      border-radius:12px; padding:var(--space-3) var(--space-4);
-      display:flex; justify-content:space-between; align-items:center;
-      font-size:0.85rem;
+      background: linear-gradient(135deg, #1a73e8, #0d47a1);
+      color: #fff;
+      border-radius: 12px;
+      padding: var(--space-3) var(--space-4);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
     }
-    .dash-footer-badge { background:rgba(255,255,255,0.2); padding:3px 12px; border-radius:9999px; font-size:0.75rem; font-weight:600; }
-    .empty-state { text-align:center; padding:var(--space-5); color:#64748b; }
-    .empty-state-icon { font-size:2rem; margin-bottom:var(--space-2); }
+
+    .dash-footer-badge {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 3px 12px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: var(--space-5);
+      color: #64748b;
+    }
+
+    .empty-state-icon {
+      font-size: 2rem;
+      margin-bottom: var(--space-2);
+    }
 
     @media (max-width: 900px) {
-      .dash-stats { grid-template-columns:repeat(2, 1fr); }
-      .dash-row { grid-template-columns:1fr; }
+      .dash-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .dash-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body class="dashboard-page">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -125,7 +402,7 @@
       </a>
       <a href="/personas.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Personas</span>
+        <span class="nav-text">Representantes</span>
       </a>
       <a href="/estudiantes.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
@@ -210,7 +487,9 @@
             <h3>&#128202; Matr&#237;cula por Grado</h3>
           </div>
           <div class="dash-card-body" id="chartGrados">
-            <div class="empty-state"><div class="empty-state-icon">&#128202;</div>Cargando datos...</div>
+            <div class="empty-state">
+              <div class="empty-state-icon">&#128202;</div>Cargando datos...
+            </div>
           </div>
         </div>
         <div class="dash-card">
@@ -218,7 +497,9 @@
             <h3>&#129383; Distribuci&#243;n por Sexo</h3>
           </div>
           <div class="dash-card-body" id="chartSexo">
-            <div class="empty-state"><div class="empty-state-icon">&#129383;</div>Cargando datos...</div>
+            <div class="empty-state">
+              <div class="empty-state-icon">&#129383;</div>Cargando datos...
+            </div>
           </div>
         </div>
       </div>
@@ -226,7 +507,8 @@
       <!-- BACKUP REMINDER (solo SUPER_ADMIN, controlado por JS) -->
       <div id="backupReminder" style="display:none; margin-bottom:var(--space-4);">
         <div class="dash-card" style="border-left:4px solid var(--warning);">
-          <div class="dash-card-body" style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); padding:var(--space-4) var(--space-5); flex-wrap:wrap;">
+          <div class="dash-card-body"
+            style="display:flex; align-items:center; justify-content:space-between; gap:var(--space-4); padding:var(--space-4) var(--space-5); flex-wrap:wrap;">
             <div style="display:flex; align-items:center; gap:var(--space-3);">
               <img src="/icons/database.svg" alt="" style="width:24px;height:24px;opacity:0.5;">
               <div>
@@ -237,7 +519,8 @@
               </div>
             </div>
             <div style="display:flex; gap:var(--space-2);">
-              <a href="/configuracion.html" class="btn btn-primary btn-sm" style="display:inline-flex;align-items:center;gap:4px;">
+              <a href="/configuracion.html" class="btn btn-primary btn-sm"
+                style="display:inline-flex;align-items:center;gap:4px;">
                 <img src="/icons/database.svg" alt="" style="width:14px;height:14px;filter:brightness(10);"> Ir a Backup
               </a>
               <button class="btn btn-secondary btn-sm" onclick="descartarRecordatorioBackup()">Ahora no</button>
@@ -253,7 +536,8 @@
             <h3>&#9888;&#65039; Estudiantes sin Inscribir</h3>
             <span class="alert-badge warn" id="badgeSinInscribir">0</span>
           </div>
-          <div class="dash-card-body" id="listaSinInscribir" style="padding:0 var(--space-4);max-height:300px;overflow-y:auto;">
+          <div class="dash-card-body" id="listaSinInscribir"
+            style="padding:0 var(--space-4);max-height:300px;overflow-y:auto;">
           </div>
           <a href="/inscripciones.html" class="alert-ver-todos" id="linkSinInscribir" style="display:none;">
             Ver todos &#8594;
@@ -264,7 +548,8 @@
             <h3>&#128176; Inscritos sin Colaboraci&#243;n</h3>
             <span class="alert-badge info" id="badgeSinColab">0</span>
           </div>
-          <div class="dash-card-body" id="listaSinColab" style="padding:0 var(--space-4);max-height:300px;overflow-y:auto;">
+          <div class="dash-card-body" id="listaSinColab"
+            style="padding:0 var(--space-4);max-height:300px;overflow-y:auto;">
           </div>
           <a href="/inscripciones.html" class="alert-ver-todos" id="linkSinColab" style="display:none;">
             Ver todos &#8594;
@@ -285,4 +570,5 @@
   <script src="/js/auth.js"></script>
   <script src="/js/dashboard.js"></script>
 </body>
+
 </html>

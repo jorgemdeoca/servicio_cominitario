@@ -132,22 +132,28 @@ async function cargarDatosIniciales() {
     const grados = await gradosRes.json();
     const profesores = await profRes.json();
 
-    // Llenar filtro de años
+    // Llenar filtro de años (muestra todos para consultas)
     const filtroAnio = document.getElementById('filtroAnio');
+    // Dropdown del modal de inscripción (solo año activo)
     const inscAnio = document.getElementById('insc_anio');
     filtroAnio.innerHTML = '';
     inscAnio.innerHTML = '';
 
+    let anioActivoId = null;
     anios.forEach(a => {
-      const opt1 = new Option(a.nombre + (a.activo ? ' (Activo)' : ''), a.id);
-      const opt2 = new Option(a.nombre + (a.activo ? ' (Activo)' : ''), a.id);
-      filtroAnio.appendChild(opt1);
-      inscAnio.appendChild(opt2);
+      const label = a.nombre + (a.activo ? ' (Activo)' : '');
+      // El filtro de la tabla muestra TODOS los años (para consultar historial)
+      filtroAnio.appendChild(new Option(label, String(a.id)));
+      // El modal de inscripción SOLO muestra el año activo
       if (a.activo) {
-        opt1.selected = true;
-        opt2.selected = true;
+        inscAnio.appendChild(new Option(a.nombre, String(a.id)));
+        anioActivoId = String(a.id);
       }
     });
+    // Seleccionar el año activo en el filtro de la tabla
+    if (anioActivoId) {
+      filtroAnio.value = anioActivoId;
+    }
 
     // Llenar filtro de grados
     const filtroGrado = document.getElementById('filtroGrado');
@@ -462,6 +468,9 @@ function abrirModalInscripcion() {
   hideAlert('alertModal');
   limpiarCamposColaboracion();
 
+  // Recargar secciones del año activo
+  cargarSeccionesModal();
+
   document.getElementById('modalInscTitulo').textContent = '📝 Nueva Inscripción';
   
   if(document.getElementById('containerEstudiante').classList.contains('modo-registro-activo')) {
@@ -626,7 +635,7 @@ function validarFormularioInscripcion() {
 
   // --- Sección 2: Asignación ---
   if (!document.getElementById('insc_anio').value)
-    errores.push({ campo: 'insc_anio', mensaje: 'Debe seleccionar un Año Escolar.', seccionIdx: 1 });
+    errores.push({ campo: 'insc_anio', mensaje: 'No hay un Año Escolar activo configurado.', seccionIdx: 1 });
   if (!document.getElementById('insc_seccion').value)
     errores.push({ campo: 'insc_seccion', mensaje: 'Debe seleccionar un Grado y Sección.', seccionIdx: 1 });
   if (!document.getElementById('insc_fecha').value)
@@ -985,7 +994,9 @@ async function verInscripcion(id) {
     const estNombres = [est.primer_nombre, est.segundo_nombre].filter(Boolean).join(' ');
     const estApellidos = [est.primer_apellido, est.segundo_apellido].filter(Boolean).join(' ');
     const estNombreApellido = [est.primer_nombre, est.primer_apellido].filter(Boolean).join(' ');
+    const estApellidoNombre = [est.primer_apellido, est.primer_nombre].filter(Boolean).join(' ');
     const estNombresApellidos = [est.primer_nombre, est.segundo_nombre, est.primer_apellido, est.segundo_apellido].filter(Boolean).join(' ');
+    const estApellidosNombres = [est.primer_apellido, est.segundo_apellido, est.primer_nombre, est.segundo_nombre].filter(Boolean).join(' ');
     const estFechaNac = formatearFecha(est.fecha_nacimiento);
 
     // Documentos
@@ -1004,7 +1015,7 @@ async function verInscripcion(id) {
     ).join('');
 
     // Helper: genera opciones del menú de copiado del estudiante
-    const menuEstudiante = buildCopyMenuEstudiante(est, estNombres, estApellidos, estNombreApellido, estNombresApellidos, estFechaNac);
+    const menuEstudiante = buildCopyMenuEstudiante(est, estNombres, estApellidos, estNombreApellido, estApellidoNombre, estNombresApellidos, estApellidosNombres, estFechaNac);
 
     // Helper para persona con íconos de copiar
     const personaInfoConCopia = (p, rol, menuId) => {
@@ -2196,26 +2207,17 @@ function copyMenuItem(label, valor) {
 /**
  * Genera el HTML del menú dropdown de copiado para un ESTUDIANTE.
  */
-function buildCopyMenuEstudiante(est, estNombres, estApellidos, estNombreApellido, estNombresApellidos, estFechaNac) {
+function buildCopyMenuEstudiante(est, estNombres, estApellidos, estNombreApellido, estApellidoNombre, estNombresApellidos, estApellidosNombres, estFechaNac) {
   var items = '';
 
-  // Sección: Individuales
-  items += '<div class="copy-menu-separator">Individuales</div>';
-  items += copyMenuItem('Primer Nombre', est.primer_nombre);
-  items += copyMenuItem('Segundo Nombre', est.segundo_nombre);
-  items += copyMenuItem('Primer Apellido', est.primer_apellido);
-  items += copyMenuItem('Segundo Apellido', est.segundo_apellido);
-  items += copyMenuItem('Cédula Escolar', est.codigo_escolar);
-  if (estFechaNac && estFechaNac !== '--') {
-    items += copyMenuItem('Fecha de Nacimiento', estFechaNac);
-  }
-
-  // Sección: Combinaciones
+  // Solo combinaciones (los campos individuales ya tienen icono de copiar)
   items += '<div class="copy-menu-separator">Combinaciones</div>';
-  items += copyMenuItem('Nombres', estNombres);
-  items += copyMenuItem('Apellidos', estApellidos);
+  items += copyMenuItem('Nombres (1° y 2°)', estNombres);
+  items += copyMenuItem('Apellidos (1° y 2°)', estApellidos);
   items += copyMenuItem('Nombre y Apellido', estNombreApellido);
+  items += copyMenuItem('Apellido y Nombre', estApellidoNombre);
   items += copyMenuItem('Nombres y Apellidos', estNombresApellidos);
+  items += copyMenuItem('Apellidos y Nombres', estApellidosNombres);
 
   return '<div id="copyMenuEst" class="copy-menu-dropdown">' + items + '</div>';
 }
@@ -2228,19 +2230,13 @@ function buildCopyMenuPersona(p, menuId) {
   var items = '';
   var cedulaConNac = p.nacionalidad ? (p.nacionalidad + '-' + p.cedula) : p.cedula;
   var nombresApellidos = [p.nombres, p.apellidos].filter(Boolean).join(' ');
+  var apellidosNombres = [p.apellidos, p.nombres].filter(Boolean).join(' ');
 
-  // Sección: Individuales
-  items += '<div class="copy-menu-separator">Individuales</div>';
-  items += copyMenuItem('Nombres', p.nombres);
-  items += copyMenuItem('Apellidos', p.apellidos);
-  items += copyMenuItem('Cédula', p.cedula);
+  // Solo combinaciones (los campos individuales ya tienen icono de copiar)
+  items += '<div class="copy-menu-separator">Combinaciones</div>';
   items += copyMenuItem('Cédula con Nac.', cedulaConNac);
-  items += copyMenuItem('Teléfono', p.telefono);
-  items += copyMenuItem('Dirección', p.direccion);
-
-  // Sección: Combinación
-  items += '<div class="copy-menu-separator">Combinación</div>';
   items += copyMenuItem('Nombres y Apellidos', nombresApellidos);
+  items += copyMenuItem('Apellidos y Nombres', apellidosNombres);
 
   return '<div id="' + menuId + '" class="copy-menu-dropdown">' + items + '</div>';
 }
