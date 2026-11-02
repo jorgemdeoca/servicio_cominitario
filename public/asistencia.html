@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,124 +9,297 @@
   <style>
     /* Filtros superiores */
     .asist-filtros {
-      display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-3);
-      background:var(--bg-white); padding:var(--space-4);
-      border-radius:var(--radius-lg); border:1px solid var(--border);
-      box-shadow:var(--shadow); margin-bottom:var(--space-4);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-3);
+      background: var(--bg-white);
+      padding: var(--space-4);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      margin-bottom: var(--space-4);
     }
-    .asist-filtros label { font-size:var(--font-size-sm); font-weight:600; color:var(--text); }
-    .asist-filtros select, .asist-filtros input[type="date"] {
-      padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius);
-      font-size:var(--font-size-sm); background:#fff; color:var(--text);
+
+    .asist-filtros label {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text);
     }
-    .asist-filtros .filtro-grupo { display:flex; align-items:center; gap:6px; }
+
+    .asist-filtros select,
+    .asist-filtros input[type="date"] {
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: var(--font-size-sm);
+      background: #fff;
+      color: var(--text);
+    }
+
+    .asist-filtros .filtro-grupo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
     /* Aviso día no laborable */
     .asist-aviso {
-      display:none; padding:var(--space-3) var(--space-4);
-      border-radius:var(--radius); margin-bottom:var(--space-3);
-      font-size:var(--font-size-sm); font-weight:500;
+      display: none;
+      padding: var(--space-3) var(--space-4);
+      border-radius: var(--radius);
+      margin-bottom: var(--space-3);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
     }
-    .asist-aviso.warn { background:var(--warning-bg); color:#92400e; border:1px solid #fbbf24; }
-    .asist-aviso.info { background:var(--info-bg); color:#0f766e; border:1px solid #5eead4; }
+
+    .asist-aviso.warn {
+      background: var(--warning-bg);
+      color: #92400e;
+      border: 1px solid #fbbf24;
+    }
+
+    .asist-aviso.info {
+      background: var(--info-bg);
+      color: #0f766e;
+      border: 1px solid #5eead4;
+    }
 
     /* Tabla de asistencia */
     .asist-card {
-      background:var(--bg-white); border-radius:var(--radius-lg);
-      border:1px solid var(--border); box-shadow:var(--shadow); overflow:hidden;
-      margin-bottom:var(--space-4);
+      background: var(--bg-white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: var(--space-4);
     }
-    .asist-card-header {
-      padding:var(--space-3) var(--space-4);
-      border-bottom:1px solid var(--border);
-      display:flex; justify-content:space-between; align-items:center;
-    }
-    .asist-card-header h3 { margin:0; font-size:1rem; font-weight:600; color:var(--text); }
 
-    .asist-table-wrap { overflow-x:auto; }
+    .asist-card-header {
+      padding: var(--space-3) var(--space-4);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .asist-card-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .asist-table-wrap {
+      overflow-x: auto;
+    }
+
     .asist-table {
-      width:100%; border-collapse:collapse; font-size:var(--font-size-sm);
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--font-size-sm);
     }
+
     .asist-table th {
-      background:var(--primary); color:white; padding:8px 6px;
-      text-align:center; font-weight:600; font-size:0.78rem;
-      white-space:nowrap; border:1px solid rgba(255,255,255,0.15);
+      background: var(--primary);
+      color: white;
+      padding: 8px 6px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.78rem;
+      white-space: nowrap;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
+
     .asist-table th.sub-header {
-      background:var(--primary-dark); font-size:0.72rem; padding:5px 4px;
+      background: var(--primary-dark);
+      font-size: 0.72rem;
+      padding: 5px 4px;
     }
+
     .asist-table td {
-      padding:6px 8px; text-align:center; border:1px solid #e2e8f0;
-      font-size:0.85rem; vertical-align:middle;
+      padding: 6px 8px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+      font-size: 0.85rem;
+      vertical-align: middle;
     }
-    .asist-table tbody tr:hover { background:#f8fafc; }
+
+    .asist-table tbody tr:hover {
+      background: #f8fafc;
+    }
+
     .asist-table .td-grado {
-      text-align:left; font-weight:600; color:var(--text);
-      white-space:nowrap; padding-left:12px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      padding-left: 12px;
     }
-    .asist-table .td-readonly { background:#f1f5f9; color:var(--text-muted); font-weight:500; }
-    .asist-table .td-inasist { background:#fef2f2; color:var(--error); font-weight:600; }
-    .asist-table .td-firma { min-width:70px; }
+
+    .asist-table .td-readonly {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .asist-table .td-inasist {
+      background: #fef2f2;
+      color: var(--error);
+      font-weight: 600;
+    }
+
+    .asist-table .td-firma {
+      min-width: 70px;
+    }
 
     .asist-input {
-      width:50px; padding:4px 2px; border:1px solid var(--border);
-      border-radius:4px; text-align:center; font-size:0.85rem;
-      font-weight:600; color:var(--primary);
-      transition:border-color 0.2s;
+      width: 50px;
+      padding: 4px 2px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      transition: border-color 0.2s;
     }
-    .asist-input:focus { border-color:var(--primary-light); outline:none; box-shadow:0 0 0 2px rgba(37,99,235,0.15); }
-    .asist-input:disabled { background:#f1f5f9; color:var(--text-muted); cursor:not-allowed; }
-    .asist-input.error { border-color:var(--error); background:#fef2f2; }
+
+    .asist-input:focus {
+      border-color: var(--primary-light);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+    }
+
+    .asist-input:disabled {
+      background: #f1f5f9;
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+
+    .asist-input.error {
+      border-color: var(--error);
+      background: #fef2f2;
+    }
 
     /* Separador visual entre niveles */
     .asist-table .fila-separador td {
-      background:var(--primary-bg); padding:4px; font-weight:700;
-      color:var(--primary); font-size:0.8rem; text-align:left; padding-left:12px;
+      background: var(--primary-bg);
+      padding: 4px;
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.8rem;
+      text-align: left;
+      padding-left: 12px;
     }
 
     /* Tabla resumen */
     .resumen-card {
-      background:var(--bg-white); border-radius:var(--radius-lg);
-      border:1px solid var(--border); box-shadow:var(--shadow);
-      padding:var(--space-4); margin-bottom:var(--space-4);
+      background: var(--bg-white);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: var(--space-4);
+      margin-bottom: var(--space-4);
     }
-    .resumen-card h4 { margin:0 0 var(--space-3) 0; font-size:0.95rem; color:var(--text); }
+
+    .resumen-card h4 {
+      margin: 0 0 var(--space-3) 0;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
     .resumen-table {
-      border-collapse:collapse; font-size:var(--font-size-sm);
+      border-collapse: collapse;
+      font-size: var(--font-size-sm);
     }
+
     .resumen-table th {
-      background:var(--primary); color:white; padding:6px 16px;
-      text-align:center; font-weight:600; font-size:0.78rem;
-      border:1px solid rgba(255,255,255,0.15);
+      background: var(--primary);
+      color: white;
+      padding: 6px 16px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.78rem;
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
+
     .resumen-table td {
-      padding:6px 16px; text-align:center; border:1px solid #e2e8f0;
-      font-weight:600; font-size:0.85rem;
+      padding: 6px 16px;
+      text-align: center;
+      border: 1px solid #e2e8f0;
+      font-weight: 600;
+      font-size: 0.85rem;
     }
-    .resumen-table .td-label { text-align:left; font-weight:700; color:var(--primary); }
+
+    .resumen-table .td-label {
+      text-align: left;
+      font-weight: 700;
+      color: var(--primary);
+    }
 
     /* Botones de acción */
     .asist-acciones {
-      display:flex; gap:var(--space-3); flex-wrap:wrap; margin-bottom:var(--space-4);
+      display: flex;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-4);
     }
 
     /* Modal días no laborables */
-    .dnl-lista { max-height:300px; overflow-y:auto; }
+    .dnl-lista {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
     .dnl-item {
-      display:flex; justify-content:space-between; align-items:center;
-      padding:8px 12px; border-bottom:1px solid #f1f5f9;
-      font-size:var(--font-size-sm);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: var(--font-size-sm);
     }
-    .dnl-item:last-child { border-bottom:none; }
-    .dnl-fecha { font-weight:600; color:var(--text); min-width:100px; }
-    .dnl-motivo { color:var(--text-muted); flex:1; margin:0 12px; }
+
+    .dnl-item:last-child {
+      border-bottom: none;
+    }
+
+    .dnl-fecha {
+      font-weight: 600;
+      color: var(--text);
+      min-width: 100px;
+    }
+
+    .dnl-motivo {
+      color: var(--text-muted);
+      flex: 1;
+      margin: 0 12px;
+    }
+
     .dnl-form {
-      display:flex; gap:var(--space-2); align-items:end;
-      padding:var(--space-3); background:#f8fafc; border-radius:var(--radius);
-      margin-bottom:var(--space-3);
+      display: flex;
+      gap: var(--space-2);
+      align-items: end;
+      padding: var(--space-3);
+      background: #f8fafc;
+      border-radius: var(--radius);
+      margin-bottom: var(--space-3);
     }
-    .dnl-form label { font-size:var(--font-size-xs); font-weight:600; color:var(--text-muted); }
-    .dnl-form input, .dnl-form select { padding:5px 8px; border:1px solid var(--border); border-radius:4px; font-size:var(--font-size-sm); }
+
+    .dnl-form label {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .dnl-form input,
+    .dnl-form select {
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: var(--font-size-sm);
+    }
 
     /* Modal overlay (shared pattern) */
     .modal-overlay {
@@ -139,7 +313,10 @@
       padding: 2rem 1rem;
       overflow-y: auto;
     }
-    .modal-overlay.active { display: flex; }
+
+    .modal-overlay.active {
+      display: flex;
+    }
 
     .modal-insc {
       background: var(--bg-white);
@@ -150,6 +327,7 @@
       margin: auto;
       border: 1px solid var(--border);
     }
+
     .modal-insc-header {
       background: var(--primary);
       color: white;
@@ -159,21 +337,30 @@
       justify-content: space-between;
       align-items: center;
     }
+
     .modal-insc-header h2 {
       font-size: var(--font-size-base);
       font-weight: 700;
       margin: 0;
     }
+
     .modal-insc-body {
       padding: var(--space-5) var(--space-6);
     }
 
     @media (max-width: 768px) {
-      .asist-filtros { flex-direction:column; align-items:stretch; }
-      .asist-acciones { flex-direction:column; }
+      .asist-filtros {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .asist-acciones {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
+
 <body class="asistencia-page">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -187,7 +374,7 @@
       </a>
       <a href="/personas.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Personas</span>
+        <span class="nav-text">Representantes</span>
       </a>
       <a href="/estudiantes.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
@@ -253,8 +440,10 @@
 
       <!-- BOTONES DE ACCIÓN -->
       <div style="display:flex;gap:var(--space-3);flex-wrap:wrap;margin-bottom:var(--space-3);">
-        <button class="btn btn-sm" style="background:var(--info);color:white;border:none;" onclick="abrirModalDiasNoLaborables()">
-          <img src="/icons/calendar-check.svg" alt="" style="width:14px;height:14px;filter:brightness(10);vertical-align:middle;margin-right:4px;">
+        <button class="btn btn-sm" style="background:var(--info);color:white;border:none;"
+          onclick="abrirModalDiasNoLaborables()">
+          <img src="/icons/calendar-check.svg" alt=""
+            style="width:14px;height:14px;filter:brightness(10);vertical-align:middle;margin-right:4px;">
           D&#237;as no laborables
         </button>
         <button class="btn btn-sm btn-primary" onclick="abrirModalPDF()">
@@ -297,7 +486,10 @@
               </tr>
             </thead>
             <tbody id="asistTableBody">
-              <tr><td colspan="11" style="padding:30px;color:var(--text-muted);">Seleccione un a&#241;o escolar y una fecha para cargar la asistencia.</td></tr>
+              <tr>
+                <td colspan="11" style="padding:30px;color:var(--text-muted);">Seleccione un a&#241;o escolar y una
+                  fecha para cargar la asistencia.</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -316,8 +508,18 @@
             </tr>
           </thead>
           <tbody>
-            <tr><td class="td-label">PREESCOLAR</td><td id="resPreV">0</td><td id="resPreH">0</td><td id="resPreT">0</td></tr>
-            <tr><td class="td-label">B&#193;SICA</td><td id="resBasV">0</td><td id="resBasH">0</td><td id="resBasT">0</td></tr>
+            <tr>
+              <td class="td-label">PREESCOLAR</td>
+              <td id="resPreV">0</td>
+              <td id="resPreH">0</td>
+              <td id="resPreT">0</td>
+            </tr>
+            <tr>
+              <td class="td-label">B&#193;SICA</td>
+              <td id="resBasV">0</td>
+              <td id="resBasH">0</td>
+              <td id="resBasT">0</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -327,7 +529,8 @@
         <button class="btn btn-primary" id="btnGuardarAsistencia" onclick="guardarTodas()" disabled>
           &#128190; Guardar Asistencia
         </button>
-        <span id="asistGuardadoMsg" style="font-size:var(--font-size-sm);color:var(--success);align-self:center;display:none;">
+        <span id="asistGuardadoMsg"
+          style="font-size:var(--font-size-sm);color:var(--success);align-self:center;display:none;">
           &#10004; Asistencia guardada correctamente
         </span>
       </div>
@@ -339,7 +542,8 @@
     <div class="modal-insc" style="max-width:550px;">
       <div class="modal-insc-header">
         <h2>&#128197; D&#237;as No Laborables</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalDiasNoLab()">&#215;</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
+          onclick="cerrarModalDiasNoLab()">&#215;</button>
       </div>
       <div class="modal-insc-body" style="max-height:65vh;overflow-y:auto;">
         <!-- Formulario agregar -->
@@ -367,19 +571,23 @@
     <div class="modal-insc" style="max-width:450px;">
       <div class="modal-insc-header">
         <h2>&#128424; Generar Reporte de Asistencia</h2>
-        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;" onclick="cerrarModalPDF()">&#215;</button>
+        <button class="btn btn-sm" style="background:rgba(255,255,255,0.15);color:white;border:none;"
+          onclick="cerrarModalPDF()">&#215;</button>
       </div>
       <div class="modal-insc-body" style="padding:var(--space-4);">
         <p style="font-size:var(--font-size-sm);color:var(--text-muted);margin-bottom:var(--space-3);">
           Fecha: <strong id="pdfFechaLabel"></strong>
         </p>
         <div style="margin-bottom:var(--space-4);">
-          <label style="font-weight:600;font-size:var(--font-size-sm);display:block;margin-bottom:4px;">Docente de guardia:</label>
-          <select id="pdfDocente" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:var(--font-size-sm);">
+          <label style="font-weight:600;font-size:var(--font-size-sm);display:block;margin-bottom:4px;">Docente de
+            guardia:</label>
+          <select id="pdfDocente"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:var(--font-size-sm);">
             <option value="">Seleccione un docente...</option>
           </select>
         </div>
-        <p style="font-size:var(--font-size-xs);color:var(--text-muted);background:#f8fafc;padding:10px;border-radius:var(--radius);">
+        <p
+          style="font-size:var(--font-size-xs);color:var(--text-muted);background:#f8fafc;padding:10px;border-radius:var(--radius);">
           Se generar&#225; el PDF con los datos de asistencia del d&#237;a seleccionado con el formato institucional.
         </p>
         <div style="display:flex;gap:var(--space-2);justify-content:flex-end;margin-top:var(--space-4);">
@@ -412,4 +620,5 @@
   <script src="/js/pdf-asistencia.js"></script>
   <script src="/js/asistencia.js"></script>
 </body>
+
 </html>

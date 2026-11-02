@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,6 +14,7 @@
       margin-bottom: var(--space-6);
       gap: var(--space-6);
     }
+
     .tab-btn {
       background: none;
       border: none;
@@ -24,21 +26,25 @@
       border-bottom: 2px solid transparent;
       transition: all 0.2s ease;
     }
+
     .tab-btn:hover {
       color: var(--text);
     }
+
     .tab-btn.active {
       color: var(--primary);
       border-bottom-color: var(--primary);
       font-weight: 600;
     }
+
     .tab-panel {
       display: none;
     }
+
     .tab-panel.active {
       display: block;
     }
-    
+
     /* Layout para los paneles */
     .config-grid {
       display: grid;
@@ -46,13 +52,14 @@
       gap: var(--space-6);
       align-items: start;
     }
+
     .config-form-card {
       background: var(--bg-white);
       padding: var(--space-6);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow);
     }
-    
+
     /* Badges y Pills */
     .badge {
       display: inline-block;
@@ -61,10 +68,22 @@
       font-size: var(--font-size-xs);
       font-weight: 600;
     }
-    .badge-success { background: var(--success-bg); color: var(--success); }
-    .badge-inactive { background: var(--border); color: var(--text-muted); }
-    .badge-primary { background: var(--primary-bg); color: var(--primary-dark); }
-    
+
+    .badge-success {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .badge-inactive {
+      background: var(--border);
+      color: var(--text-muted);
+    }
+
+    .badge-primary {
+      background: var(--primary-bg);
+      color: var(--primary-dark);
+    }
+
     .seccion-pill {
       display: inline-flex;
       align-items: center;
@@ -78,6 +97,7 @@
       margin-right: var(--space-2);
       margin-bottom: var(--space-2);
     }
+
     .seccion-pill .btn-delete-seccion {
       background: transparent;
       border: none;
@@ -91,41 +111,44 @@
       height: 18px;
       border-radius: 50%;
     }
+
     .seccion-pill .btn-delete-seccion:hover {
       background: var(--error-bg);
       color: var(--error);
     }
-    
+
     /* Formulario de Escuela a dos columnas */
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--space-4);
     }
+
     .full-width {
       grid-column: 1 / -1;
     }
-    
+
     .actions-cell {
       display: flex;
       gap: var(--space-2);
     }
   </style>
 </head>
+
 <body class="dashboard-page">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <h2>Gestión Escolar</h2>
       <p class="sidebar-school-name">U.E.E. "Gral. Aquilino Juáres"</p>
     </div>
-        <nav class="sidebar-nav">
+    <nav class="sidebar-nav">
       <a href="/dashboard.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/home.svg" alt="" class="nav-icon-img"></span>
         <span class="nav-text">Dashboard</span>
       </a>
       <a href="/personas.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Personas</span>
+        <span class="nav-text">Representantes</span>
       </a>
       <a href="/estudiantes.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
@@ -184,27 +207,33 @@
       <!-- C2: Tabs con iconos SVG -->
       <div class="tabs">
         <button class="tab-btn active" data-tab="tab-anios">
-          <img src="/icons/calendar.svg" alt="" style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
+          <img src="/icons/calendar.svg" alt=""
+            style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
           Años Escolares
         </button>
         <button class="tab-btn" data-tab="tab-grados">
-          <img src="/icons/layers.svg" alt="" style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
+          <img src="/icons/layers.svg" alt=""
+            style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
           Grados
         </button>
         <button class="tab-btn" data-tab="tab-secciones">
-          <img src="/icons/grid.svg" alt="" style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
+          <img src="/icons/grid.svg" alt=""
+            style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
           Secciones
         </button>
         <button class="tab-btn" data-tab="tab-escuela">
-          <img src="/icons/building-2.svg" alt="" style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
+          <img src="/icons/building-2.svg" alt=""
+            style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
           Datos de la Escuela
         </button>
         <button class="tab-btn" data-tab="tab-usuarios">
-          <img src="/icons/user-cog.svg" alt="" style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
+          <img src="/icons/user-cog.svg" alt=""
+            style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
           Usuarios
         </button>
         <button class="tab-btn" data-tab="tab-sistema" id="tabBtnSistema" style="display:none;">
-          <img src="/icons/terminal.svg" alt="" style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
+          <img src="/icons/terminal.svg" alt=""
+            style="width:13px;height:13px;vertical-align:middle;margin-right:5px;opacity:0.7;">
           Sistema
         </button>
       </div>
@@ -310,7 +339,7 @@
           <label>Filtro por Año Escolar</label>
           <select id="s_filtro_anio"></select>
         </div>
-        
+
         <div class="config-grid">
           <div class="config-form-card">
             <h3>Agregar Sección</h3>
@@ -331,11 +360,13 @@
                     <select id="s_prof_results" style="flex: 1; max-width: 100%;">
                       <option value="">— Sin resultados —</option>
                     </select>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="addProfesorSeccion()" style="white-space: nowrap;">+ Añadir</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="addProfesorSeccion()"
+                      style="white-space: nowrap;">+ Añadir</button>
                   </div>
                 </div>
                 <!-- Div donde se mostrarán las pastillitas (tags) de los profesores agregados -->
-                <div id="s_profesores_list" style="display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 40px; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color);">
+                <div id="s_profesores_list"
+                  style="display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 40px; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color);">
                 </div>
               </div>
               <button type="submit" class="btn btn-primary btn-full">Agregar Sección</button>
@@ -362,18 +393,21 @@
       <div id="tab-escuela" class="tab-panel">
         <div class="config-form-card" style="max-width: 800px;">
           <h3>Datos Institucionales</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Estos datos se utilizarán para generar las planillas, constancias y reportes.</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Estos datos se utilizarán para
+            generar las planillas, constancias y reportes.</p>
           <form id="formEscuela" class="form-grid">
             <div class="form-group full-width">
               <label>Logo de la Institución</label>
               <div style="display:flex; align-items:flex-start; gap:1.25rem; flex-wrap:wrap;">
-                <div style="flex-shrink:0; width:100px; height:100px; border:2px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--bg-subtle, #f8f9fa); overflow:hidden;">
+                <div
+                  style="flex-shrink:0; width:100px; height:100px; border:2px dashed var(--border); border-radius:12px; display:flex; align-items:center; justify-content:center; background:var(--bg-subtle, #f8f9fa); overflow:hidden;">
                   <img id="previewLogo" src="" alt="Logo"
-                       style="width:100%;height:100%;object-fit:contain;display:none;">
+                    style="width:100%;height:100%;object-fit:contain;display:none;">
                   <span id="logoPlaceholder" style="font-size:2rem; color:var(--text-muted);">🏫</span>
                 </div>
                 <div style="flex:1; min-width:200px;">
-                  <input type="file" id="cfg_logo" accept="image/png, image/jpeg" onchange="previewLogoFile(this)" style="margin-bottom:0.5rem;">
+                  <input type="file" id="cfg_logo" accept="image/png, image/jpeg" onchange="previewLogoFile(this)"
+                    style="margin-bottom:0.5rem;">
                   <small style="display:block; color:var(--text-muted); line-height:1.5;">
                     Formatos: <strong>PNG o JPEG</strong> · Tamaño máximo: <strong>500 KB</strong><br>
                     Dimensiones: mínimo <strong>80×80px</strong>, máximo <strong>2000×2000px</strong><br>
@@ -391,9 +425,34 @@
               <input type="text" id="cfg_codigo_plantel">
             </div>
             <div class="form-group">
-              <label>Teléfono</label>
-              <input type="text" id="cfg_telefono">
+              <label>Código Dependencia</label>
+              <input type="text" id="cfg_codigo_dependencia">
             </div>
+            <div class="form-group">
+              <label>Código Estadístico</label>
+              <input type="text" id="cfg_codigo_estadistico">
+            </div>
+            <div class="form-group">
+              <label>Código del Territorio</label>
+              <input type="text" id="cfg_codigo_territorio">
+            </div>
+            <div class="form-group">
+              <label>Código CNAE</label>
+              <input type="text" id="cfg_codigo_cnae">
+            </div>
+            <div class="form-group">
+              <label>Código Electoral</label>
+              <input type="text" id="cfg_codigo_electoral">
+            </div>
+            <div class="form-group full-width">
+              <label>Territorio Educativo</label>
+              <input type="text" id="cfg_territorio_educativo">
+            </div>
+
+            <!-- Ubicación -->
+            <div class="full-width"
+              style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;">
+              📍 Ubicación</div>
             <div class="form-group">
               <label>Estado</label>
               <input type="text" id="cfg_estado" value="Lara">
@@ -410,6 +469,28 @@
               <label>Localidad / Sector</label>
               <input type="text" id="cfg_localidad" placeholder="Ej: Los Rastrojos">
             </div>
+            <div class="form-group full-width">
+              <label>Dirección Completa</label>
+              <input type="text" id="cfg_direccion">
+            </div>
+
+            <!-- Contacto Institucional -->
+            <div class="full-width"
+              style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;">
+              📞 Contacto Institucional</div>
+            <div class="form-group">
+              <label>Teléfono Institucional</label>
+              <input type="text" id="cfg_telefono" placeholder="Ej: 02512345678">
+            </div>
+            <div class="form-group">
+              <label>Correo Institucional</label>
+              <input type="email" id="cfg_correo_institucional" placeholder="Ej: escuela@correo.com">
+            </div>
+
+            <!-- Director/a -->
+            <div class="full-width"
+              style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;">
+              👤 Director/a</div>
             <div class="form-group">
               <label>Nombre del Director/a</label>
               <input type="text" id="cfg_director">
@@ -418,10 +499,36 @@
               <label>Cédula del Director/a</label>
               <input type="text" id="cfg_cedula_director" placeholder="Ej: 12345678">
             </div>
-            <div class="form-group full-width">
-              <label>Dirección Completa</label>
-              <input type="text" id="cfg_direccion">
+            <div class="form-group">
+              <label>Teléfono del Director/a</label>
+              <input type="text" id="cfg_telefono_director" placeholder="Ej: 04121234567">
             </div>
+            <div class="form-group">
+              <label>Correo del Director/a</label>
+              <input type="email" id="cfg_correo_director" placeholder="Ej: director@correo.com">
+            </div>
+
+            <!-- Supervisor/a -->
+            <div class="full-width"
+              style="margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 600; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.4rem;">
+              🔍 Supervisor/a</div>
+            <div class="form-group">
+              <label>Nombre del Supervisor/a</label>
+              <input type="text" id="cfg_supervisor">
+            </div>
+            <div class="form-group">
+              <label>Cédula del Supervisor/a</label>
+              <input type="text" id="cfg_cedula_supervisor" placeholder="Ej: 12345678">
+            </div>
+            <div class="form-group">
+              <label>Teléfono del Supervisor/a</label>
+              <input type="text" id="cfg_telefono_supervisor" placeholder="Ej: 04121234567">
+            </div>
+            <div class="form-group">
+              <label>Correo del Supervisor/a</label>
+              <input type="email" id="cfg_correo_supervisor" placeholder="Ej: supervisor@correo.com">
+            </div>
+
             <!-- Membrete oculto del frontend, se mantiene en BD -->
             <input type="hidden" id="cfg_membrete">
             <div class="full-width">
@@ -451,15 +558,17 @@
               <div class="form-group">
                 <label>Contraseña *</label>
                 <input type="password" id="usu_password" placeholder="Mínimo 6 caracteres" minlength="6">
-                <small id="usu_pwd_hint" style="color:var(--text-muted); display:none;">Deje en blanco para mantener la actual</small>
+                <small id="usu_pwd_hint" style="color:var(--text-muted); display:none;">Deje en blanco para mantener la
+                  actual</small>
               </div>
               <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
                 <button type="submit" class="btn btn-primary" id="btnSubmitUsuario">Guardar Usuario</button>
-                <button type="button" class="btn btn-secondary" id="btnCancelUsuario" style="display:none;">Cancelar</button>
+                <button type="button" class="btn btn-secondary" id="btnCancelUsuario"
+                  style="display:none;">Cancelar</button>
               </div>
             </form>
           </div>
-          
+
           <div class="config-list-card">
             <h3>Usuarios Registrados</h3>
             <div class="table-responsive">
@@ -495,19 +604,24 @@
           </p>
 
           <!-- Info último backup -->
-          <div id="backupInfo" class="alert" style="display:none; background:var(--info-bg); color:var(--info); border:1px solid var(--info); margin-bottom:var(--space-5);"></div>
+          <div id="backupInfo" class="alert"
+            style="display:none; background:var(--info-bg); color:var(--info); border:1px solid var(--info); margin-bottom:var(--space-5);">
+          </div>
 
           <!-- EXPORTAR -->
           <div style="margin-bottom: var(--space-5);">
             <h4 style="font-size:0.95rem; margin-bottom:var(--space-2);">
-              <img src="/icons/download.svg" alt="" style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
+              <img src="/icons/download.svg" alt=""
+                style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
               Exportar Backup
             </h4>
             <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:var(--space-3);">
               Descarga un archivo <code>.sql</code> con todos los registros del sistema.
             </p>
-            <button class="btn btn-primary" id="btnExportarBackup" style="display:inline-flex;align-items:center;gap:6px;">
-              <img src="/icons/download.svg" alt="" style="width:16px;height:16px;filter:brightness(10);"> Descargar Backup
+            <button class="btn btn-primary" id="btnExportarBackup"
+              style="display:inline-flex;align-items:center;gap:6px;">
+              <img src="/icons/download.svg" alt="" style="width:16px;height:16px;filter:brightness(10);"> Descargar
+              Backup
             </button>
           </div>
 
@@ -516,24 +630,31 @@
           <!-- IMPORTAR -->
           <div style="margin-bottom: var(--space-5);">
             <h4 style="font-size:0.95rem; margin-bottom:var(--space-2);">
-              <img src="/icons/upload.svg" alt="" style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
+              <img src="/icons/upload.svg" alt=""
+                style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
               Importar Backup
             </h4>
             <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:var(--space-3);">
               Restaura la base de datos desde un archivo <code>.sql</code> previamente exportado.
             </p>
-            <div style="background:var(--warning-bg); border:1px solid var(--warning); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); margin-bottom:var(--space-3); font-size:0.8rem; color:var(--warning);">
-              <strong>⚠️ Atención:</strong> Esta acción <strong>reemplazará todos los datos actuales</strong> con los del archivo importado. Se recomienda exportar un backup antes de importar.
+            <div
+              style="background:var(--warning-bg); border:1px solid var(--warning); border-radius:var(--radius-md); padding:var(--space-3) var(--space-4); margin-bottom:var(--space-3); font-size:0.8rem; color:var(--warning);">
+              <strong>⚠️ Atención:</strong> Esta acción <strong>reemplazará todos los datos actuales</strong> con los
+              del archivo importado. Se recomienda exportar un backup antes de importar.
             </div>
             <input type="file" id="inputBackupFile" accept=".sql" style="display:none;">
             <div style="display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap;">
-              <button class="btn btn-secondary" id="btnSeleccionarBackup" style="display:inline-flex;align-items:center;gap:6px;">
-                <img src="/icons/upload.svg" alt="" style="width:16px;height:16px;opacity:0.6;"> Seleccionar archivo .sql
+              <button class="btn btn-secondary" id="btnSeleccionarBackup"
+                style="display:inline-flex;align-items:center;gap:6px;">
+                <img src="/icons/upload.svg" alt="" style="width:16px;height:16px;opacity:0.6;"> Seleccionar archivo
+                .sql
               </button>
               <span id="backupFileName" style="font-size:0.8rem;color:var(--text-muted);"></span>
             </div>
-            <button class="btn" id="btnImportarBackup" style="display:none; margin-top:var(--space-3); background:var(--error); color:white; border:none;">
-              <img src="/icons/alert-circle.svg" alt="" style="width:16px;height:16px;filter:brightness(10);margin-right:4px;"> Restaurar Backup
+            <button class="btn" id="btnImportarBackup"
+              style="display:none; margin-top:var(--space-3); background:var(--error); color:white; border:none;">
+              <img src="/icons/alert-circle.svg" alt=""
+                style="width:16px;height:16px;filter:brightness(10);margin-right:4px;"> Restaurar Backup
             </button>
           </div>
 
@@ -542,7 +663,8 @@
           <!-- RECORDATORIO -->
           <div>
             <h4 style="font-size:0.95rem; margin-bottom:var(--space-2);">
-              <img src="/icons/calendar.svg" alt="" style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
+              <img src="/icons/calendar.svg" alt=""
+                style="width:16px;height:16px;vertical-align:middle;opacity:0.6;margin-right:4px;">
               Recordatorio de Backup
             </h4>
             <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:var(--space-3);">
@@ -565,10 +687,13 @@
         <!-- CONTROL DEL SISTEMA -->
         <div class="config-form-card" style="max-width: 600px;">
           <h3>⚙️ Control del Sistema</h3>
-          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Opciones de administración del servidor.</p>
-          
-          <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: var(--radius-lg); padding: var(--space-6); text-align: center;">
-            <p style="font-size: 1.1rem; font-weight: 600; color: #991b1b; margin-bottom: 0.5rem;">🔴 Apagar Sistema Completo</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Opciones de administración del
+            servidor.</p>
+
+          <div
+            style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: var(--radius-lg); padding: var(--space-6); text-align: center;">
+            <p style="font-size: 1.1rem; font-weight: 600; color: #991b1b; margin-bottom: 0.5rem;">🔴 Apagar Sistema
+              Completo</p>
             <p style="font-size: 0.85rem; color: #7f1d1d; margin-bottom: 1.5rem;">
               Esta acción apagará el servidor web y la base de datos.<br>
               <strong>Todos los usuarios perderán el acceso inmediatamente.</strong><br>
@@ -628,6 +753,5 @@
   <script src="/js/auth.js"></script>
   <script src="/js/configuracion.js"></script>
 </body>
+
 </html>
-
-

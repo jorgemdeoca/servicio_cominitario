@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,7 @@
       margin-bottom: var(--space-5);
       box-shadow: var(--shadow);
     }
+
     .report-card-header {
       display: flex;
       align-items: center;
@@ -23,27 +25,88 @@
       padding-bottom: var(--space-3);
       border-bottom: 2px solid var(--primary-bg);
     }
+
     .report-card-header .rc-icon {
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       background: var(--primary-bg);
       border-radius: var(--radius);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       flex-shrink: 0;
     }
-    .report-card-header .rc-icon img { width: 18px; height: 18px; }
-    .report-card-header h3 { font-size: var(--font-size-base); font-weight: 700; margin: 0; color: var(--text); }
-    .report-card-header p  { font-size: var(--font-size-xs); color: var(--text-muted); margin: 0; }
-    .report-form-row { display: flex; gap: var(--space-4); align-items: flex-end; flex-wrap: wrap; margin: var(--space-4) 0; }
-    .report-form-row > .form-group { flex: 1; min-width: 180px; }
+
+    .report-card-header .rc-icon img {
+      width: 18px;
+      height: 18px;
+    }
+
+    .report-card-header h3 {
+      font-size: var(--font-size-base);
+      font-weight: 700;
+      margin: 0;
+      color: var(--text);
+    }
+
+    .report-card-header p {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .report-form-row {
+      display: flex;
+      gap: var(--space-4);
+      align-items: flex-end;
+      flex-wrap: wrap;
+      margin: var(--space-4) 0;
+    }
+
+    .report-form-row>.form-group {
+      flex: 1;
+      min-width: 180px;
+    }
 
     /* Stats table */
-    .stats-table { width: 100%; border-collapse: collapse; margin-top: var(--space-4); font-size: var(--font-size-sm); }
-    .stats-table th, .stats-table td { padding: var(--space-3) var(--space-4); border: 1px solid var(--border); text-align: center; }
-    .stats-table th { background: var(--bg); font-weight: 700; font-size: var(--font-size-xs); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
-    .stats-table .grado-row { background: var(--primary-bg); font-weight: 700; text-align: left; color: var(--primary-dark); }
-    .stats-table .total-row { font-weight: 700; background: hsl(215,60%,94%); color: var(--primary-dark); }
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: var(--space-4);
+      font-size: var(--font-size-sm);
+    }
+
+    .stats-table th,
+    .stats-table td {
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .stats-table th {
+      background: var(--bg);
+      font-weight: 700;
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .stats-table .grado-row {
+      background: var(--primary-bg);
+      font-weight: 700;
+      text-align: left;
+      color: var(--primary-dark);
+    }
+
+    .stats-table .total-row {
+      font-weight: 700;
+      background: hsl(215, 60%, 94%);
+      color: var(--primary-dark);
+    }
   </style>
 </head>
+
 <body class="dashboard-page">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -57,7 +120,7 @@
       </a>
       <a href="/personas.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/users.svg" alt="" class="nav-icon-img"></span>
-        <span class="nav-text">Personas</span>
+        <span class="nav-text">Representantes</span>
       </a>
       <a href="/estudiantes.html" class="nav-item">
         <span class="nav-icon"><img src="/icons/graduation-cap.svg" alt="" class="nav-icon-img"></span>
@@ -133,12 +196,16 @@
             </select>
           </div>
           <div style="display:flex; gap:var(--space-2); align-items:flex-end; flex-wrap:wrap;">
-            <button class="btn btn-secondary" onclick="generarMatricula()" title="Membrete del Ministerio con tabla detallada">
-              <img src="/icons/file.svg" alt="" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;opacity:0.7;">
+            <button class="btn btn-secondary" onclick="generarMatricula()"
+              title="Membrete del Ministerio con tabla detallada">
+              <img src="/icons/file.svg" alt=""
+                style="width:14px;height:14px;vertical-align:middle;margin-right:4px;opacity:0.7;">
               Formato Anterior
             </button>
-            <button class="btn btn-primary" onclick="generarMatriculaNuevoFormato()" title="Membrete institucional con escudo MPPE">
-              <img src="/icons/file-text.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            <button class="btn btn-primary" onclick="generarMatriculaNuevoFormato()"
+              title="Membrete institucional con escudo MPPE">
+              <img src="/icons/file-text.svg" alt=""
+                style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
               Nuevo Formato
             </button>
           </div>
@@ -160,7 +227,8 @@
             <div style="display:flex; gap:var(--space-2);">
               <div class="search-bar" style="flex:1;">
                 <img src="/icons/search.svg" alt="" class="search-icon">
-                <input type="text" id="inputBuscarInscripcion" placeholder="Ej. Pérez o V-11222333" onkeydown="if(event.key==='Enter') buscarInscripciones()">
+                <input type="text" id="inputBuscarInscripcion" placeholder="Ej. Pérez o V-11222333"
+                  onkeydown="if(event.key==='Enter') buscarInscripciones()">
               </div>
               <button class="btn btn-secondary" onclick="buscarInscripciones()">Buscar</button>
             </div>
@@ -174,11 +242,13 @@
         </div>
         <div style="display:flex; gap:var(--space-3); flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="generarFicha('INICIAL')">
-            <img src="/icons/printer.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+            <img src="/icons/printer.svg" alt=""
+              style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
             Ficha Inicial (7 secciones)
           </button>
           <button class="btn btn-secondary" onclick="generarFicha('PRIMARIA')">
-            <img src="/icons/printer.svg" alt="" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;opacity:0.7;">
+            <img src="/icons/printer.svg" alt=""
+              style="width:14px;height:14px;vertical-align:middle;margin-right:4px;opacity:0.7;">
             Ficha Primaria (5 secciones)
           </button>
         </div>
@@ -212,7 +282,8 @@
           </div>
           <div style="align-self:flex-end;">
             <button class="btn btn-primary" onclick="cargarEstadisticas()">
-              <img src="/icons/bar-chart-3.svg" alt="" style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
+              <img src="/icons/bar-chart-3.svg" alt=""
+                style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
               Cargar Resumen
             </button>
           </div>
@@ -252,4 +323,5 @@
   <script src="/js/pdf-generator.js"></script>
   <script src="/js/reportes.js"></script>
 </body>
+
 </html>
