@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Personas — Sistema de Gestión Escolar</title>
+  <title>Representantes — Sistema de Gestión Escolar</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     .page-header {
@@ -89,6 +89,194 @@
       display: flex;
       gap: var(--space-2);
     }
+
+    /* === WIZARD STEPS === */
+    .wizard-steps-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.5rem;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0;
+    }
+    .wizard-step-indicator {
+      flex: 1;
+      text-align: center;
+      padding: 0.6rem 0.5rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      position: relative;
+      cursor: default;
+      transition: color 0.2s;
+    }
+    .wizard-step-indicator.active {
+      color: var(--primary);
+    }
+    .wizard-step-indicator.active::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--primary);
+      border-radius: 3px 3px 0 0;
+    }
+    .wizard-step-indicator.done {
+      color: hsl(152, 60%, 36%);
+    }
+    .wizard-step-indicator .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      margin-right: 4px;
+      vertical-align: middle;
+      transition: background 0.2s, color 0.2s;
+    }
+    .wizard-step-indicator.active .step-num {
+      background: var(--primary);
+      color: #fff;
+    }
+    .wizard-step-indicator.done .step-num {
+      background: hsl(152, 60%, 36%);
+      color: #fff;
+    }
+    .wizard-panel { display: none; }
+    .wizard-panel.active { display: block; }
+
+    /* Búsqueda estudiante en modal */
+    .np-search-input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 0.95rem;
+      outline: none;
+      background: url('/icons/search.svg') no-repeat 0.75rem center;
+      background-size: 16px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .np-search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px hsla(215, 60%, 45%, 0.12);
+    }
+    .np-results-list {
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: none;
+    }
+    .np-results-list.show { display: block; }
+    .np-result-item {
+      padding: 0.65rem 0.9rem;
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+      font-size: 0.88rem;
+    }
+    .np-result-item:last-child { border-bottom: none; }
+    .np-result-item:hover { background: var(--primary-bg); }
+    .np-result-item .est-name { font-weight: 600; color: var(--text-dark); }
+    .np-result-item .est-detail { font-size: 0.78rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Card estudiante seleccionado */
+    .np-selected-card {
+      background: linear-gradient(135deg, hsl(215, 50%, 97%), hsl(215, 40%, 94%));
+      border: 2px solid var(--primary);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-top: 0.75rem;
+      display: none;
+    }
+    .np-selected-card.show { display: block; }
+    .np-selected-card .card-name { font-weight: 700; font-size: 1rem; color: var(--primary-dark); }
+    .np-selected-card .card-info { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.3rem; }
+    .np-selected-card .card-family {
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid hsla(215, 30%, 70%, 0.3);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+    }
+    .np-selected-card .family-slot { }
+    .np-selected-card .family-slot .slot-label { color: var(--text-muted); font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .np-selected-card .family-slot .slot-value { margin-top: 2px; color: var(--text-dark); }
+    .np-selected-card .family-slot .slot-empty { margin-top: 2px; color: hsl(152, 50%, 40%); font-style: italic; }
+
+    /* Parentesco buttons */
+    .parentesco-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+    .parentesco-btn {
+      border: 2px solid var(--border);
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 1.2rem 0.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: var(--font);
+    }
+    .parentesco-btn:hover { border-color: var(--primary); background: var(--primary-bg); }
+    .parentesco-btn.selected { border-color: var(--primary); background: var(--primary-bg); box-shadow: 0 0 0 3px hsla(215, 60%, 45%, 0.15); }
+    .parentesco-btn .par-icon { font-size: 1.8rem; display: block; margin-bottom: 0.3rem; }
+    .parentesco-btn .par-label { font-weight: 600; font-size: 0.88rem; color: var(--text-dark); }
+
+    .np-aviso-ocupado {
+      background: hsl(38, 90%, 95%);
+      border: 1px solid hsl(38, 80%, 70%);
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+      margin-top: 0.75rem;
+      font-size: 0.85rem;
+      color: hsl(30, 60%, 30%);
+      display: none;
+    }
+    .np-aviso-ocupado.show { display: block; }
+
+    /* Cédula feedback */
+    .np-cedula-feedback {
+      margin-top: 0.5rem;
+      padding: 0.7rem 1rem;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      display: none;
+    }
+    .np-cedula-feedback.show { display: block; }
+    .np-cedula-feedback.found {
+      background: hsl(215, 50%, 96%);
+      border: 1px solid hsl(215, 50%, 80%);
+      color: hsl(215, 50%, 30%);
+    }
+    .np-cedula-feedback.not-found {
+      background: hsl(152, 40%, 95%);
+      border: 1px solid hsl(152, 40%, 70%);
+      color: hsl(152, 50%, 28%);
+    }
+    .np-cedula-feedback .fb-name { font-weight: 700; }
+
+    /* Wizard nav buttons */
+    .wizard-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border);
+    }
   </style>
 </head>
 
@@ -111,8 +299,8 @@
     <main class="main-content" id="mainContent">
       <div class="section-header">
         <div class="section-header-text">
-          <h2>Personas</h2>
-          <p>Madres, padres, representantes y terceras personas</p>
+          <h2>Representantes</h2>
+          <p>Padres, madres y representantes legales</p>
         </div>
         <div class="section-header-actions">
           <div class="search-bar">
@@ -127,7 +315,7 @@
           <button class="btn btn-primary" onclick="abrirModal()">
             <img src="/icons/plus.svg" alt=""
               style="width:15px;height:15px;filter:invert(1);vertical-align:middle;margin-right:4px;">
-            Nueva Persona
+            Nuevo Representante
           </button>
         </div>
       </div>
@@ -169,80 +357,227 @@
     </div>
   </div>
 
-  <!-- Modal Crear/Editar Persona -->
+  <!-- Modal Crear/Editar Representante (Wizard) -->
   <div class="modal" id="modalPersona">
-    <div class="modal-content">
-      <h2 id="modalTitulo" style="margin-bottom:1rem;">Nueva Persona</h2>
+    <div class="modal-content" style="max-width:640px;">
+      <h2 id="modalTitulo" style="margin-bottom:0.5rem;">Nuevo Representante</h2>
       <div id="alertModal" class="alert" style="display: none;"></div>
+
+      <!-- Steps bar (hidden in edit mode) -->
+      <div class="wizard-steps-bar" id="wizardStepsBar">
+        <div class="wizard-step-indicator active" data-step="1"><span class="step-num">1</span>Estudiante</div>
+        <div class="wizard-step-indicator" data-step="2"><span class="step-num">2</span>Parentesco</div>
+        <div class="wizard-step-indicator" data-step="3"><span class="step-num">3</span>C&eacute;dula</div>
+        <div class="wizard-step-indicator" data-step="4"><span class="step-num">4</span>Datos</div>
+      </div>
+
       <form id="formPersona">
         <input type="hidden" id="p_id">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nacionalidad *</label>
-            <select id="p_nacionalidad" required>
-              <option value="V">V - Venezolano/a</option>
-              <option value="E">E - Extranjero/a</option>
-            </select>
+        <input type="hidden" id="p_estudiante_id">
+        <input type="hidden" id="p_parentesco">
+
+        <!-- STEP 1: Buscar Estudiante -->
+        <div class="wizard-panel active" id="wizStep1">
+          <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:0.75rem;">Busque al estudiante por nombre, apellido o c&oacute;digo escolar:</p>
+          <input type="text" class="np-search-input" id="np_buscarEstudiante" placeholder="Ej: P&eacute;rez, Juan o C&oacute;digo..." autocomplete="off">
+          <div class="np-results-list" id="np_resultadosEstudiante"></div>
+          <div class="np-selected-card" id="np_estudianteSeleccionado">
+            <div class="card-name" id="np_estNombre"></div>
+            <div class="card-info" id="np_estInfo"></div>
+            <div class="card-family">
+              <div class="family-slot">
+                <div class="slot-label">Madre</div>
+                <div id="np_slotMadre" class="slot-value">—</div>
+              </div>
+              <div class="family-slot">
+                <div class="slot-label">Padre</div>
+                <div id="np_slotPadre" class="slot-value">—</div>
+              </div>
+              <div class="family-slot">
+                <div class="slot-label">Representante</div>
+                <div id="np_slotRepresentante" class="slot-value">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="wizard-nav">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button type="button" class="btn btn-primary" id="btnStep1Next" onclick="wizardNext(2)" disabled>Siguiente &rarr;</button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Elegir Parentesco -->
+        <div class="wizard-panel" id="wizStep2">
+          <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:0.5rem;">Seleccione el parentesco con el estudiante:</p>
+          <div class="parentesco-grid">
+            <div class="parentesco-btn" onclick="seleccionarParentesco('madre', this)">
+              <span class="par-icon">&#128105;</span>
+              <span class="par-label">Madre</span>
+            </div>
+            <div class="parentesco-btn" onclick="seleccionarParentesco('padre', this)">
+              <span class="par-icon">&#128104;</span>
+              <span class="par-label">Padre</span>
+            </div>
+            <div class="parentesco-btn" onclick="seleccionarParentesco('representante', this)">
+              <span class="par-icon">&#128203;</span>
+              <span class="par-label">Representante</span>
+            </div>
+          </div>
+          <div class="np-aviso-ocupado" id="np_avisoOcupado"></div>
+          <div class="wizard-nav">
+            <button type="button" class="btn btn-secondary" onclick="wizardBack(1)">&larr; Anterior</button>
+            <button type="button" class="btn btn-primary" id="btnStep2Next" onclick="wizardNext(3)" disabled>Siguiente &rarr;</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: C&eacute;dula -->
+        <div class="wizard-panel" id="wizStep3">
+          <p style="color:var(--text-muted);font-size:0.88rem;margin-bottom:0.75rem;">Ingrese la c&eacute;dula del representante:</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nacionalidad *</label>
+              <select id="p_nacionalidad">
+                <option value="V">V - Venezolano/a</option>
+                <option value="E">E - Extranjero/a</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>C&eacute;dula *</label>
+              <input type="text" id="p_cedula" placeholder="Ej: 12345678" autocomplete="off">
+            </div>
           </div>
           <div class="form-group" id="grupoNacExactaPersona" style="display:none;">
             <label>Nacionalidad Exacta *</label>
             <input type="text" id="p_nacionalidad_texto" placeholder="Ej: Colombiano, Ecuatoriano...">
           </div>
-          <div class="form-group">
-            <label>Cédula *</label>
-            <input type="text" id="p_cedula" required placeholder="Ej: 12345678">
+          <div class="np-cedula-feedback" id="np_feedbackCedula"></div>
+          <div class="wizard-nav">
+            <button type="button" class="btn btn-secondary" onclick="wizardBack(2)">&larr; Anterior</button>
+            <button type="button" class="btn btn-primary" id="btnStep3Next" style="display:none;" onclick="wizardNext(4)">Completar datos &rarr;</button>
+            <button type="button" class="btn btn-primary" id="btnAsociarExistente" style="display:none;" onclick="asociarPersonaExistente()">Asociar Representante</button>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Apellidos *</label>
-            <input type="text" id="p_apellidos" required placeholder="Apellidos completos">
+
+        <!-- STEP 4: Formulario de datos -->
+        <div class="wizard-panel" id="wizStep4">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Apellidos *</label>
+              <input type="text" id="p_apellidos" placeholder="Apellidos completos">
+            </div>
+            <div class="form-group">
+              <label>Nombres *</label>
+              <input type="text" id="p_nombres" placeholder="Nombres completos">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha de Nacimiento</label>
+              <input type="date" id="p_fecha_nacimiento">
+            </div>
+            <div class="form-group">
+              <label>Estado Civil</label>
+              <select id="p_estado_civil">
+                <option value="">— Seleccionar —</option>
+                <option value="Soltero/a">Soltero/a</option>
+                <option value="Casado/a">Casado/a</option>
+                <option value="Divorciado/a">Divorciado/a</option>
+                <option value="Viudo/a">Viudo/a</option>
+                <option value="Concubinato">Concubinato</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Profesi&oacute;n u Oficio</label>
+              <input type="text" id="p_profesion" placeholder="Ej: Docente, Comerciante...">
+            </div>
+            <div class="form-group">
+              <label>Tel&eacute;fono</label>
+              <input type="text" id="p_telefono" placeholder="Ej: 04121234567">
+            </div>
           </div>
           <div class="form-group">
-            <label>Nombres *</label>
-            <input type="text" id="p_nombres" required placeholder="Nombres completos">
+            <label>Direcci&oacute;n</label>
+            <textarea id="p_direccion" rows="2" style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:var(--font-size-base);resize:vertical;outline:none;"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Observaciones</label>
+            <textarea id="p_observaciones" rows="2" style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:var(--font-size-base);resize:vertical;outline:none;"></textarea>
+          </div>
+          <div class="wizard-nav" id="wizStep4Nav">
+            <button type="button" class="btn btn-secondary" onclick="wizardBack(3)">&larr; Anterior</button>
+            <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar</button>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Fecha de Nacimiento</label>
-            <input type="date" id="p_fecha_nacimiento">
+
+        <!-- EDIT MODE: direct form (no steps) -->
+        <div class="wizard-panel" id="wizStepEdit">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nacionalidad *</label>
+              <select id="pe_nacionalidad">
+                <option value="V">V - Venezolano/a</option>
+                <option value="E">E - Extranjero/a</option>
+              </select>
+            </div>
+            <div class="form-group" id="grupoNacExactaPersonaEdit" style="display:none;">
+              <label>Nacionalidad Exacta *</label>
+              <input type="text" id="pe_nacionalidad_texto" placeholder="Ej: Colombiano, Ecuatoriano...">
+            </div>
+            <div class="form-group">
+              <label>C&eacute;dula *</label>
+              <input type="text" id="pe_cedula" placeholder="Ej: 12345678">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Apellidos *</label>
+              <input type="text" id="pe_apellidos" placeholder="Apellidos completos">
+            </div>
+            <div class="form-group">
+              <label>Nombres *</label>
+              <input type="text" id="pe_nombres" placeholder="Nombres completos">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha de Nacimiento</label>
+              <input type="date" id="pe_fecha_nacimiento">
+            </div>
+            <div class="form-group">
+              <label>Estado Civil</label>
+              <select id="pe_estado_civil">
+                <option value="">— Seleccionar —</option>
+                <option value="Soltero/a">Soltero/a</option>
+                <option value="Casado/a">Casado/a</option>
+                <option value="Divorciado/a">Divorciado/a</option>
+                <option value="Viudo/a">Viudo/a</option>
+                <option value="Concubinato">Concubinato</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Profesi&oacute;n u Oficio</label>
+              <input type="text" id="pe_profesion" placeholder="Ej: Docente, Comerciante...">
+            </div>
+            <div class="form-group">
+              <label>Tel&eacute;fono</label>
+              <input type="text" id="pe_telefono" placeholder="Ej: 04121234567">
+            </div>
           </div>
           <div class="form-group">
-            <label>Estado Civil</label>
-            <select id="p_estado_civil">
-              <option value="">— Seleccionar —</option>
-              <option value="Soltero/a">Soltero/a</option>
-              <option value="Casado/a">Casado/a</option>
-              <option value="Divorciado/a">Divorciado/a</option>
-              <option value="Viudo/a">Viudo/a</option>
-              <option value="Concubinato">Concubinato</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Profesión u Oficio</label>
-            <input type="text" id="p_profesion" placeholder="Ej: Docente, Comerciante...">
+            <label>Direcci&oacute;n</label>
+            <textarea id="pe_direccion" rows="2" style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:var(--font-size-base);resize:vertical;outline:none;"></textarea>
           </div>
           <div class="form-group">
-            <label>Teléfono</label>
-            <input type="text" id="p_telefono" placeholder="Ej: 04121234567">
+            <label>Observaciones</label>
+            <textarea id="pe_observaciones" rows="2" style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:var(--font-size-base);resize:vertical;outline:none;"></textarea>
           </div>
-        </div>
-        <div class="form-group">
-          <label>Dirección</label>
-          <textarea id="p_direccion" rows="2"
-            style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:var(--font-size-base);resize:vertical;outline:none;"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Observaciones</label>
-          <textarea id="p_observaciones" rows="2"
-            style="width:100%;padding:0.75rem 1rem;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font);font-size:var(--font-size-base);resize:vertical;outline:none;"></textarea>
-        </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary" id="btnGuardar">Guardar</button>
+          <div class="modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
         </div>
       </form>
     </div>

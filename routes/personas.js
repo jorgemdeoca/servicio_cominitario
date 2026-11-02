@@ -49,7 +49,13 @@ router.get('/', async (req, res) => {
       req.prisma.personas.findMany({
         where,
         include: {
-          _count: { select: { estudiantes_como_representante: { where: { eliminado: false } } } },
+          _count: {
+            select: {
+              estudiantes_como_representante: { where: { eliminado: false } },
+              estudiantes_como_madre: { where: { eliminado: false } },
+              estudiantes_como_padre: { where: { eliminado: false } }
+            }
+          },
           estudiantes_como_representante: {
             where: { eliminado: false },
             select: {
@@ -99,6 +105,49 @@ router.get('/buscar-cedula/:cedula', async (req, res) => {
   }
 });
 
+// POST /api/personas/asociar - Asociar persona existente a un estudiante
+router.post('/asociar', async (req, res) => {
+  try {
+    const { persona_id, estudiante_id, parentesco } = req.body;
+
+    if (!persona_id || !estudiante_id || !parentesco) {
+      return res.status(400).json({ error: 'persona_id, estudiante_id y parentesco son obligatorios.' });
+    }
+
+    if (!['madre', 'padre', 'representante'].includes(parentesco)) {
+      return res.status(400).json({ error: 'Parentesco debe ser madre, padre o representante.' });
+    }
+
+    // Verificar que la persona exista
+    const persona = await req.prisma.personas.findUnique({ where: { id: parseInt(persona_id) } });
+    if (!persona || persona.eliminado) {
+      return res.status(404).json({ error: 'Persona no encontrada.' });
+    }
+
+    // Verificar que el estudiante exista
+    const estudiante = await req.prisma.estudiantes.findUnique({ where: { id: parseInt(estudiante_id) } });
+    if (!estudiante || estudiante.eliminado) {
+      return res.status(404).json({ error: 'Estudiante no encontrado.' });
+    }
+
+    // Actualizar la relación
+    const updateData = {};
+    if (parentesco === 'madre') updateData.madre_id = persona.id;
+    if (parentesco === 'padre') updateData.padre_id = persona.id;
+    if (parentesco === 'representante') updateData.representante_id = persona.id;
+
+    await req.prisma.estudiantes.update({
+      where: { id: parseInt(estudiante_id) },
+      data: updateData
+    });
+
+    res.json({ mensaje: `Persona asociada como ${parentesco} del estudiante exitosamente.` });
+  } catch (error) {
+    console.error('Error al asociar persona:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
 // GET /api/personas/:id - Obtener una persona por ID
 router.get('/:id', async (req, res) => {
   try {
@@ -131,11 +180,12 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/personas - Crear una nueva persona
+// POST /api/personas - Crear una nueva persona (con asociación opcional)
 router.post('/', async (req, res) => {
   try {
     const { apellidos, nombres, cedula, nacionalidad, fecha_nacimiento,
-            profesion_oficio, estado_civil, telefono, direccion, observaciones } = req.body;
+            profesion_oficio, estado_civil, telefono, direccion, observaciones,
+            estudiante_id, parentesco } = req.body;
 
     // Validaciones
     if (!apellidos || !nombres || !cedula || !nacionalidad) {
@@ -164,6 +214,19 @@ router.post('/', async (req, res) => {
             eliminado: false
           }
         });
+
+        // Asociar al estudiante si viene
+        if (estudiante_id && parentesco) {
+          const updateData = {};
+          if (parentesco === 'madre') updateData.madre_id = reactivada.id;
+          if (parentesco === 'padre') updateData.padre_id = reactivada.id;
+          if (parentesco === 'representante') updateData.representante_id = reactivada.id;
+          await req.prisma.estudiantes.update({
+            where: { id: parseInt(estudiante_id) },
+            data: updateData
+          });
+        }
+
         return res.status(201).json(reactivada);
       }
       return res.status(400).json({ error: `Ya existe una persona con la cédula ${cedula}.` });
@@ -180,6 +243,18 @@ router.post('/', async (req, res) => {
         observaciones: observaciones || null,
       }
     });
+
+    // Asociar al estudiante si viene
+    if (estudiante_id && parentesco) {
+      const updateData = {};
+      if (parentesco === 'madre') updateData.madre_id = persona.id;
+      if (parentesco === 'padre') updateData.padre_id = persona.id;
+      if (parentesco === 'representante') updateData.representante_id = persona.id;
+      await req.prisma.estudiantes.update({
+        where: { id: parseInt(estudiante_id) },
+        data: updateData
+      });
+    }
 
     res.status(201).json(persona);
   } catch (error) {
