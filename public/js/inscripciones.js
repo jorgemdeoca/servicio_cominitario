@@ -475,6 +475,7 @@ async function loadInscripciones() {
     const seccionId = document.getElementById('filtroSeccion').value;
     const gradoId = document.getElementById('filtroGrado').value;
     const estado = document.getElementById('filtroEstado').value;
+    const upe = document.getElementById('filtroUPE').value;
     const buscar = document.getElementById('filtroBuscar').value.trim();
 
     let url = `/api/inscripciones?pagina=${paginaActual}&limite=20`;
@@ -482,6 +483,7 @@ async function loadInscripciones() {
     if (seccionId) url += `&seccion_id=${seccionId}`;
     if (gradoId) url += `&grado_id=${gradoId}`;
     if (estado) url += `&estado=${estado}`;
+    if (upe) url += `&upe=${upe}`;
     if (buscar) url += `&buscar=${encodeURIComponent(buscar)}`;
 
     const res = await apiFetch(url);
@@ -917,7 +919,7 @@ function mostrarErrorValidacion(error) {
 }
 
 function toggleTodosDocumentos() {
-  const checks = document.querySelectorAll('.docs-grid input[type="checkbox"]');
+  const checks = document.querySelectorAll('#inscWizStep4 .docs-grid input[type="checkbox"]');
   const todosChecked = Array.from(checks).every(c => c.checked);
   checks.forEach(c => c.checked = !todosChecked);
   const btn = document.getElementById('btnToggleDocs');
@@ -959,6 +961,7 @@ async function guardarInscripcion(e) {
       anio_escolar_id: parseInt(document.getElementById('insc_anio').value),
       fecha_inscripcion: document.getElementById('insc_fecha').value,
       modalidad: document.getElementById('insc_modalidad').value,
+      integracion_upe: document.getElementById('insc_integracion_upe')?.checked || false,
       doc_partida_nacimiento: document.getElementById('doc_partida').checked,
       doc_boleta_promocion: document.getElementById('doc_boleta').checked,
       doc_ci_madre: document.getElementById('doc_ci_madre').checked,

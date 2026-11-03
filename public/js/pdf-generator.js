@@ -534,3 +534,152 @@ async function generarPDFFichaInicial(datos) {
 async function generarPDFFichaPrimaria(datos) {
   await generarPDFFichaInscripcion(datos, 'PRIMARIA');
 }
+
+
+// ==================== MATRÍCULA INTEGRACIÓN UPE ====================
+
+async function generarPDFMatriculaUPE(datos) {
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF('l', 'pt', 'legal'); // Tamaño oficio horizontal
+  var pageW = doc.internal.pageSize.getWidth();
+  var marginL = 15;
+  var marginR = 15;
+  var maxX = pageW - marginR;
+
+  var config = datos.config || {};
+  var anioEscolar = datos.anio_escolar ? datos.anio_escolar.nombre : '';
+
+  // ---- MEMBRETE ----
+  var logoEscuela = await loadImageDataUrl('/img/logo_escuela.png');
+  var centroX = pageW / 2;
+  var textoAncho = 220;
+  var logoSize = 42;
+  if (logoEscuela) {
+    doc.addImage(logoEscuela, 'PNG', centroX - textoAncho / 2 - logoSize - 8, 12, logoSize, logoSize);
+  }
+
+  var logoMppeIcono = await loadImageDataUrl('/img/logo_MPPE_icono.png');
+  if (logoMppeIcono) {
+    doc.addImage(logoMppeIcono, 'PNG', centroX + textoAncho / 2 + 8, 14, logoSize - 4, logoSize - 4);
+  }
+
+  // Texto del membrete centrado
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.text('República Bolivariana de Venezuela', centroX, 26, { align: 'center' });
+  var nombreInst = config.nombre_escuela || '';
+  doc.text(nombreInst, centroX, 37, { align: 'center' });
+  var localidad = config.localidad || '';
+  var municipio = config.municipio || '';
+  var ubicacion = localidad;
+  if (municipio) ubicacion += (localidad ? ' - ' : '') + 'Municipio ' + municipio;
+  doc.text(ubicacion, centroX, 48, { align: 'center' });
+
+  // ---- TÍTULO ----
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bold');
+  doc.text('MATRÍCULA INTEGRACIÓN UPE — AÑO ESCOLAR ' + anioEscolar, centroX, 66, { align: 'center' });
+
+  // ---- INFO INSTITUCIÓN (línea 1): Nombre + DEA + Circuito ----
+  var yInfo = 82;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  var xPos = marginL;
+  xPos = drawFieldNF(doc, 'Institución: ', (config.nombre_escuela || '').toUpperCase(), xPos, yInfo, maxX);
+  xPos = drawFieldNF(doc, 'Cód. DEA: ', config.codigo_plantel || '', xPos, yInfo, maxX);
+  drawFieldNF(doc, 'Circuito: ', config.circuito || '', xPos, yInfo, maxX);
+
+  // ---- INFO DIRECTOR/A ----
+  yInfo += 14;
+  xPos = marginL;
+  xPos = drawFieldNF(doc, 'Director/a: ', (config.director || '').toUpperCase(), xPos, yInfo, maxX);
+  xPos = drawFieldNF(doc, 'C.I.: ', config.cedula_director || '', xPos, yInfo, maxX);
+  drawFieldNF(doc, 'Teléfono: ', config.telefono_director || '', xPos, yInfo, maxX);
+
+  // ---- INFO ESCUELA ----
+  yInfo += 14;
+  xPos = marginL;
+  xPos = drawFieldNF(doc, 'Municipio: ', config.municipio || '', xPos, yInfo, maxX);
+  xPos = drawFieldNF(doc, 'Parroquia: ', config.parroquia || '', xPos, yInfo, maxX);
+  drawFieldNF(doc, 'Dirección: ', config.direccion || '', xPos, yInfo, maxX);
+
+  // ---- TOTALES ----
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  var textTotales = 'Total: V=' + datos.totales.varones + ' H=' + datos.totales.hembras + ' T=' + datos.totales.total;
+  doc.text(textTotales, pageW - marginR, 82, { align: 'right' });
+
+  // ---- TABLA ----
+  var head = [[
+    { content: 'N°', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Grado y\nSección', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Código o\nCédula Escolar', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Apellidos y Nombres', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Fecha de\nNacimiento', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Edad', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Sexo', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Representante', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Cédula de\nIdentidad', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Dirección', styles: { halign: 'center', valign: 'middle' } },
+    { content: 'Teléfono', styles: { halign: 'center', valign: 'middle' } }
+  ]];
+
+  var data = datos.estudiantes.map(function(e) {
+    var toUpper = function(val) { return val ? String(val).toUpperCase() : ''; };
+    return [
+      e.numero,
+      toUpper(e.grado_seccion),
+      toUpper(e.codigo_escolar),
+      toUpper(e.apellidos_nombres),
+      toUpper(e.fecha_nacimiento),
+      e.edad,
+      toUpper(e.sexo),
+      toUpper(e.representante),
+      toUpper(e.ci_representante),
+      toUpper(e.direccion),
+      toUpper(e.telefono)
+    ];
+  });
+
+  doc.autoTable({
+    startY: yInfo + 10,
+    head: head,
+    body: data,
+    theme: 'grid',
+    margin: { left: marginL, right: marginR },
+    styles: {
+      fontSize: 8,
+      fontStyle: 'bold',
+      cellPadding: 1.5,
+      overflow: 'linebreak',
+      lineWidth: 0.2,
+      lineColor: [0, 0, 0]
+    },
+    headStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      fontStyle: 'bold',
+      fontSize: 8,
+      cellPadding: 2
+    },
+    bodyStyles: {
+      valign: 'middle'
+    },
+    columnStyles: {
+      0: { cellWidth: 18, halign: 'center' },   // N°
+      1: { cellWidth: 78 },                       // Grado y Sección
+      2: { cellWidth: 60 },                       // Código Escolar
+      3: { cellWidth: 197 },                      // Apellidos y Nombres
+      4: { cellWidth: 48, halign: 'center' },     // Fecha Nacimiento
+      5: { cellWidth: 26, halign: 'center' },     // Edad
+      6: { cellWidth: 22, halign: 'center' },     // Sexo
+      7: { cellWidth: 145 },                      // Representante
+      8: { cellWidth: 62, halign: 'center' },     // Cédula
+      9: { cellWidth: 252 },                      // Dirección
+      10: { cellWidth: 70 }                       // Teléfono
+    }
+  });
+
+  var filename = 'Matricula_Integracion_UPE_' + anioEscolar + '.pdf';
+  doc.save(filename);
+}

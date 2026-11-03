@@ -328,6 +328,9 @@ function abrirPlanilla(estudiante = null) {
     titulo.textContent = '📋 Editar Estudiante';
     document.getElementById('e_id').value = estudiante.id;
 
+    // Inicializar wizard en modo edición (6 pasos)
+    initEstWizardForEdit();
+
     // Datos del estudiante
     document.getElementById('e_primer_apellido').value = estudiante.primer_apellido || '';
     document.getElementById('e_segundo_apellido').value = estudiante.segundo_apellido || '';
@@ -364,6 +367,9 @@ function abrirPlanilla(estudiante = null) {
       document.getElementById('dv_talla_camisa').value = ultimaInsc.talla_camisa || '';
       document.getElementById('dv_talla_pantalon').value = ultimaInsc.talla_pantalon || '';
       document.getElementById('dv_talla_zapato').value = ultimaInsc.talla_zapato || '';
+
+      // Precargar datos avanzados (UPE, procedencia, médica, social)
+      precargarDatosInscripcion(estudiante, ultimaInsc);
     }
 
     // Datos de la madre
@@ -390,6 +396,8 @@ function abrirPlanilla(estudiante = null) {
     }
   } else {
     titulo.textContent = '📋 Planilla de Registro de Estudiante';
+    // Inicializar modo crear (3 paneles sin wizard)
+    initEstWizardForCreate();
   }
 
   modal.classList.add('active');
@@ -531,6 +539,37 @@ async function guardarEstudiante(e) {
       talla_camisa: document.getElementById('dv_talla_camisa').value.trim() || null,
       talla_pantalon: document.getElementById('dv_talla_pantalon').value.trim() || null,
       talla_zapato: document.getElementById('dv_talla_zapato').value.trim() || null,
+      // Integración UPE
+      integracion_upe: document.getElementById('dv_integracion_upe')?.checked || false,
+      // Procedencia
+      misma_institucion: document.getElementById('dv_misma_institucion')?.value === 'SI',
+      institucion_procedencia: document.getElementById('dv_institucion_procedencia')?.value.trim() || null,
+      motivo_retiro_procedencia: document.getElementById('dv_motivo_retiro_proc')?.value.trim() || null,
+      // Socioeconómicos
+      con_quien_vive: document.getElementById('dv_con_quien_vive')?.value || null,
+      tiene_hermanos_institucion: document.getElementById('dv_tiene_hermanos')?.checked || false,
+      cantidad_hermanos: parseInt(document.getElementById('dv_cantidad_hermanos')?.value) || null,
+      tipo_vivienda: document.getElementById('dv_tipo_vivienda')?.value || null,
+      condicion_infraestructura: document.getElementById('dv_condicion_infra')?.value || null,
+      // Integración social
+      integracion_pasivo: document.getElementById('dv_int_pasivo')?.checked || false,
+      integracion_inquieto: document.getElementById('dv_int_inquieto')?.checked || false,
+      integracion_tierno: document.getElementById('dv_int_tierno')?.checked || false,
+      integracion_sensible: document.getElementById('dv_int_sensible')?.checked || false,
+      habilidades: document.getElementById('dv_habilidades')?.value.trim() || null,
+    };
+
+    // Datos médicos (van en la tabla estudiantes, no inscripciones)
+    body.datos_medicos = {
+      vacunas_completas: document.getElementById('dv_vacunas_completas')?.value === 'true',
+      vacunas_faltantes: document.getElementById('dv_vacunas_faltantes')?.value.trim() || null,
+      alergico: document.getElementById('dv_alergico')?.value === 'true',
+      alergico_detalle: document.getElementById('dv_alergico_detalle')?.value.trim() || null,
+      tratamiento_medico: document.getElementById('dv_tratamiento')?.value === 'true',
+      tratamiento_detalle: document.getElementById('dv_tratamiento_detalle')?.value.trim() || null,
+      hospitalizado: document.getElementById('dv_hospitalizado')?.value === 'true',
+      hospitalizado_detalle: document.getElementById('dv_hospitalizado_detalle')?.value.trim() || null,
+      enfermedades_padecidas: document.getElementById('dv_enfermedades')?.value.trim() || null,
     };
   }
 
@@ -573,4 +612,270 @@ async function eliminarEstudiante(id) {
   } catch (error) {
     showAlert('alertEstudiantes', 'Error de conexión', 'error');
   }
+}
+
+
+// ==========================================
+// WIZARD DE EDICIÓN — Navegación
+// ==========================================
+let estWizardCurrentStep = 1;
+let estWizardIsEditMode = false;
+let estWizardMaxSteps = 3; // 3 para crear, 6 para editar
+
+function estWizardGoTo(step) {
+  if (step < 1 || step > estWizardMaxSteps) return;
+  estWizardCurrentStep = step;
+  showEstWizardPanel(step);
+  updateEstWizardIndicators(step);
+  scrollEstModalTop();
+}
+
+function estWizardNext(toStep) {
+  estWizardGoTo(toStep);
+}
+
+function estWizardBack(toStep) {
+  estWizardGoTo(toStep);
+}
+
+function showEstWizardPanel(step) {
+  for (let i = 1; i <= 6; i++) {
+    const panel = document.getElementById('estWizStep' + i);
+    if (panel) {
+      panel.classList.toggle('active', i === step);
+    }
+  }
+}
+
+function updateEstWizardIndicators(currentStep) {
+  const bar = document.getElementById('estWizardBar');
+  if (!bar) return;
+  const indicators = bar.querySelectorAll('.est-wizard-step-indicator');
+  const connectors = bar.querySelectorAll('.est-wizard-step-connector');
+
+  indicators.forEach((ind, idx) => {
+    const stepNum = idx + 1;
+    ind.classList.remove('active', 'completed');
+    if (stepNum === currentStep) {
+      ind.classList.add('active');
+    } else if (stepNum < currentStep) {
+      ind.classList.add('completed');
+    }
+  });
+
+  connectors.forEach((conn, idx) => {
+    conn.classList.toggle('completed', idx + 1 < currentStep);
+  });
+}
+
+function scrollEstModalTop() {
+  const modal = document.getElementById('modalPlanilla');
+  if (modal) modal.scrollTop = 0;
+}
+
+function initEstWizardForEdit() {
+  estWizardIsEditMode = true;
+  estWizardMaxSteps = 6;
+  estWizardCurrentStep = 1;
+
+  const bar = document.getElementById('estWizardBar');
+  if (bar) bar.style.display = '';
+
+  // Mostrar todos los indicadores
+  const indicators = bar.querySelectorAll('.est-wizard-step-indicator');
+  const connectors = bar.querySelectorAll('.est-wizard-step-connector');
+  indicators.forEach(i => i.style.display = '');
+  connectors.forEach(c => c.style.display = '');
+
+  // Mostrar panel 1 y ocultar el resto
+  showEstWizardPanel(1);
+  updateEstWizardIndicators(1);
+
+  // Mostrar secciones de datos avanzados
+  const secDV = document.getElementById('seccionDatosVariables');
+  const secProcedencia = document.getElementById('seccionProcedencia');
+  const secMedica = document.getElementById('seccionMedica');
+  if (secDV) secDV.style.display = '';
+  if (secProcedencia) secProcedencia.style.display = '';
+  if (secMedica) secMedica.style.display = '';
+
+  // Ocultar el footer original y agregar navegación wizard
+  const footer = document.querySelector('.modal-planilla-footer');
+  if (footer) footer.style.display = 'none';
+
+  addEstWizardNavButtons();
+}
+
+function initEstWizardForCreate() {
+  estWizardIsEditMode = false;
+  estWizardMaxSteps = 3;
+  estWizardCurrentStep = 1;
+
+  const bar = document.getElementById('estWizardBar');
+  if (bar) bar.style.display = 'none';
+
+  // En modo crear, mostramos todos los paneles (sin wizard)
+  for (let i = 1; i <= 6; i++) {
+    const panel = document.getElementById('estWizStep' + i);
+    if (panel) {
+      if (i <= 3) {
+        panel.classList.add('active');
+        panel.style.display = '';
+      } else {
+        panel.classList.remove('active');
+        panel.style.display = 'none';
+      }
+    }
+  }
+
+  // Mostrar footer original
+  const footer = document.querySelector('.modal-planilla-footer');
+  if (footer) footer.style.display = '';
+
+  // Ocultar secciones avanzadas
+  const secDV = document.getElementById('seccionDatosVariables');
+  const secProcedencia = document.getElementById('seccionProcedencia');
+  const secMedica = document.getElementById('seccionMedica');
+  if (secDV) secDV.style.display = 'none';
+  if (secProcedencia) secProcedencia.style.display = 'none';
+  if (secMedica) secMedica.style.display = 'none';
+
+  removeEstWizardNavButtons();
+}
+
+function addEstWizardNavButtons() {
+  removeEstWizardNavButtons(); // Limpiar previos
+
+  const panels = [
+    { id: 'estWizStep1', back: null, next: 2 },
+    { id: 'estWizStep2', back: 1, next: 3 },
+    { id: 'estWizStep3', back: 2, next: 4 },
+    { id: 'estWizStep4', back: 3, next: 5 },
+    { id: 'estWizStep5', back: 4, next: 6 },
+    { id: 'estWizStep6', back: 5, next: null } // Último: botón guardar
+  ];
+
+  panels.forEach(p => {
+    const panel = document.getElementById(p.id);
+    if (!panel) return;
+
+    const nav = document.createElement('div');
+    nav.className = 'wizard-nav est-wizard-nav-dynamic';
+
+    if (p.back !== null) {
+      const btnBack = document.createElement('button');
+      btnBack.type = 'button';
+      btnBack.className = 'btn btn-secondary';
+      btnBack.innerHTML = '&larr; Anterior';
+      btnBack.onclick = () => estWizardBack(p.back);
+      nav.appendChild(btnBack);
+    }
+
+    const spacer = document.createElement('div');
+    spacer.className = 'wizard-nav-spacer';
+    nav.appendChild(spacer);
+
+    if (p.next !== null) {
+      const btnNext = document.createElement('button');
+      btnNext.type = 'button';
+      btnNext.className = 'btn btn-primary';
+      btnNext.innerHTML = 'Siguiente &rarr;';
+      btnNext.onclick = () => estWizardNext(p.next);
+      nav.appendChild(btnNext);
+    } else {
+      // Último paso: botón guardar
+      const btnSave = document.createElement('button');
+      btnSave.type = 'submit';
+      btnSave.className = 'btn btn-primary';
+      btnSave.innerHTML = '💾 Guardar Cambios';
+      nav.appendChild(btnSave);
+    }
+
+    panel.appendChild(nav);
+  });
+}
+
+function removeEstWizardNavButtons() {
+  document.querySelectorAll('.est-wizard-nav-dynamic').forEach(n => n.remove());
+}
+
+// ==========================================
+// PRECARGA DE DATOS AVANZADOS (editar)
+// ==========================================
+function precargarDatosInscripcion(estudiante, ultimaInsc) {
+  if (!ultimaInsc) return;
+
+  // Integración UPE
+  const upeCheck = document.getElementById('dv_integracion_upe');
+  if (upeCheck) upeCheck.checked = ultimaInsc.integracion_upe || false;
+
+  // Procedencia
+  const mismaInst = document.getElementById('dv_misma_institucion');
+  if (mismaInst) mismaInst.value = ultimaInsc.misma_institucion === false ? 'NO' : 'SI';
+
+  const instProc = document.getElementById('dv_institucion_procedencia');
+  if (instProc) instProc.value = ultimaInsc.institucion_procedencia || '';
+
+  const motivoRetiro = document.getElementById('dv_motivo_retiro_proc');
+  if (motivoRetiro) motivoRetiro.value = ultimaInsc.motivo_retiro_procedencia || '';
+
+  const conQuien = document.getElementById('dv_con_quien_vive');
+  if (conQuien) conQuien.value = ultimaInsc.con_quien_vive || '';
+
+  const tieneHermanos = document.getElementById('dv_tiene_hermanos');
+  if (tieneHermanos) tieneHermanos.checked = ultimaInsc.tiene_hermanos_institucion || false;
+
+  const cantHermanos = document.getElementById('dv_cantidad_hermanos');
+  if (cantHermanos) cantHermanos.value = ultimaInsc.cantidad_hermanos || '';
+
+  // Socioeconómicos
+  const tipoViv = document.getElementById('dv_tipo_vivienda');
+  if (tipoViv) tipoViv.value = ultimaInsc.tipo_vivienda || '';
+
+  const condInfra = document.getElementById('dv_condicion_infra');
+  if (condInfra) condInfra.value = ultimaInsc.condicion_infraestructura || '';
+
+  // Médica (del estudiante)
+  const vacCompl = document.getElementById('dv_vacunas_completas');
+  if (vacCompl) vacCompl.value = estudiante.vacunas_completas === false ? 'false' : 'true';
+
+  const vacFalt = document.getElementById('dv_vacunas_faltantes');
+  if (vacFalt) vacFalt.value = estudiante.vacunas_faltantes || '';
+
+  const alerg = document.getElementById('dv_alergico');
+  if (alerg) alerg.value = estudiante.alergico ? 'true' : 'false';
+
+  const alergDet = document.getElementById('dv_alergico_detalle');
+  if (alergDet) alergDet.value = estudiante.alergico_detalle || '';
+
+  const trat = document.getElementById('dv_tratamiento');
+  if (trat) trat.value = estudiante.tratamiento_medico ? 'true' : 'false';
+
+  const tratDet = document.getElementById('dv_tratamiento_detalle');
+  if (tratDet) tratDet.value = estudiante.tratamiento_detalle || '';
+
+  const hosp = document.getElementById('dv_hospitalizado');
+  if (hosp) hosp.value = estudiante.hospitalizado ? 'true' : 'false';
+
+  const hospDet = document.getElementById('dv_hospitalizado_detalle');
+  if (hospDet) hospDet.value = estudiante.hospitalizado_detalle || '';
+
+  const enf = document.getElementById('dv_enfermedades');
+  if (enf) enf.value = estudiante.enfermedades_padecidas || '';
+
+  // Integración social (de la inscripción)
+  const intPasivo = document.getElementById('dv_int_pasivo');
+  if (intPasivo) intPasivo.checked = ultimaInsc.integracion_pasivo || false;
+
+  const intInquieto = document.getElementById('dv_int_inquieto');
+  if (intInquieto) intInquieto.checked = ultimaInsc.integracion_inquieto || false;
+
+  const intTierno = document.getElementById('dv_int_tierno');
+  if (intTierno) intTierno.checked = ultimaInsc.integracion_tierno || false;
+
+  const intSensible = document.getElementById('dv_int_sensible');
+  if (intSensible) intSensible.checked = ultimaInsc.integracion_sensible || false;
+
+  const habil = document.getElementById('dv_habilidades');
+  if (habil) habil.value = ultimaInsc.habilidades || '';
 }

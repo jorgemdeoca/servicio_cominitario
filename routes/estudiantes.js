@@ -407,6 +407,43 @@ router.put('/:id', async (req, res) => {
             talla_camisa: dv.talla_camisa || null,
             talla_pantalon: dv.talla_pantalon || null,
             talla_zapato: dv.talla_zapato || null,
+            // Integración UPE
+            integracion_upe: dv.integracion_upe === true,
+            // Procedencia
+            misma_institucion: dv.misma_institucion !== undefined ? dv.misma_institucion : undefined,
+            institucion_procedencia: dv.institucion_procedencia !== undefined ? dv.institucion_procedencia : undefined,
+            motivo_retiro_procedencia: dv.motivo_retiro_procedencia !== undefined ? dv.motivo_retiro_procedencia : undefined,
+            // Socioeconómicos
+            con_quien_vive: dv.con_quien_vive || undefined,
+            tiene_hermanos_institucion: dv.tiene_hermanos_institucion !== undefined ? dv.tiene_hermanos_institucion : undefined,
+            cantidad_hermanos: dv.cantidad_hermanos !== undefined ? dv.cantidad_hermanos : undefined,
+            tipo_vivienda: dv.tipo_vivienda || undefined,
+            condicion_infraestructura: dv.condicion_infraestructura || undefined,
+            // Integración social
+            integracion_pasivo: dv.integracion_pasivo !== undefined ? dv.integracion_pasivo : undefined,
+            integracion_inquieto: dv.integracion_inquieto !== undefined ? dv.integracion_inquieto : undefined,
+            integracion_tierno: dv.integracion_tierno !== undefined ? dv.integracion_tierno : undefined,
+            integracion_sensible: dv.integracion_sensible !== undefined ? dv.integracion_sensible : undefined,
+            habilidades: dv.habilidades !== undefined ? dv.habilidades : undefined,
+          }
+        });
+      }
+
+      // Actualizar datos médicos del estudiante si vienen
+      const dm = req.body.datos_medicos;
+      if (dm) {
+        await prisma.estudiantes.update({
+          where: { id: parseInt(id) },
+          data: {
+            vacunas_completas: dm.vacunas_completas !== undefined ? dm.vacunas_completas : undefined,
+            vacunas_faltantes: dm.vacunas_faltantes !== undefined ? dm.vacunas_faltantes : undefined,
+            alergico: dm.alergico !== undefined ? dm.alergico : undefined,
+            alergico_detalle: dm.alergico_detalle !== undefined ? dm.alergico_detalle : undefined,
+            tratamiento_medico: dm.tratamiento_medico !== undefined ? dm.tratamiento_medico : undefined,
+            tratamiento_detalle: dm.tratamiento_detalle !== undefined ? dm.tratamiento_detalle : undefined,
+            hospitalizado: dm.hospitalizado !== undefined ? dm.hospitalizado : undefined,
+            hospitalizado_detalle: dm.hospitalizado_detalle !== undefined ? dm.hospitalizado_detalle : undefined,
+            enfermedades_padecidas: dm.enfermedades_padecidas !== undefined ? dm.enfermedades_padecidas : undefined,
           }
         });
       }

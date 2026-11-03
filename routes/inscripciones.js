@@ -5,7 +5,7 @@ const { buscarOCrearPersona } = require('./estudiantes');
 // GET /api/inscripciones - Listar inscripciones (con filtros)
 router.get('/', async (req, res) => {
   try {
-    const { anio_escolar_id, seccion_id, grado_id, buscar, estado, pagina = 1, limite = 20 } = req.query;
+    const { anio_escolar_id, seccion_id, grado_id, buscar, estado, upe, pagina = 1, limite = 20 } = req.query;
     const skip = (parseInt(pagina) - 1) * parseInt(limite);
     const take = parseInt(limite);
 
@@ -14,6 +14,10 @@ router.get('/', async (req, res) => {
     if (anio_escolar_id) where.anio_escolar_id = parseInt(anio_escolar_id);
     if (seccion_id) where.seccion_id = parseInt(seccion_id);
     if (estado) where.estado = estado;
+
+    // Filtrar por integración UPE
+    if (upe === 'true') where.integracion_upe = true;
+    if (upe === 'false') where.integracion_upe = false;
 
     // Filtrar por grado (a través de sección)
     if (grado_id) {
@@ -371,6 +375,7 @@ router.post('/completa', async (req, res) => {
               cantidad_hermanos: inscData.cantidad_hermanos ? parseInt(inscData.cantidad_hermanos) : null,
               tipo_vivienda: inscData.tipo_vivienda || null,
               condicion_infraestructura: inscData.condicion_infraestructura || null,
+              integracion_upe: inscData.integracion_upe || false,
               integracion_pasivo: inscData.social ? inscData.social.pasivo : false,
               integracion_inquieto: inscData.social ? inscData.social.inquieto : false,
               integracion_tierno: inscData.social ? inscData.social.tierno : false,
@@ -415,6 +420,7 @@ router.post('/completa', async (req, res) => {
             cantidad_hermanos: inscData.cantidad_hermanos ? parseInt(inscData.cantidad_hermanos) : null,
             tipo_vivienda: inscData.tipo_vivienda || null,
             condicion_infraestructura: inscData.condicion_infraestructura || null,
+            integracion_upe: inscData.integracion_upe || false,
             integracion_pasivo: inscData.social ? inscData.social.pasivo : false,
             integracion_inquieto: inscData.social ? inscData.social.inquieto : false,
             integracion_tierno: inscData.social ? inscData.social.tierno : false,
@@ -589,6 +595,7 @@ router.post('/', async (req, res) => {
             cantidad_hermanos: cantidad_hermanos ? parseInt(cantidad_hermanos) : null,
             tipo_vivienda: tipo_vivienda || null,
             condicion_infraestructura: condicion_infraestructura || null,
+            integracion_upe: req.body.integracion_upe || false,
             integracion_pasivo: social ? social.pasivo : false,
             integracion_inquieto: social ? social.inquieto : false,
             integracion_tierno: social ? social.tierno : false,
@@ -638,6 +645,8 @@ router.post('/', async (req, res) => {
             // Socioeconómicos
             tipo_vivienda: tipo_vivienda || null,
             condicion_infraestructura: condicion_infraestructura || null,
+            // Integración UPE
+            integracion_upe: req.body.integracion_upe || false,
             // Social (Solo inicial)
             integracion_pasivo: social ? social.pasivo : false,
             integracion_inquieto: social ? social.inquieto : false,
@@ -704,6 +713,7 @@ router.put('/:id', async (req, res) => {
       'misma_institucion', 'institucion_procedencia', 'motivo_retiro_procedencia',
       'con_quien_vive', 'tiene_hermanos_institucion', 'cantidad_hermanos',
       'tipo_vivienda', 'condicion_infraestructura',
+      'integracion_upe',
       'motivo_retiro_saliente', 'fecha_retiro',
       'observaciones_generales',
       'integracion_pasivo', 'integracion_inquieto', 'integracion_tierno',

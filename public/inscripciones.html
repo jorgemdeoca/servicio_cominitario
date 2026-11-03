@@ -425,6 +425,13 @@
             <option value="RETIRADO">Retirado</option>
           </select>
           <div class="toolbar-divider"></div>
+          <label style="font-size:var(--font-size-xs);font-weight:600;color:var(--text-muted);">UPE:</label>
+          <select id="filtroUPE" onchange="loadInscripciones();" style="min-width:110px;">
+            <option value="">Todos</option>
+            <option value="true">🧩 Integración UPE</option>
+            <option value="false">Sin UPE</option>
+          </select>
+          <div class="toolbar-divider"></div>
           <div class="search-bar">
             <img src="/icons/search.svg" alt="" class="search-icon">
             <input type="text" id="filtroBuscar" placeholder="Nombre o código..."
@@ -886,6 +893,21 @@
                     <option value="PROSECUCION">Prosecución</option>
                   </select>
                 </div>
+              </div>
+
+              <!-- Integracion UPE -->
+              <div class="form-group" style="grid-column: 1 / -1; margin-top: var(--space-3);">
+                <label style="display:flex; align-items:center; gap:var(--space-3); cursor:pointer;
+                  padding: var(--space-3) var(--space-4); border-radius:var(--radius); border:1px solid var(--border);
+                  background: var(--bg); transition: all 0.2s;">
+                  <input type="checkbox" id="insc_integracion_upe" style="width:20px; height:20px; accent-color: var(--primary);">
+                  <div>
+                    <span style="font-weight:600; font-size:var(--font-size-sm);">🧩 Integración UPE</span>
+                    <p style="font-size:var(--font-size-xs); color:var(--text-muted); margin:2px 0 0;">
+                      Marcar si el estudiante será referido a la Unidad Psicoeducativa para evaluación
+                    </p>
+                  </div>
+                </label>
               </div>
             </div>
           </div>
