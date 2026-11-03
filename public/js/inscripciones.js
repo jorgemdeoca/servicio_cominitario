@@ -1,5 +1,240 @@
 let paginaActual = 1;
 
+// ==========================================
+// WIZARD MULTI-PASO — Navegación
+// ==========================================
+let inscWizardStep = 1;
+const INSC_WIZARD_STEPS = 8;
+let inscWizardMode = 'create'; // 'create' = wizard, 'edit' = todas visibles (futuro)
+
+async function inscWizardNext(nextStep) {
+  // Validar paso actual antes de avanzar
+  const valido = await validarPasoWizard(inscWizardStep);
+  if (!valido) return;
+  inscWizardStep = nextStep;
+  showInscWizardPanel(nextStep);
+  updateInscWizardIndicators(nextStep);
+  scrollModalTop();
+}
+
+function inscWizardBack(prevStep) {
+  inscWizardStep = prevStep;
+  showInscWizardPanel(prevStep);
+  updateInscWizardIndicators(prevStep);
+  scrollModalTop();
+}
+
+async function inscWizardGoTo(step) {
+  // Solo permitir ir a pasos ya completados o el actual
+  if (step > inscWizardStep) {
+    // Validar todos los pasos intermedios
+    for (let s = inscWizardStep; s < step; s++) {
+      const valido = await validarPasoWizard(s);
+      if (!valido) return;
+    }
+  }
+  inscWizardStep = step;
+  showInscWizardPanel(step);
+  updateInscWizardIndicators(step);
+  scrollModalTop();
+}
+
+function showInscWizardPanel(step) {
+  document.querySelectorAll('#formInscripcion .wizard-panel').forEach(p => {
+    p.classList.remove('active');
+  });
+  const panel = document.getElementById('inscWizStep' + step);
+  if (panel) panel.classList.add('active');
+}
+
+function updateInscWizardIndicators(activeStep) {
+  document.querySelectorAll('#inscWizardBar .wizard-step-indicator').forEach(ind => {
+    const s = parseInt(ind.dataset.step);
+    ind.classList.remove('active', 'completed');
+    if (s === activeStep) {
+      ind.classList.add('active');
+    } else if (s < activeStep) {
+      ind.classList.add('completed');
+    }
+  });
+}
+
+async function validarPasoWizard(step) {
+  hideAlert('alertModal');
+  document.querySelectorAll('.campo-error').forEach(el => el.classList.remove('campo-error'));
+  
+  if (step === 1) {
+    const esModoRegistro = document.getElementById('containerEstudiante').classList.contains('modo-registro-activo');
+    const estudianteId = document.getElementById('insc_estudiante_id').value;
+    
+    if (!esModoRegistro && !estudianteId) {
+      showAlert('alertModal', 'Debe buscar y seleccionar un estudiante, o registrar uno nuevo.', 'error');
+      return false;
+    }
+    
+    if (esModoRegistro) {
+      if (!document.getElementById('ni_e_primer_apellido').value.trim()) {
+        showAlert('alertModal', 'Primer apellido del estudiante es obligatorio.', 'error');
+        highlightField('ni_e_primer_apellido');
+        return false;
+      }
+      if (!document.getElementById('ni_e_primer_nombre').value.trim()) {
+        showAlert('alertModal', 'Primer nombre del estudiante es obligatorio.', 'error');
+        highlightField('ni_e_primer_nombre');
+        return false;
+      }
+      if (!document.getElementById('ni_e_fecha_nacimiento').value) {
+        showAlert('alertModal', 'Fecha de nacimiento del estudiante es obligatoria.', 'error');
+        highlightField('ni_e_fecha_nacimiento');
+        return false;
+      }
+      // Madre obligatoria
+      if (!document.getElementById('ni_m_cedula').value.trim()) {
+        showAlert('alertModal', 'C\u00e9dula de la madre es obligatoria.', 'error');
+        highlightField('ni_m_cedula');
+        return false;
+      }
+      if (!document.getElementById('ni_m_apellidos').value.trim()) {
+        showAlert('alertModal', 'Apellidos de la madre son obligatorios.', 'error');
+        highlightField('ni_m_apellidos');
+        return false;
+      }
+      if (!document.getElementById('ni_m_nombres').value.trim()) {
+        showAlert('alertModal', 'Nombres de la madre son obligatorios.', 'error');
+        highlightField('ni_m_nombres');
+        return false;
+      }
+      // Validar mayor de edad para madre
+      if (document.getElementById('ni_m_fecha_nacimiento').value && typeof esMayorDeEdad === 'function') {
+        if (!esMayorDeEdad('ni_m_fecha_nacimiento')) {
+          showAlert('alertModal', 'La madre debe ser mayor de edad (m\u00ednimo 18 a\u00f1os).', 'error');
+          highlightField('ni_m_fecha_nacimiento');
+          return false;
+        }
+      }
+      // Validar padre si se seleccion\u00f3 como representante
+      const repEs = document.querySelector('input[name="ni_representante_es"]:checked');
+      if (repEs && repEs.value === 'PADRE') {
+        if (!document.getElementById('ni_p_cedula').value.trim() ||
+            !document.getElementById('ni_p_apellidos').value.trim() ||
+            !document.getElementById('ni_p_nombres').value.trim()) {
+          showAlert('alertModal', 'Seleccion\u00f3 al Padre como representante pero sus datos est\u00e1n vac\u00edos. Llene c\u00e9dula, apellidos y nombres del padre.', 'error');
+          highlightField('ni_p_cedula');
+          return false;
+        }
+      }
+      if (repEs && repEs.value === 'OTRO') {
+        if (!document.getElementById('ni_r_cedula').value.trim()) {
+          showAlert('alertModal', 'C\u00e9dula del representante es obligatoria.', 'error');
+          highlightField('ni_r_cedula');
+          return false;
+        }
+        if (!document.getElementById('ni_r_apellidos').value.trim()) {
+          showAlert('alertModal', 'Apellidos del representante son obligatorios.', 'error');
+          highlightField('ni_r_apellidos');
+          return false;
+        }
+        if (!document.getElementById('ni_r_nombres').value.trim()) {
+          showAlert('alertModal', 'Nombres del representante son obligatorios.', 'error');
+          highlightField('ni_r_nombres');
+          return false;
+        }
+      }
+    }
+  }
+  
+  if (step === 2) {
+    if (!document.getElementById('insc_anio').value) {
+      showAlert('alertModal', 'No hay un A\u00f1o Escolar activo configurado.', 'error');
+      return false;
+    }
+    if (!document.getElementById('insc_seccion').value) {
+      showAlert('alertModal', 'Debe seleccionar un Grado y Secci\u00f3n.', 'error');
+      highlightField('insc_seccion');
+      return false;
+    }
+    if (!document.getElementById('insc_fecha').value) {
+      showAlert('alertModal', 'La fecha de inscripci\u00f3n es obligatoria.', 'error');
+      highlightField('insc_fecha');
+      return false;
+    }
+
+    // === Verificar si el estudiante ya est\u00e1 inscrito en el a\u00f1o activo ===
+    const esModoRegistro = document.getElementById('containerEstudiante').classList.contains('modo-registro-activo');
+    const estudianteId = document.getElementById('insc_estudiante_id').value;
+    
+    if (!esModoRegistro && estudianteId) {
+      try {
+        const anioId = document.getElementById('insc_anio').value;
+        const res = await apiFetch(`/api/inscripciones/verificar-duplicado?estudiante_id=${estudianteId}&anio_escolar_id=${anioId}`);
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data.inscrito) {
+            showAlert('alertModal', 
+              `\u26a0\ufe0f Este estudiante ya se encuentra inscrito en el a\u00f1o escolar activo (${data.seccion}, estado: ${data.estado}). No se puede inscribir dos veces.`, 
+              'error');
+            return false;
+          }
+        }
+      } catch (err) {
+        console.error('Error verificando duplicado:', err);
+      }
+    }
+  }
+  
+  if (step === 5) {
+    // Validar direcci\u00f3n obligatoria — campo cr\u00edtico
+    if (!document.getElementById('insc_direccion').value.trim()) {
+      showAlert('alertModal', 'La Direcci\u00f3n Actual del estudiante es obligatoria.', 'error');
+      highlightField('insc_direccion');
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function highlightField(fieldId) {
+  const campo = document.getElementById(fieldId);
+  if (campo) {
+    campo.classList.add('campo-error');
+    setTimeout(() => {
+      campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      campo.focus();
+    }, 200);
+  }
+}
+
+function scrollModalTop() {
+  const modalBody = document.querySelector('#modalInscripcion .modal-insc-body');
+  if (modalBody) {
+    modalBody.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function initWizardForCreate() {
+  inscWizardStep = 1;
+  inscWizardMode = 'create';
+  
+  // Mostrar barra de pasos
+  const bar = document.getElementById('inscWizardBar');
+  if (bar) bar.style.display = 'flex';
+  
+  // Ocultar footer viejo
+  const footer = document.getElementById('inscModalFooter');
+  if (footer) footer.style.display = 'none';
+  
+  // Mostrar solo panel 1
+  showInscWizardPanel(1);
+  updateInscWizardIndicators(1);
+  
+  // Expandir todas las secciones (quitar collapsed)
+  document.querySelectorAll('#formInscripcion .planilla-seccion.collapsed').forEach(s => {
+    s.classList.remove('collapsed');
+  });
+}
+
+
 document.addEventListener('DOMContentLoaded', async () => {
   await cargarDatosIniciales();
   loadInscripciones();
@@ -28,14 +263,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // === ACORDEÓN: Secciones colapsables en el modal ===
+  // En modo wizard, el acordeón se deshabilita (secciones siempre expandidas dentro de su panel)
   document.querySelectorAll('.planilla-seccion-titulo').forEach((titulo, index) => {
-    // Colapsar secciones 2-8 por defecto (índice 1 en adelante)
-    if (index > 0) {
-      titulo.closest('.planilla-seccion').classList.add('collapsed');
-    }
-    // Click para expandir/colapsar
+    // Click para expandir/colapsar (solo funciona fuera del wizard)
     titulo.addEventListener('click', () => {
-      titulo.closest('.planilla-seccion').classList.toggle('collapsed');
+      if (inscWizardMode !== 'create') {
+        titulo.closest('.planilla-seccion').classList.toggle('collapsed');
+      }
     });
   });
 
@@ -477,6 +711,9 @@ function abrirModalInscripcion() {
     volverBusquedaEstudiante();
   }
   
+  // Inicializar wizard para modo crear
+  initWizardForCreate();
+  
   modal.classList.add('active');
 }
 
@@ -652,10 +889,18 @@ function mostrarErrorValidacion(error) {
   // Limpiar errores previos
   document.querySelectorAll('.campo-error').forEach(el => el.classList.remove('campo-error'));
 
-  // Expandir la sección colapsada donde está el campo
-  const secciones = document.querySelectorAll('#formInscripcion .planilla-seccion');
-  if (error.seccionIdx !== undefined && secciones[error.seccionIdx]) {
-    secciones[error.seccionIdx].classList.remove('collapsed');
+  // Si estamos en modo wizard, navegar al paso correcto
+  if (inscWizardMode === 'create' && error.seccionIdx !== undefined) {
+    const wizStep = error.seccionIdx + 1; // seccionIdx es 0-based, steps son 1-based
+    inscWizardStep = wizStep;
+    showInscWizardPanel(wizStep);
+    updateInscWizardIndicators(wizStep);
+  } else {
+    // Modo accordion (fallback)
+    const secciones = document.querySelectorAll('#formInscripcion .planilla-seccion');
+    if (error.seccionIdx !== undefined && secciones[error.seccionIdx]) {
+      secciones[error.seccionIdx].classList.remove('collapsed');
+    }
   }
 
   // Resaltar el campo

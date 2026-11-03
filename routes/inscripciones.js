@@ -152,6 +152,47 @@ router.get('/sin-literal', async (req, res) => {
   }
 });
 
+
+// GET /api/inscripciones/verificar-duplicado?estudiante_id=X&anio_escolar_id=Y
+// Verifica si un estudiante ya tiene inscripción activa en un año escolar
+router.get('/verificar-duplicado', async (req, res) => {
+  try {
+    const { estudiante_id, anio_escolar_id } = req.query;
+    if (!estudiante_id || !anio_escolar_id) {
+      return res.json({ inscrito: false });
+    }
+
+    const inscripcion = await req.prisma.inscripciones.findUnique({
+      where: {
+        estudiante_id_anio_escolar_id: {
+          estudiante_id: parseInt(estudiante_id),
+          anio_escolar_id: parseInt(anio_escolar_id)
+        }
+      },
+      include: {
+        seccion: {
+          include: { grado: true }
+        }
+      }
+    });
+
+    if (inscripcion && !inscripcion.eliminado && inscripcion.estado !== 'RETIRADO') {
+      const gradoSec = inscripcion.seccion && inscripcion.seccion.grado
+        ? `${inscripcion.seccion.grado.nombre} "${inscripcion.seccion.letra}"`
+        : 'desconocida';
+      return res.json({
+        inscrito: true,
+        estado: inscripcion.estado,
+        seccion: gradoSec
+      });
+    }
+
+    res.json({ inscrito: false });
+  } catch (error) {
+    console.error('Error verificando duplicado:', error);
+    res.json({ inscrito: false });
+  }
+});
 // GET /api/inscripciones/:id - Obtener una inscripción completa
 router.get('/:id', async (req, res) => {
   try {
