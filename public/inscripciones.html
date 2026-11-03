@@ -274,6 +274,83 @@
       padding-bottom: var(--space-2);
       border-bottom: 1px dashed var(--border);
     }
+
+    /* ── Wizard Stepper ── */
+    .wizard-steps-bar {
+      display: flex;
+      gap: 2px;
+      margin-bottom: var(--space-5);
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      padding: var(--space-2);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+    .wizard-step-indicator {
+      flex: 1;
+      text-align: center;
+      padding: var(--space-2) var(--space-1);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-radius: var(--radius);
+      transition: all .2s;
+      white-space: nowrap;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .wizard-step-indicator .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .wizard-step-indicator.active {
+      background: var(--primary);
+      color: white;
+    }
+    .wizard-step-indicator.active .step-num {
+      background: rgba(255,255,255,0.25);
+      color: white;
+    }
+    .wizard-step-indicator.completed {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+    .wizard-step-indicator.completed .step-num {
+      background: var(--success);
+      color: white;
+    }
+    .wizard-panel {
+      display: none;
+    }
+    .wizard-panel.active {
+      display: block;
+    }
+    .wizard-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+    .wizard-nav .btn {
+      min-width: 140px;
+    }
+    .wizard-nav .wizard-nav-spacer {
+      flex: 1;
+    }
   </style>
 </head>
 
@@ -404,6 +481,35 @@
         <div class="modal-insc-body">
           <div id="alertModal" class="alert" style="display:none;"></div>
 
+          <!-- Wizard Step Bar (solo visible en modo crear) -->
+          <div class="wizard-steps-bar" id="inscWizardBar">
+            <div class="wizard-step-indicator active" data-step="1" onclick="inscWizardGoTo(1)">
+              <span class="step-num">1</span>Estudiante
+            </div>
+            <div class="wizard-step-indicator" data-step="2" onclick="inscWizardGoTo(2)">
+              <span class="step-num">2</span>Asignaci&oacute;n
+            </div>
+            <div class="wizard-step-indicator" data-step="3" onclick="inscWizardGoTo(3)">
+              <span class="step-num">3</span>Colaboraci&oacute;n
+            </div>
+            <div class="wizard-step-indicator" data-step="4" onclick="inscWizardGoTo(4)">
+              <span class="step-num">4</span>Documentos
+            </div>
+            <div class="wizard-step-indicator" data-step="5" onclick="inscWizardGoTo(5)">
+              <span class="step-num">5</span>Datos
+            </div>
+            <div class="wizard-step-indicator" data-step="6" onclick="inscWizardGoTo(6)">
+              <span class="step-num">6</span>Procedencia
+            </div>
+            <div class="wizard-step-indicator" data-step="7" onclick="inscWizardGoTo(7)">
+              <span class="step-num">7</span>Socio.
+            </div>
+            <div class="wizard-step-indicator" data-step="8" onclick="inscWizardGoTo(8)">
+              <span class="step-num">8</span>M&eacute;dica
+            </div>
+          </div>
+
+          <div class="wizard-panel active" id="inscWizStep1">
           <!-- Sección 1: Seleccionar Estudiante -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">1</span> ESTUDIANTE</div>
@@ -743,6 +849,14 @@
             </div>
           </div>
 
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-secondary" onclick="cerrarModalInscripcion()">Cancelar</button>
+              <div class="wizard-nav-spacer"></div>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(2)">Siguiente &rarr;</button>
+            </div>
+          </div>
+
+          <div class="wizard-panel" id="inscWizStep2">
           <!-- Sección 2: Año, Grado, Sección, Profesor -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">2</span> ASIGNACIÓN</div>
@@ -776,6 +890,14 @@
             </div>
           </div>
 
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(1)">&larr; Anterior</button>
+              <div class="wizard-nav-spacer"></div>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(3)">Siguiente &rarr;</button>
+            </div>
+          </div>
+
+          <div class="wizard-panel" id="inscWizStep3">
           <!-- Sección 3: Colaboración del Representante -->
           <div class="planilla-seccion" id="seccion_colaboracion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">3</span> COLABORACIÓN DEL REPRESENTANTE</div>
@@ -850,6 +972,14 @@
             </div>
           </div>
 
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(2)">&larr; Anterior</button>
+              <div class="wizard-nav-spacer"></div>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(4)">Siguiente &rarr;</button>
+            </div>
+          </div>
+
+          <div class="wizard-panel" id="inscWizStep4">
           <!-- Sección 4: Documentos Consignados -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">4</span> DOCUMENTOS CONSIGNADOS</div>
@@ -871,6 +1001,14 @@
             </div>
           </div>
 
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(3)">&larr; Anterior</button>
+              <div class="wizard-nav-spacer"></div>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(5)">Siguiente &rarr;</button>
+            </div>
+          </div>
+
+          <div class="wizard-panel" id="inscWizStep5">
           <!-- Sección 5: Datos Variables -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">5</span> DATOS VARIABLES (Actualizables)
@@ -903,6 +1041,14 @@
             </div>
           </div>
 
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(4)">&larr; Anterior</button>
+              <div class="wizard-nav-spacer"></div>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(6)">Siguiente &rarr;</button>
+            </div>
+          </div>
+
+          <div class="wizard-panel" id="inscWizStep6">
           <!-- Sección 6: Procedencia -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">6</span> PROCEDENCIA</div>
@@ -950,6 +1096,14 @@
             </div>
           </div>
 
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(5)">&larr; Anterior</button>
+              <div class="wizard-nav-spacer"></div>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(7)">Siguiente &rarr;</button>
+            </div>
+          </div>
+
+          <div class="wizard-panel" id="inscWizStep7">
           <!-- Sección 7: Datos Socioeconómicos -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">7</span> DATOS SOCIOECONÓMICOS</div>
@@ -977,6 +1131,14 @@
             </div>
           </div>
 
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(6)">&larr; Anterior</button>
+              <div class="wizard-nav-spacer"></div>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(8)">Siguiente &rarr;</button>
+            </div>
+          </div>
+
+          <div class="wizard-panel" id="inscWizStep8">
           <!-- Sección 8: Información Médica y Social -->
           <div class="planilla-seccion" id="seccion_medica_social">
             <div class="planilla-seccion-titulo"><span class="seccion-num">8</span> INFORMACIÓN MÉDICA E INTEGRACIÓN
@@ -1077,8 +1239,15 @@
             </div>
           </div>
 
+            <div class="wizard-nav">
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(7)">&larr; Anterior</button>
+              <div class="wizard-nav-spacer"></div>
+              <button type="submit" class="btn btn-primary" style="min-width:200px;">&#x1F4CB; Inscribir Estudiante</button>
+            </div>
+          </div>
+
         </div>
-        <div class="modal-insc-footer">
+        <div class="modal-insc-footer" id="inscModalFooter" style="display:none;">
           <button type="button" class="btn btn-secondary" onclick="cerrarModalInscripcion()">Cancelar</button>
           <button type="submit" class="btn btn-primary">Inscribir Estudiante</button>
         </div>
