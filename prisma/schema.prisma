@@ -315,6 +315,9 @@ model inscripciones {
   habilidades           String? @db.Text
   observaciones_generales String? @db.Text
 
+  // --- Integración UPE ---
+  integracion_upe  Boolean @default(false)
+
   // --- Retiro ---
   motivo_retiro_saliente String?   @db.VarChar(200)
   fecha_retiro           DateTime? @db.Date

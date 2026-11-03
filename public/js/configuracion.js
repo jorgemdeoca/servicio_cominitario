@@ -644,6 +644,7 @@ async function loadConfiguracion() {
     if (conf.telefono_supervisor) document.getElementById('cfg_telefono_supervisor').value = conf.telefono_supervisor;
     if (conf.correo_supervisor) document.getElementById('cfg_correo_supervisor').value = conf.correo_supervisor;
     if (conf.direccion) document.getElementById('cfg_direccion').value = conf.direccion;
+    if (conf.circuito) document.getElementById('cfg_circuito').value = conf.circuito;
     if (conf.membrete) document.getElementById('cfg_membrete').value = conf.membrete;
     if (conf.localidad) document.getElementById('cfg_localidad').value = conf.localidad;
 
@@ -751,6 +752,7 @@ async function saveConfiguracion(e) {
     telefono_supervisor: document.getElementById('cfg_telefono_supervisor').value,
     correo_supervisor: document.getElementById('cfg_correo_supervisor').value,
     direccion: document.getElementById('cfg_direccion').value,
+    circuito: document.getElementById('cfg_circuito').value,
     membrete: document.getElementById('cfg_membrete').value,
     localidad: document.getElementById('cfg_localidad').value
   };

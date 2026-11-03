@@ -275,4 +275,97 @@ router.get('/constancia', async (req, res) => {
   }
 });
 
+// GET /api/reportes/matricula-upe - Matrícula de Integración UPE (todos los grados del año activo)
+router.get('/matricula-upe', async (req, res) => {
+  try {
+    // Buscar año escolar activo
+    const anioActivo = await req.prisma.anios_escolares.findFirst({
+      where: { activo: true }
+    });
+    if (!anioActivo) {
+      return res.status(400).json({ error: 'No hay año escolar activo.' });
+    }
+
+    const configs = await req.prisma.configuracion.findMany();
+    const config = {};
+    for (const c of configs) config[c.clave] = c.valor;
+
+    // Buscar inscripciones con integracion_upe = true en año activo
+    const inscripciones = await req.prisma.inscripciones.findMany({
+      where: {
+        anio_escolar_id: anioActivo.id,
+        integracion_upe: true,
+        eliminado: false,
+        estado: { not: 'RETIRADO' }
+      },
+      include: {
+        estudiante: {
+          include: {
+            representante: {
+              select: { nombres: true, apellidos: true, cedula: true, nacionalidad: true, telefono: true }
+            }
+          }
+        },
+        seccion: { include: { grado: true } }
+      },
+      orderBy: [
+        { seccion: { grado: { orden: 'asc' } } },
+        { seccion: { letra: 'asc' } },
+        { estudiante: { primer_apellido: 'asc' } },
+        { estudiante: { segundo_apellido: 'asc' } },
+        { estudiante: { primer_nombre: 'asc' } },
+        { estudiante: { segundo_nombre: 'asc' } }
+      ]
+    });
+
+    const calcularEdad = (fechaNac) => {
+      if (!fechaNac) return '';
+      const hoy = new Date();
+      const nac = new Date(fechaNac);
+      let edad = hoy.getFullYear() - nac.getFullYear();
+      const m = hoy.getMonth() - nac.getMonth();
+      if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+      return edad;
+    };
+
+    let varones = 0, hembras = 0;
+
+    const estudiantesFormateados = inscripciones.map((insc, idx) => {
+      const e = insc.estudiante;
+      const nombreCompleto = [e.primer_apellido, e.segundo_apellido, e.primer_nombre, e.segundo_nombre]
+        .filter(Boolean).join(' ');
+      if (e.sexo === 'M') varones++;
+      else if (e.sexo === 'F') hembras++;
+      const rep = e.representante;
+      const gradoSeccion = `${insc.seccion.grado.nombre} "${insc.seccion.letra}"`;
+
+      return {
+        numero: idx + 1,
+        grado_seccion: gradoSeccion,
+        codigo_escolar: e.codigo_escolar || '',
+        apellidos_nombres: nombreCompleto,
+        fecha_nacimiento: e.fecha_nacimiento
+          ? new Date(e.fecha_nacimiento).toLocaleDateString('es-VE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+          : '',
+        edad: calcularEdad(e.fecha_nacimiento),
+        sexo: e.sexo || '',
+        representante: rep ? `${rep.apellidos}, ${rep.nombres}` : '',
+        ci_representante: rep ? `${rep.nacionalidad}-${rep.cedula}` : '',
+        direccion: insc.direccion || '',
+        telefono: (rep && rep.telefono) ? rep.telefono : (insc.telefono || '')
+      };
+    });
+
+    res.json({
+      config,
+      anio_escolar: anioActivo,
+      estudiantes: estudiantesFormateados,
+      totales: { varones, hembras, total: varones + hembras }
+    });
+  } catch (error) {
+    console.error('Error en reporte matricula UPE:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
 module.exports = router;

@@ -289,3 +289,26 @@ function renderEstadisticas(datos) {
   document.getElementById('totHembras').textContent = datos.totales_globales.hembras;
   document.getElementById('totTotal').textContent = datos.totales_globales.total;
 }
+
+
+// ==========================================
+// MATRÍCULA INTEGRACIÓN UPE
+// ==========================================
+async function generarMatriculaUPE() {
+  try {
+    var res = await apiFetch('/api/reportes/matricula-upe');
+    if (!res) return;
+    var datos = await res.json();
+
+    if (!datos.estudiantes || datos.estudiantes.length === 0) {
+      showAlert('alertReportes', 'No hay estudiantes con Integración UPE en el año escolar activo', 'error');
+      return;
+    }
+
+    await generarPDFMatriculaUPE(datos);
+    showAlert('alertReportes', 'PDF de Matrícula Integración UPE generado con éxito (' + datos.totales.total + ' estudiantes)', 'success');
+  } catch (error) {
+    console.error(error);
+    showAlert('alertReportes', 'Error al generar reporte de Matrícula UPE', 'error');
+  }
+}
