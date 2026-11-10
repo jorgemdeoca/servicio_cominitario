@@ -4,7 +4,7 @@ let paginaActual = 1;
 // WIZARD MULTI-PASO — Navegación
 // ==========================================
 let inscWizardStep = 1;
-const INSC_WIZARD_STEPS = 8;
+const INSC_WIZARD_STEPS = 7; /* COLAB OCULTO — antes era 8 */
 let inscWizardMode = 'create'; // 'create' = wizard, 'edit' = todas visibles (futuro)
 
 async function inscWizardNext(nextStep) {
@@ -165,7 +165,7 @@ async function validarPasoWizard(step) {
     
     if (!esModoRegistro && estudianteId) {
       try {
-        const anioId = document.getElementById('insc_anio').value;
+         const anioId = document.getElementById('insc_anio').value;
         const res = await apiFetch(`/api/inscripciones/verificar-duplicado?estudiante_id=${estudianteId}&anio_escolar_id=${anioId}`);
         if (res && res.ok) {
           const data = await res.json();
@@ -182,7 +182,7 @@ async function validarPasoWizard(step) {
     }
   }
   
-  if (step === 5) {
+  if (step === 4) { /* COLAB OCULTO — antes era step 5 */
     // Validar direcci\u00f3n obligatoria — campo cr\u00edtico
     if (!document.getElementById('insc_direccion').value.trim()) {
       showAlert('alertModal', 'La Direcci\u00f3n Actual del estudiante es obligatoria.', 'error');
@@ -494,7 +494,7 @@ async function loadInscripciones() {
     tbody.innerHTML = '';
 
     if (data.datos.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9">
+      tbody.innerHTML = `<tr><td colspan="8">
         <div class="empty-state">
           <img src="/icons/clipboard-list.svg" alt="" class="empty-state-icon">
           <h3>No se encontraron inscripciones</h3>
@@ -538,6 +538,7 @@ async function loadInscripciones() {
       // I5: Badge modalidad unificado
       const modalidadBadge = `<span class="badge badge-blue no-dot">${insc.modalidad}</span>`;
 
+      /* COLAB OCULTO — Badge de colaboración en tabla
       // I5: Badge colaboración con SVG en lugar de emojis
       const colab = insc.colaboracion;
       let colabBadge;
@@ -557,6 +558,7 @@ async function loadInscripciones() {
           </span>`;
         }
       }
+      COLAB OCULTO */
 
       // I6: Botones de acción con SVG
       const btnVer = `<button class="btn-icon" onclick="verInscripcion(${insc.id})" title="Ver inscripción" aria-label="Ver"><img src="/icons/eye.svg" alt="Ver"></button>`;
@@ -600,7 +602,7 @@ async function loadInscripciones() {
         <td style="font-size:var(--font-size-sm);">${fecha}</td>
         <td>${estadoBadge}</td>
         <td>${literalBadge}</td>
-        <td>${colabBadge}</td>
+        <!-- COLAB OCULTO -->
         <td>
           <div class="actions-cell">
             ${btnVer}${btnDocs}${btnConstancia}${btnHistorial}${btnCambio}${btnRetirar}
@@ -702,7 +704,7 @@ function abrirModalInscripcion() {
   document.getElementById('estudianteSeleccionado').style.display = 'none';
   document.getElementById('insc_fecha').value = new Date().toISOString().substring(0, 10);
   hideAlert('alertModal');
-  limpiarCamposColaboracion();
+  /* COLAB OCULTO */ // limpiarCamposColaboracion();
 
   // Recargar secciones del año activo
   cargarSeccionesModal();
@@ -919,7 +921,7 @@ function mostrarErrorValidacion(error) {
 }
 
 function toggleTodosDocumentos() {
-  const checks = document.querySelectorAll('#inscWizStep4 .docs-grid input[type="checkbox"]');
+  const checks = document.querySelectorAll('#inscWizStep3 .docs-grid input[type="checkbox"]');
   const todosChecked = Array.from(checks).every(c => c.checked);
   checks.forEach(c => c.checked = !todosChecked);
   const btn = document.getElementById('btnToggleDocs');
@@ -1074,6 +1076,7 @@ async function guardarInscripcion(e) {
         };
       }
 
+      /* COLAB OCULTO — Recolección de datos de colaboración (modo completo)
       // Colaboración (si hay datos)
       const colabProducto = document.getElementById('colab_producto')?.value.trim();
       const colabMontoTotal = document.getElementById('colab_monto_total')?.value;
@@ -1084,7 +1087,7 @@ async function guardarInscripcion(e) {
 
       if (colabProducto || (colabMontoTotal && parseFloat(colabMontoTotal) > 0)) {
         bodyCompleta.colaboracion = {
-          representante_id: 0, // Se asignará en el servidor
+          representante_id: 0,
           estudiante_nombre: bodyCompleta.estudiante.primer_apellido + ', ' + bodyCompleta.estudiante.primer_nombre,
           hijos_inscritos: 1,
           colaboraciones_requeridas: 1,
@@ -1101,6 +1104,7 @@ async function guardarInscripcion(e) {
           };
         }
       }
+      COLAB OCULTO */
 
       const res = await apiFetch('/api/inscripciones/completa', {
         method: 'POST',
@@ -1134,6 +1138,7 @@ async function guardarInscripcion(e) {
       if (res && res.ok) {
         const inscResult = await res.json();
 
+        /* COLAB OCULTO — Colaboración para inscripciones simples
         // Colaboración (solo para nuevas inscripciones)
         if (!id) {
           const colabProducto = document.getElementById('colab_producto')?.value.trim();
@@ -1144,8 +1149,7 @@ async function guardarInscripcion(e) {
           const colabObs = document.getElementById('colab_observaciones')?.value.trim();
 
           if (colabProducto || (colabMontoTotal && parseFloat(colabMontoTotal) > 0)) {
-            try {
-              const estRes = await apiFetch(`/api/estudiantes/${inscResult.estudiante_id || estudianteId}`);
+                     const estRes = await apiFetch(`/api/estudiantes/${inscResult.estudiante_id || estudianteId}`);
               let estudianteNombre = '';
               let representanteId = null;
               if (estRes && estRes.ok) {
@@ -1191,6 +1195,7 @@ async function guardarInscripcion(e) {
             }
           }
         }
+        COLAB OCULTO */
 
         cerrarModalInscripcion();
         showAlert('alertInscripciones', 'Inscripción registrada exitosamente', 'success');
@@ -1426,6 +1431,7 @@ async function retirarEstudiante(id) {
 // ==========================================
 
 // Variable para almacenar el ID de la colaboración activa en edición
+/* COLAB OCULTO — Funciones de colaboración (toggle, limpiar, cargar, pagos)
 let colaboracionActualId = null;
 
 // Toggle campo de referencia (solo para Pago Móvil)
@@ -1594,6 +1600,8 @@ async function eliminarPago(colaboracionId, pagoId) {
 }
 
 // ==========================================
+COLAB OCULTO */
+/* COLAB OCULTO — Vista resumen de colaboraciones y tabs
 // VISTA DE RESUMEN DE COLABORACIONES
 // ==========================================
 async function cargarResumenColaboraciones() {
@@ -1814,8 +1822,10 @@ function aplicarFiltrosColaboraciones() {
   container.innerHTML = html;
 }
 
+COLAB OCULTO */
+
 // ==========================================
-// TABS: INSCRIPCIONES / COLABORACIONES
+// TABS: INSCRIPCIONES (Colaboraciones ocultas)
 // ==========================================
 function mostrarVista(vista) {
   const vistaInsc = document.getElementById('vistaInscripciones');
@@ -2032,6 +2042,7 @@ function toggleNacionalidadTexto() {
 }
 
 // ==========================================
+/* COLAB OCULTO — Funciones ver/editar colaboración desde tabla
 // MODAL VER/EDITAR COLABORACIÓN DESDE TABLA
 // ==========================================
 let _vcInscripcionId = null;
@@ -2253,6 +2264,8 @@ async function _vcEliminarPago(pagoId) {
     showAlert('alertVerColab', 'Error al eliminar pago', 'error');
   }
 }
+
+COLAB OCULTO */
 
 // ==========================================
 // LITERALES — Edición Inline + Historial
