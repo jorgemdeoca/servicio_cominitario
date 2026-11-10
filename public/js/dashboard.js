@@ -28,7 +28,9 @@ async function cargarDashboard() {
     renderSinInscribir(data.sinInscribir, data.totalSinInscribir);
 
     // 5. Lista sin colaboración
+    /* COLAB OCULTO
     renderSinColaboracion(data.sinColaboracion, data.totalSinColab);
+    COLAB OCULTO */
 
     // 6. Footer
     if (data.anio_activo) {
@@ -152,6 +154,7 @@ function renderSinInscribir(lista, total) {
   }
 }
 
+/* COLAB OCULTO
 function renderSinColaboracion(lista, total) {
   var container = document.getElementById('listaSinColab');
   var badge = document.getElementById('badgeSinColab');
@@ -196,6 +199,7 @@ function renderSinColaboracion(lista, total) {
     link.style.display = 'block';
   }
 }
+COLAB OCULTO */
 
 // D2: Animación count-up para stat cards (JS puro, sin librería)
 function countUp(el, target, duration) {

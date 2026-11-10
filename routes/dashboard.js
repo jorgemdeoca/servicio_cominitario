@@ -69,6 +69,7 @@ router.get('/estadisticas', async (req, res) => {
       });
     }
 
+    /* COLAB OCULTO — Consulta de inscritos sin colaboración desactivada
     // Inscritos sin colaboración
     let sinColaboracion = [];
     let totalSinColab = 0;
@@ -111,6 +112,7 @@ router.get('/estadisticas', async (req, res) => {
         }
       });
     }
+    COLAB OCULTO */
 
     // Matrícula por grado (para gráfico de barras)
     let matriculaPorGrado = [];
@@ -160,8 +162,7 @@ router.get('/estadisticas', async (req, res) => {
       profesores,
       sinInscribir,
       totalSinInscribir,
-      sinColaboracion,
-      totalSinColab,
+      /* COLAB OCULTO sinColaboracion, totalSinColab, */
       matriculaPorGrado,
       totalVarones,
       totalHembras

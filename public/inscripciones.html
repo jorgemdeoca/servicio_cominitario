@@ -372,7 +372,7 @@
       <!-- I1: Section header con tabs SVG -->
       <div class="section-header">
         <div class="section-header-text">
-          <h2>Inscripciones y Colaboraciones</h2>
+          <h2>Inscripciones</h2>
           <p>Gestión de matrícula del año escolar activo</p>
           <div style="display:flex; gap:var(--space-2); margin-top:var(--space-3);">
             <button class="btn btn-sm btn-primary" id="tabInscripciones" onclick="mostrarVista('inscripciones')">
@@ -380,11 +380,13 @@
                 style="width:14px;height:14px;filter:invert(1);vertical-align:middle;margin-right:4px;">
               Inscripciones
             </button>
+            <!-- COLAB OCULTO
             <button class="btn btn-sm btn-secondary" id="tabColaboraciones" onclick="mostrarVista('colaboraciones')">
               <img src="/icons/dollar-sign.svg" alt=""
                 style="width:14px;height:14px;vertical-align:middle;margin-right:4px;">
               Colaboraciones
             </button>
+            COLAB OCULTO -->
           </div>
         </div>
         <div class="section-header-actions">
@@ -457,7 +459,7 @@
                   <th>Fecha</th>
                   <th>Estado</th>
                   <th>Literal</th>
-                  <th>Colab.</th>
+                  <!-- COLAB OCULTO <th>Colab.</th> -->
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -469,8 +471,9 @@
         <div class="pagination" id="paginacion"></div>
       </div>
 
-      <!-- VISTA COLABORACIONES (se llena dinámicamente con JS) -->
+      <!-- COLAB OCULTO
       <div id="vistaColaboraciones" style="display:none;"></div>
+      COLAB OCULTO -->
 
     </main>
   </div>
@@ -496,23 +499,21 @@
             <div class="wizard-step-indicator" data-step="2" onclick="inscWizardGoTo(2)">
               <span class="step-num">2</span>Asignaci&oacute;n
             </div>
+            <!-- COLAB OCULTO — Paso 3 Colaboración eliminado, pasos renumerados -->
             <div class="wizard-step-indicator" data-step="3" onclick="inscWizardGoTo(3)">
-              <span class="step-num">3</span>Colaboraci&oacute;n
+              <span class="step-num">3</span>Documentos
             </div>
             <div class="wizard-step-indicator" data-step="4" onclick="inscWizardGoTo(4)">
-              <span class="step-num">4</span>Documentos
+              <span class="step-num">4</span>Datos
             </div>
             <div class="wizard-step-indicator" data-step="5" onclick="inscWizardGoTo(5)">
-              <span class="step-num">5</span>Datos
+              <span class="step-num">5</span>Procedencia
             </div>
             <div class="wizard-step-indicator" data-step="6" onclick="inscWizardGoTo(6)">
-              <span class="step-num">6</span>Procedencia
+              <span class="step-num">6</span>Socio.
             </div>
             <div class="wizard-step-indicator" data-step="7" onclick="inscWizardGoTo(7)">
-              <span class="step-num">7</span>Socio.
-            </div>
-            <div class="wizard-step-indicator" data-step="8" onclick="inscWizardGoTo(8)">
-              <span class="step-num">8</span>M&eacute;dica
+              <span class="step-num">7</span>M&eacute;dica
             </div>
           </div>
 
@@ -919,7 +920,7 @@
             </div>
           </div>
 
-          <div class="wizard-panel" id="inscWizStep3">
+          <template data-colab-oculto="Panel Paso 3 Colaboración"><div class="wizard-panel" id="inscWizStep_COLAB_OCULTO">
           <!-- Sección 3: Colaboración del Representante -->
           <div class="planilla-seccion" id="seccion_colaboracion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">3</span> COLABORACIÓN DEL REPRESENTANTE</div>
@@ -997,14 +998,15 @@
             <div class="wizard-nav">
               <button type="button" class="btn btn-secondary" onclick="inscWizardBack(2)">&larr; Anterior</button>
               <div class="wizard-nav-spacer"></div>
-              <button type="button" class="btn btn-primary" onclick="inscWizardNext(4)">Siguiente &rarr;</button>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(3)">Siguiente &rarr;</button>
             </div>
           </div>
+</template>
 
-          <div class="wizard-panel" id="inscWizStep4">
+<div class="wizard-panel" id="inscWizStep3">
           <!-- Sección 4: Documentos Consignados -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">4</span> DOCUMENTOS CONSIGNADOS</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">3</span> DOCUMENTOS CONSIGNADOS</div>
             <div class="planilla-seccion-body">
               <div style="margin-bottom: var(--space-3);">
                 <button type="button" class="btn btn-sm" onclick="toggleTodosDocumentos()" id="btnToggleDocs">☑
@@ -1024,16 +1026,16 @@
           </div>
 
             <div class="wizard-nav">
-              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(3)">&larr; Anterior</button>
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(2)">&larr; Anterior</button>
               <div class="wizard-nav-spacer"></div>
-              <button type="button" class="btn btn-primary" onclick="inscWizardNext(5)">Siguiente &rarr;</button>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(4)">Siguiente &rarr;</button>
             </div>
           </div>
 
-          <div class="wizard-panel" id="inscWizStep5">
+          <div class="wizard-panel" id="inscWizStep4">
           <!-- Sección 5: Datos Variables -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">5</span> DATOS VARIABLES (Actualizables)
+            <div class="planilla-seccion-titulo"><span class="seccion-num">4</span> DATOS VARIABLES (Actualizables)
             </div>
             <div class="planilla-seccion-body">
               <div class="form-row">
@@ -1064,16 +1066,16 @@
           </div>
 
             <div class="wizard-nav">
-              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(4)">&larr; Anterior</button>
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(3)">&larr; Anterior</button>
               <div class="wizard-nav-spacer"></div>
-              <button type="button" class="btn btn-primary" onclick="inscWizardNext(6)">Siguiente &rarr;</button>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(5)">Siguiente &rarr;</button>
             </div>
           </div>
 
-          <div class="wizard-panel" id="inscWizStep6">
+          <div class="wizard-panel" id="inscWizStep5">
           <!-- Sección 6: Procedencia -->
           <div class="planilla-seccion">
-            <div class="planilla-seccion-titulo"><span class="seccion-num">6</span> PROCEDENCIA</div>
+            <div class="planilla-seccion-titulo"><span class="seccion-num">5</span> PROCEDENCIA</div>
             <div class="planilla-seccion-body">
               <div class="form-row-3">
                 <div class="form-group">
@@ -1119,13 +1121,13 @@
           </div>
 
             <div class="wizard-nav">
-              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(5)">&larr; Anterior</button>
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(4)">&larr; Anterior</button>
               <div class="wizard-nav-spacer"></div>
-              <button type="button" class="btn btn-primary" onclick="inscWizardNext(7)">Siguiente &rarr;</button>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(6)">Siguiente &rarr;</button>
             </div>
           </div>
 
-          <div class="wizard-panel" id="inscWizStep7">
+          <div class="wizard-panel" id="inscWizStep6">
           <!-- Sección 7: Datos Socioeconómicos -->
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">7</span> DATOS SOCIOECONÓMICOS</div>
@@ -1154,13 +1156,13 @@
           </div>
 
             <div class="wizard-nav">
-              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(6)">&larr; Anterior</button>
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(5)">&larr; Anterior</button>
               <div class="wizard-nav-spacer"></div>
-              <button type="button" class="btn btn-primary" onclick="inscWizardNext(8)">Siguiente &rarr;</button>
+              <button type="button" class="btn btn-primary" onclick="inscWizardNext(7)">Siguiente &rarr;</button>
             </div>
           </div>
 
-          <div class="wizard-panel" id="inscWizStep8">
+          <div class="wizard-panel" id="inscWizStep7">
           <!-- Sección 8: Información Médica y Social -->
           <div class="planilla-seccion" id="seccion_medica_social">
             <div class="planilla-seccion-titulo"><span class="seccion-num">8</span> INFORMACIÓN MÉDICA E INTEGRACIÓN
@@ -1262,7 +1264,7 @@
           </div>
 
             <div class="wizard-nav">
-              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(7)">&larr; Anterior</button>
+              <button type="button" class="btn btn-secondary" onclick="inscWizardBack(6)">&larr; Anterior</button>
               <div class="wizard-nav-spacer"></div>
               <button type="submit" class="btn btn-primary" style="min-width:200px;">&#x1F4CB; Inscribir Estudiante</button>
             </div>
@@ -1359,7 +1361,7 @@
     </div>
   </div>
 
-  <!-- MODAL NUEVO PAGO (para pagos parciales) -->
+  <template data-colab-oculto="Modal Nuevo Pago">  <!-- MODAL NUEVO PAGO (para pagos parciales) -->
   <div class="modal-overlay" id="modalNuevoPago">
     <div class="modal-insc" style="max-width:450px;">
       <div class="modal-insc-header">
@@ -1392,8 +1394,9 @@
       </div>
     </div>
   </div>
+</template>
 
-  <!-- MODAL VER/EDITAR COLABORACIÓN DESDE TABLA -->
+  <template data-colab-oculto="Modal Ver/Editar Colaboración">  <!-- MODAL VER/EDITAR COLABORACIÓN DESDE TABLA -->
   <div class="modal-overlay" id="modalVerColab">
     <div class="modal-insc" style="max-width:600px;">
       <div class="modal-insc-header">
@@ -1496,6 +1499,7 @@
       </div>
     </div>
   </div>
+</template>
 
   <!-- Modal: Historial Académico -->
   <div class="modal-overlay" id="modalHistorial">

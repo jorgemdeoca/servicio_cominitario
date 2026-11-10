@@ -63,13 +63,15 @@ router.get('/', async (req, res) => {
           seccion: {
             include: { grado: { select: { id: true, nombre: true, orden: true } } }
           },
-          anio_escolar: { select: { id: true, nombre: true } },
-          colaboracion: {
+          anio_escolar: { select: { id: true, nombre: true } }
+          /* COLAB OCULTO
+          ,colaboracion: {
             select: {
               id: true, monto_total: true, producto: true,
               pagos: { select: { monto: true } }
             }
           }
+          */
         },
         orderBy: [
           { seccion: { grado: { orden: 'asc' } } },
@@ -235,7 +237,7 @@ router.post('/completa', async (req, res) => {
   try {
     const {
       estudiante: estData, madre, padre, representante_es, representante,
-      inscripcion: inscData, colaboracion: colabData
+      inscripcion: inscData /* COLAB OCULTO , colaboracion: colabData */
     } = req.body;
 
     // === VALIDACIONES PREVIAS (fuera de la transacción) ===
@@ -450,6 +452,7 @@ router.post('/completa', async (req, res) => {
         });
       }
 
+      /* COLAB OCULTO — Creación de colaboración desactivada
       // 6. Crear colaboración (si viene)
       if (colabData && (colabData.monto_total > 0 || colabData.producto)) {
         const colabCreate = {
@@ -475,6 +478,7 @@ router.post('/completa', async (req, res) => {
 
         await prisma.colaboraciones.create({ data: colabCreate });
       }
+      COLAB OCULTO */
 
       return {
         estudiante: nuevoEstudiante,
