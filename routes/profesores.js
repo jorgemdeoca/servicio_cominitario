@@ -2,16 +2,20 @@ const express = require('express');
 const { soloSuperAdmin } = require('../middleware/auth');
 const router = express.Router();
 
-// GET /api/profesores - Listar profesores (con bÃºsqueda)
+// GET /api/profesores - Listar profesores (con búsqueda y filtro por tipo)
 router.get('/', async (req, res) => {
   try {
-    const { buscar, solo_activos } = req.query;
+    const { buscar, solo_activos, es_docente, anio_escolar_libre_id } = req.query;
     const where = {};
 
     // Por defecto solo mostrar activos
     if (solo_activos !== 'false') {
       where.activo = true;
     }
+
+    // Filtrar por tipo de personal
+    if (es_docente === 'true') where.es_docente = true;
+    if (es_docente === 'false') where.es_docente = false;
 
     if (buscar && buscar.trim()) {
       const termino = buscar.trim();
@@ -22,8 +26,7 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    // Filtrar profesores que NO tengan secciones asignadas en un aÃ±o especÃ­fico
-    const { anio_escolar_libre_id } = req.query;
+    // Filtrar profesores que NO tengan secciones asignadas en un año específico
     if (anio_escolar_libre_id) {
       where.secciones = {
         none: {
@@ -37,11 +40,33 @@ router.get('/', async (req, res) => {
     const profesores = await req.prisma.profesores.findMany({
       where,
       orderBy: { apellidos: 'asc' },
+      include: {
+        secciones: {
+          include: {
+            seccion: {
+              include: { grado: true, anio_escolar: true }
+            }
+          }
+        }
+      }
     });
 
     res.json(profesores);
   } catch (error) {
     console.error('Error al listar profesores:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
+// GET /api/profesores/verificar-cedula/:cedula - Verificar si existe un trabajador con esa cédula
+router.get('/verificar-cedula/:cedula', async (req, res) => {
+  try {
+    const profesor = await req.prisma.profesores.findUnique({
+      where: { cedula: req.params.cedula }
+    });
+    res.json({ existe: !!profesor, profesor: profesor || null });
+  } catch (error) {
+    console.error('Error al verificar cédula:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
@@ -71,23 +96,56 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// POST /api/profesores - Crear un nuevo profesor
+// GET /api/profesores/:id/datos-certificado - Datos completos para PDF de certificación laboral
+router.get('/:id/datos-certificado', async (req, res) => {
+  try {
+    const profesor = await req.prisma.profesores.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        secciones: {
+          include: {
+            seccion: { include: { grado: true, anio_escolar: true } }
+          }
+        }
+      }
+    });
+
+    if (!profesor) {
+      return res.status(404).json({ error: 'Trabajador no encontrado.' });
+    }
+
+    // Obtener configuración de la institución
+    const configs = await req.prisma.configuracion.findMany();
+    const config = {};
+    for (const c of configs) {
+      config[c.clave] = c.valor;
+    }
+
+    res.json({ profesor, config });
+  } catch (error) {
+    console.error('Error al obtener datos de certificado:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
+// POST /api/profesores - Crear un nuevo profesor/trabajador
 router.post('/', async (req, res) => {
   try {
     const { nombres, apellidos, cedula, nacionalidad, sexo,
             fecha_nacimiento, telefono, email,
             direccion, titulo, nivel_instruccion, grado_academico,
             tipo_cargo, condicion_trabajo, anos_servicio,
-            lugar_nacimiento, estado_nacimiento } = req.body;
+            lugar_nacimiento, estado_nacimiento,
+            es_docente, cargo, codigo_cargo, fecha_ingreso_institucion, turno } = req.body;
 
     if (!nombres || !apellidos || !cedula) {
-      return res.status(400).json({ error: 'Nombres, apellidos y cÃ©dula son obligatorios.' });
+      return res.status(400).json({ error: 'Nombres, apellidos y cédula son obligatorios.' });
     }
 
-    // Verificar cÃ©dula Ãºnica
+    // Verificar cédula única
     const existente = await req.prisma.profesores.findUnique({ where: { cedula } });
     if (existente) {
-      return res.status(400).json({ error: `Ya existe un profesor con la cÃ©dula ${cedula}.` });
+      return res.status(400).json({ error: `Ya existe un trabajador con la cédula ${cedula}.` });
     }
 
     const profesor = await req.prisma.profesores.create({
@@ -107,6 +165,11 @@ router.post('/', async (req, res) => {
         anos_servicio: anos_servicio ? parseInt(anos_servicio) : null,
         lugar_nacimiento: lugar_nacimiento || null,
         estado_nacimiento: estado_nacimiento || null,
+        es_docente: es_docente !== undefined ? es_docente : true,
+        cargo: cargo || null,
+        codigo_cargo: codigo_cargo || null,
+        fecha_ingreso_institucion: fecha_ingreso_institucion ? new Date(fecha_ingreso_institucion) : null,
+        turno: turno || 'Mañana',
       }
     });
 
@@ -117,7 +180,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/profesores/:id - Actualizar un profesor
+// PUT /api/profesores/:id - Actualizar un profesor/trabajador
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -125,7 +188,8 @@ router.put('/:id', async (req, res) => {
             fecha_nacimiento, telefono, email, activo,
             direccion, titulo, nivel_instruccion, grado_academico,
             tipo_cargo, condicion_trabajo, anos_servicio,
-            lugar_nacimiento, estado_nacimiento } = req.body;
+            lugar_nacimiento, estado_nacimiento,
+            es_docente, cargo, codigo_cargo, fecha_ingreso_institucion, turno } = req.body;
 
     const data = {};
     if (nombres !== undefined) data.nombres = nombres;
@@ -146,6 +210,11 @@ router.put('/:id', async (req, res) => {
     if (anos_servicio !== undefined) data.anos_servicio = anos_servicio ? parseInt(anos_servicio) : null;
     if (lugar_nacimiento !== undefined) data.lugar_nacimiento = lugar_nacimiento || null;
     if (estado_nacimiento !== undefined) data.estado_nacimiento = estado_nacimiento || null;
+    if (es_docente !== undefined) data.es_docente = es_docente;
+    if (cargo !== undefined) data.cargo = cargo || null;
+    if (codigo_cargo !== undefined) data.codigo_cargo = codigo_cargo || null;
+    if (fecha_ingreso_institucion !== undefined) data.fecha_ingreso_institucion = fecha_ingreso_institucion ? new Date(fecha_ingreso_institucion) : null;
+    if (turno !== undefined) data.turno = turno || null;
 
     const profesor = await req.prisma.profesores.update({
       where: { id: parseInt(id) },
@@ -155,7 +224,7 @@ router.put('/:id', async (req, res) => {
     res.json(profesor);
   } catch (error) {
     if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Ya existe otro profesor con esa cÃ©dula.' });
+      return res.status(400).json({ error: 'Ya existe otro trabajador con esa cédula.' });
     }
     console.error('Error al actualizar profesor:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
@@ -169,12 +238,12 @@ router.delete('/:id', soloSuperAdmin, async (req, res) => {
     const idInt = parseInt(id);
 
     // Verificar si tiene secciones asignadas activas
-    const asignaciones = await req.prisma.inscripciones.count({
-      where: { profesor_id: idInt, estado: 'ACTIVO', eliminado: false }
+    const asignaciones = await req.prisma.profesores_secciones.count({
+      where: { profesor_id: idInt }
     });
     if (asignaciones > 0) {
       return res.status(400).json({
-        error: 'No se puede desactivar: tiene secciones asignadas con estudiantes activos.'
+        error: 'No se puede desactivar: tiene secciones asignadas. Remuévalo de las secciones primero.'
       });
     }
 
@@ -183,7 +252,7 @@ router.delete('/:id', soloSuperAdmin, async (req, res) => {
       data: { activo: false }
     });
 
-    res.json({ mensaje: 'Profesor desactivado correctamente.' });
+    res.json({ mensaje: 'Trabajador desactivado correctamente.' });
   } catch (error) {
     console.error('Error al desactivar profesor:', error);
     res.status(500).json({ error: 'Error interno del servidor.' });
@@ -191,4 +260,3 @@ router.delete('/:id', soloSuperAdmin, async (req, res) => {
 });
 
 module.exports = router;
-

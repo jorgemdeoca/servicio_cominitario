@@ -242,6 +242,11 @@ model profesores {
   lugar_nacimiento String?  @db.VarChar(100)
   estado_nacimiento String? @db.VarChar(100)
   activo           Boolean  @default(true)
+  es_docente       Boolean  @default(true)
+  cargo            String?  @db.VarChar(100)
+  codigo_cargo     String?  @db.VarChar(20)
+  fecha_ingreso_institucion DateTime? @db.Date
+  turno            String?  @db.VarChar(20) @default("Mañana")
 
   // Relaciones
   secciones profesores_secciones[]
@@ -250,6 +255,7 @@ model profesores {
   // Índices
   @@index([apellidos])
   @@index([activo])
+  @@index([es_docente])
 }
 
 enum profesores_nacionalidad {

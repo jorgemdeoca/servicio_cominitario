@@ -1,5 +1,11 @@
 // pdf-generator.js - Funciones para generar PDFs con jsPDF
 
+// Convierte texto a Title Case: primera letra de cada palabra en mayúscula, resto minúscula
+function toTitleCase(str) {
+  if (!str) return str;
+  return str.toLowerCase().replace(/(?:^|\s)\S/g, function(c) { return c.toUpperCase(); });
+}
+
 function inicializarPDF(landscape) {
   var jsPDF = window.jspdf.jsPDF;
   return new jsPDF(landscape ? 'l' : 'p', 'pt', 'letter');
@@ -173,7 +179,7 @@ function drawFieldNF(doc, label, value, x, y, maxX) {
   doc.text(label, x, y);
   var labelW = doc.getTextWidth(label);
   doc.setFont('helvetica', 'normal');
-  var val = (value || '').toUpperCase();
+  var val = toTitleCase(value || '');
   var valX = x + labelW + 1;
   // Recortar texto si se pasa del margen
   var availW = maxX ? (maxX - valX - 2) : 999;
@@ -223,11 +229,11 @@ async function generarPDFMatriculaNuevoFormato(datos) {
   doc.setFont('helvetica', 'normal');
   doc.text('República Bolivariana de Venezuela', centroX, 26, { align: 'center' });
 
-  var nombreInst = config.nombre_escuela || '';
+  var nombreInst = toTitleCase(config.nombre_escuela || '');
   doc.text(nombreInst, centroX, 37, { align: 'center' });
 
-  var localidad = config.localidad || '';
-  var municipio = config.municipio || '';
+  var localidad = toTitleCase(config.localidad || '');
+  var municipio = toTitleCase(config.municipio || '');
   var ubicacion = localidad;
   if (municipio) ubicacion += (localidad ? ' - ' : '') + 'Municipio ' + municipio;
   doc.text(ubicacion, centroX, 48, { align: 'center' });
@@ -245,7 +251,7 @@ async function generarPDFMatriculaNuevoFormato(datos) {
   doc.text('INSTITUCIÓN: ', marginL, yInfo);
   var instLabelW = doc.getTextWidth('INSTITUCIÓN: ');
   doc.setFont('helvetica', 'bold');
-  var instName = (config.nombre_escuela || '').toUpperCase();
+  var instName = toTitleCase(config.nombre_escuela || '');
   doc.text(instName, marginL + instLabelW, yInfo);
   var nameW = doc.getTextWidth(instName);
   doc.setLineWidth(0.4);
@@ -288,19 +294,18 @@ async function generarPDFMatriculaNuevoFormato(datos) {
   ]];
 
   var data = datos.estudiantes.map(function(e) {
-    var toUpper = function(val) { return val ? String(val).toUpperCase() : ''; };
     return [
       e.numero,
-      toUpper(e.codigo_escolar),
-      toUpper(e.apellidos_nombres),
-      toUpper(e.lugar_nacimiento),
-      toUpper(e.fecha_nacimiento),
+      toTitleCase(e.codigo_escolar),
+      toTitleCase(e.apellidos_nombres),
+      toTitleCase(e.lugar_nacimiento),
+      e.fecha_nacimiento,
       e.edad,
-      toUpper(e.sexo),
-      toUpper(e.representante),
-      toUpper(e.ci_representante),
-      toUpper(e.direccion),
-      toUpper(e.telefono)
+      e.sexo,
+      toTitleCase(e.representante),
+      e.ci_representante,
+      toTitleCase(e.direccion),
+      e.telefono
     ];
   });
 
@@ -371,7 +376,7 @@ async function generarPDFFichaInscripcion(datos, tipo) {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('República Bolivariana de Venezuela', pageW / 2, 40, { align: 'center' });
-  doc.text(config.nombre_escuela || 'U.E.E. "General Aquilino Juáres"', pageW / 2, 52, { align: 'center' });
+  doc.text(toTitleCase(config.nombre_escuela || 'U.E.E. "General Aquilino Juáres"'), pageW / 2, 52, { align: 'center' });
 
   // Título
   doc.setFontSize(11);
@@ -567,10 +572,10 @@ async function generarPDFMatriculaUPE(datos) {
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   doc.text('República Bolivariana de Venezuela', centroX, 26, { align: 'center' });
-  var nombreInst = config.nombre_escuela || '';
+  var nombreInst = toTitleCase(config.nombre_escuela || '');
   doc.text(nombreInst, centroX, 37, { align: 'center' });
-  var localidad = config.localidad || '';
-  var municipio = config.municipio || '';
+  var localidad = toTitleCase(config.localidad || '');
+  var municipio = toTitleCase(config.municipio || '');
   var ubicacion = localidad;
   if (municipio) ubicacion += (localidad ? ' - ' : '') + 'Municipio ' + municipio;
   doc.text(ubicacion, centroX, 48, { align: 'center' });
@@ -585,14 +590,14 @@ async function generarPDFMatriculaUPE(datos) {
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   var xPos = marginL;
-  xPos = drawFieldNF(doc, 'Institución: ', (config.nombre_escuela || '').toUpperCase(), xPos, yInfo, maxX);
+  xPos = drawFieldNF(doc, 'Institución: ', toTitleCase(config.nombre_escuela || ''), xPos, yInfo, maxX);
   xPos = drawFieldNF(doc, 'Cód. DEA: ', config.codigo_plantel || '', xPos, yInfo, maxX);
   drawFieldNF(doc, 'Circuito: ', config.circuito || '', xPos, yInfo, maxX);
 
   // ---- INFO DIRECTOR/A ----
   yInfo += 14;
   xPos = marginL;
-  xPos = drawFieldNF(doc, 'Director/a: ', (config.director || '').toUpperCase(), xPos, yInfo, maxX);
+  xPos = drawFieldNF(doc, 'Director/a: ', toTitleCase(config.director || ''), xPos, yInfo, maxX);
   xPos = drawFieldNF(doc, 'C.I.: ', config.cedula_director || '', xPos, yInfo, maxX);
   drawFieldNF(doc, 'Teléfono: ', config.telefono_director || '', xPos, yInfo, maxX);
 
@@ -625,19 +630,18 @@ async function generarPDFMatriculaUPE(datos) {
   ]];
 
   var data = datos.estudiantes.map(function(e) {
-    var toUpper = function(val) { return val ? String(val).toUpperCase() : ''; };
     return [
       e.numero,
-      toUpper(e.grado_seccion),
-      toUpper(e.codigo_escolar),
-      toUpper(e.apellidos_nombres),
-      toUpper(e.fecha_nacimiento),
+      toTitleCase(e.grado_seccion),
+      toTitleCase(e.codigo_escolar),
+      toTitleCase(e.apellidos_nombres),
+      e.fecha_nacimiento,
       e.edad,
-      toUpper(e.sexo),
-      toUpper(e.representante),
-      toUpper(e.ci_representante),
-      toUpper(e.direccion),
-      toUpper(e.telefono)
+      e.sexo,
+      toTitleCase(e.representante),
+      e.ci_representante,
+      toTitleCase(e.direccion),
+      e.telefono
     ];
   });
 

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profesores — Sistema de Gestión Escolar</title>
+  <title>Personal — Sistema de Gestión Escolar</title>
   <link rel="stylesheet" href="/css/styles.css">
   <style>
     .page-header {
@@ -37,42 +37,6 @@
       box-shadow: 0 0 0 3px hsla(215, 60%, 45%, 0.15);
     }
 
-    .badge-activo {
-      display: inline-block;
-      padding: 0.15rem 0.6rem;
-      border-radius: 100px;
-      font-size: var(--font-size-xs);
-      font-weight: 600;
-    }
-
-    .badge-activo-si {
-      background: var(--success-bg);
-      color: var(--success);
-    }
-
-    .badge-activo-no {
-      background: hsl(0, 50%, 93%);
-      color: hsl(0, 50%, 45%);
-    }
-
-    .badge-sexo {
-      display: inline-block;
-      padding: 0.15rem 0.5rem;
-      border-radius: 100px;
-      font-size: var(--font-size-xs);
-      font-weight: 600;
-    }
-
-    .badge-sexo-m {
-      background: hsl(215, 50%, 92%);
-      color: hsl(215, 60%, 40%);
-    }
-
-    .badge-sexo-f {
-      background: hsl(330, 50%, 92%);
-      color: hsl(330, 60%, 40%);
-    }
-
     .actions-cell {
       display: flex;
       gap: var(--space-2);
@@ -88,6 +52,61 @@
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
       gap: var(--space-4);
+    }
+
+    /* ======= WIZARD ======= */
+    .wizard-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: var(--space-6);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .wizard-bar .wiz-step {
+      flex: 1;
+      text-align: center;
+      padding: var(--space-2) var(--space-1);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      background: var(--bg-color);
+      color: var(--text-muted);
+      border-right: 1px solid var(--border);
+      transition: background 0.2s, color 0.2s;
+    }
+    .wizard-bar .wiz-step:last-child { border-right: none; }
+    .wizard-bar .wiz-step.active {
+      background: var(--primary);
+      color: #fff;
+    }
+    .wizard-bar .wiz-step.done {
+      background: var(--success-bg);
+      color: var(--success);
+    }
+
+    .wizard-panel { display: none; }
+    .wizard-panel.active { display: block; }
+
+    .wizard-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border);
+    }
+
+    .filtro-tipo {
+      display: flex;
+      gap: var(--space-3);
+      align-items: center;
+    }
+
+    .filtro-tipo select {
+      padding: var(--space-2) var(--space-3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: var(--font-size-sm);
     }
   </style>
 </head>
@@ -109,19 +128,25 @@
     <main class="main-content" id="mainContent">
       <div class="section-header">
         <div class="section-header-text">
-          <h2>Profesores</h2>
-          <p>Docentes de la institución educativa</p>
+          <h2>Personal</h2>
+          <p>Personal de la institución educativa</p>
         </div>
         <div class="section-header-actions">
+          <div class="filtro-tipo">
+            <select id="filtroTipo" onchange="loadProfesores()">
+              <option value="true">Solo Docentes</option>
+              <option value="false">Personal de Apoyo</option>
+              <option value="">Todos</option>
+            </select>
+          </div>
           <div class="search-bar">
             <img src="/icons/search.svg" alt="" class="search-icon">
-            <input type="text" id="inputBuscar" placeholder="Buscar por nombre o cédula..."
-              onkeyup="if(event.key==='Enter') buscarProfesores()">
+            <input type="text" id="inputBuscar" placeholder="Buscar por nombre o cédula...">
           </div>
           <button class="btn btn-primary" onclick="abrirModal()">
             <img src="/icons/plus.svg" alt=""
               style="width:15px;height:15px;filter:invert(1);vertical-align:middle;margin-right:4px;">
-            Nuevo Profesor
+            Nuevo Personal
           </button>
         </div>
       </div>
@@ -135,9 +160,10 @@
               <tr>
                 <th>Cédula</th>
                 <th>Apellidos y Nombres</th>
-                <th>Sexo</th>
+                <th>Cargo</th>
+                <th>Grado / Sección</th>
                 <th>Teléfono</th>
-                <th>Email</th>
+                <th>Tipo</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -150,132 +176,206 @@
     </main>
   </div>
 
-  <!-- Modal Crear/Editar Profesor -->
+  <!-- Modal Crear/Editar Personal (Wizard 3 pasos) -->
   <div class="modal" id="modalProfesor">
-    <div class="modal-content">
-      <h2 id="modalTitulo" style="margin-bottom:1rem;">Nuevo Profesor</h2>
+    <div class="modal-content" style="max-width:720px;">
+      <h2 id="modalTitulo" style="margin-bottom:0.5rem;">Nuevo Personal</h2>
       <div id="alertModal" class="alert" style="display: none;"></div>
+
+      <!-- Barra wizard -->
+      <div class="wizard-bar" id="wizBarPersonal">
+        <div class="wiz-step active" data-step="1">1. Cédula</div>
+        <div class="wiz-step" data-step="2">2. Datos Personales</div>
+        <div class="wiz-step" data-step="3">3. Datos Profesionales</div>
+      </div>
+
       <form id="formProfesor">
         <input type="hidden" id="prof_id">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Nacionalidad</label>
-            <select id="prof_nacionalidad">
-              <option value="V">V - Venezolano/a</option>
-              <option value="E">E - Extranjero/a</option>
-            </select>
+
+        <!-- PASO 1: Cédula -->
+        <div class="wizard-panel active" id="wizStep1">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nacionalidad</label>
+              <select id="prof_nacionalidad">
+                <option value="V">V - Venezolano/a</option>
+                <option value="E">E - Extranjero/a</option>
+              </select>
+            </div>
+            <div class="form-group" id="grupoNacExactaProfesor" style="display:none;">
+              <label>Nacionalidad Exacta *</label>
+              <input type="text" id="prof_nacionalidad_texto" placeholder="Ej: Colombiano, Ecuatoriano...">
+            </div>
           </div>
-          <div class="form-group" id="grupoNacExactaProfesor" style="display:none;">
-            <label>Nacionalidad Exacta *</label>
-            <input type="text" id="prof_nacionalidad_texto" placeholder="Ej: Colombiano, Ecuatoriano...">
-          </div>
           <div class="form-group">
-            <label>Cédula *</label>
-            <input type="text" id="prof_cedula" required placeholder="Ej: 12345678">
+            <label>Cédula de Identidad *</label>
+            <input type="text" id="prof_cedula" required placeholder="Ej: 12345678"
+              style="font-size:1.2rem;font-weight:600;padding:var(--space-4);">
+            <small id="cedulaFeedback" style="display:none;margin-top:4px;"></small>
+          </div>
+          <div class="wizard-nav">
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button type="button" class="btn btn-primary" onclick="wizNext()">Siguiente →</button>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Apellidos *</label>
-            <input type="text" id="prof_apellidos" required>
+
+        <!-- PASO 2: Datos Personales -->
+        <div class="wizard-panel" id="wizStep2">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Apellidos *</label>
+              <input type="text" id="prof_apellidos" required>
+            </div>
+            <div class="form-group">
+              <label>Nombres *</label>
+              <input type="text" id="prof_nombres" required>
+            </div>
           </div>
-          <div class="form-group">
-            <label>Nombres *</label>
-            <input type="text" id="prof_nombres" required>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Sexo</label>
+              <select id="prof_sexo">
+                <option value="">— Seleccionar —</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha de Nacimiento</label>
+              <input type="date" id="prof_fecha_nacimiento">
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="text" id="prof_telefono" placeholder="04121234567">
+            </div>
           </div>
-        </div>
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Sexo</label>
-            <select id="prof_sexo">
-              <option value="">— Seleccionar —</option>
-              <option value="M">Masculino</option>
-              <option value="F">Femenino</option>
-            </select>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Correo Electrónico</label>
+              <input type="email" id="prof_email" placeholder="correo@ejemplo.com">
+            </div>
+            <div class="form-group">
+              <label>Lugar de Nacimiento</label>
+              <input type="text" id="prof_lugar_nacimiento">
+            </div>
           </div>
-          <div class="form-group">
-            <label>Fecha de Nacimiento</label>
-            <input type="date" id="prof_fecha_nacimiento">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Estado de Nacimiento</label>
+              <input type="text" id="prof_estado_nacimiento">
+            </div>
+            <div class="form-group">
+              <label>Dirección</label>
+              <input type="text" id="prof_direccion">
+            </div>
           </div>
-          <div class="form-group">
-            <label>Teléfono</label>
-            <input type="text" id="prof_telefono" placeholder="04121234567">
+
+          <!-- Toggle es_docente -->
+          <div style="margin-top:var(--space-4);padding:var(--space-4);background:var(--bg-color);border:1px solid var(--border);border-radius:var(--radius);">
+            <label style="display:flex;align-items:center;gap:var(--space-3);cursor:pointer;font-weight:600;">
+              <input type="checkbox" id="prof_es_docente" checked onchange="toggleCamposDocente()">
+              ¿Es Docente?
+            </label>
+            <small style="color:var(--text-muted);margin-top:4px;display:block;">
+              Si NO es docente, no aparecerá en la lista para asignar a secciones.
+            </small>
           </div>
-        </div>
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Correo Electrónico</label>
-            <input type="email" id="prof_email" placeholder="profesor@correo.com">
-          </div>
-          <div class="form-group">
-            <label>Lugar de Nacimiento</label>
-            <input type="text" id="prof_lugar_nacimiento">
-          </div>
-          <div class="form-group">
-            <label>Estado de Nacimiento</label>
-            <input type="text" id="prof_estado_nacimiento">
-          </div>
-        </div>
-        <div class="form-group" style="margin-bottom:var(--space-4);">
-          <label>Dirección</label>
-          <input type="text" id="prof_direccion">
-        </div>
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Título</label>
-            <input type="text" id="prof_titulo">
-          </div>
-          <div class="form-group">
-            <label>Nivel de Instrucción</label>
-            <select id="prof_nivel_instruccion">
-              <option value="">- Seleccionar -</option>
-              <option value="Bachiller">Bachiller</option>
-              <option value="TSU">TSU</option>
-              <option value="Licenciado">Licenciado / Profesor</option>
-              <option value="Especialista">Especialista</option>
-              <option value="Magister">Magíster</option>
-              <option value="Doctor">Doctor</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Grado Académico</label>
-            <input type="text" id="prof_grado_academico" placeholder="Ej: Especialista en Educación...">
-          </div>
-        </div>
-        <div class="form-row-3">
-          <div class="form-group">
-            <label>Tipo de Cargo</label>
-            <select id="prof_tipo_cargo">
-              <option value="">- Seleccionar -</option>
-              <option value="Titular">Titular</option>
-              <option value="Interino">Interino</option>
-              <option value="Contratado">Contratado</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Condición de Trabajo</label>
-            <select id="prof_condicion_trabajo">
-              <option value="">- Seleccionar -</option>
-              <option value="Activo">Activo</option>
-              <option value="Suplente">Suplente</option>
-              <option value="Permiso">De Permiso</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Años de Servicio</label>
-            <input type="number" id="prof_anos_servicio" min="0" step="1">
+
+          <div class="wizard-nav">
+            <button type="button" class="btn btn-secondary" onclick="wizPrev()">← Anterior</button>
+            <button type="button" class="btn btn-primary" onclick="wizNext()">Siguiente →</button>
           </div>
         </div>
-        <div class="modal-actions">
-          <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Guardar</button>
+
+        <!-- PASO 3: Datos Profesionales -->
+        <div class="wizard-panel" id="wizStep3">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cargo *</label>
+              <input type="text" id="prof_cargo" placeholder="Ej: Docente de Aula I, Obrero General I, Cocinera...">
+            </div>
+            <div class="form-group">
+              <label>Código de Cargo <small style="color:var(--text-muted);">(Alfanumérico, para certificado)</small></label>
+              <input type="text" id="prof_codigo_cargo" placeholder="Ej: 8031N, 12212N" maxlength="20">
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Título</label>
+              <input type="text" id="prof_titulo">
+            </div>
+            <div class="form-group">
+              <label>Nivel de Instrucción</label>
+              <select id="prof_nivel_instruccion">
+                <option value="">- Seleccionar -</option>
+                <option value="Bachiller">Bachiller</option>
+                <option value="TSU">TSU</option>
+                <option value="Licenciado">Licenciado / Profesor</option>
+                <option value="Especialista">Especialista</option>
+                <option value="Magister">Magíster</option>
+                <option value="Doctor">Doctor</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Grado Académico</label>
+              <input type="text" id="prof_grado_academico" placeholder="Ej: Especialista en Educación...">
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Tipo de Cargo</label>
+              <select id="prof_tipo_cargo">
+                <option value="">- Seleccionar -</option>
+                <option value="Titular">Titular</option>
+                <option value="Interino">Interino</option>
+                <option value="Contratado">Contratado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Condición de Trabajo</label>
+              <select id="prof_condicion_trabajo">
+                <option value="">- Seleccionar -</option>
+                <option value="Activo">Activo</option>
+                <option value="Suplente">Suplente</option>
+                <option value="Permiso">De Permiso</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Turno</label>
+              <select id="prof_turno">
+                <option value="Mañana">Mañana</option>
+                <option value="Tarde">Tarde</option>
+                <option value="Ambos">Ambos</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row-3">
+            <div class="form-group">
+              <label>Años de Servicio (total)</label>
+              <input type="number" id="prof_anos_servicio" min="0" step="1">
+            </div>
+            <div class="form-group">
+              <label>Fecha Ingreso a la Institución</label>
+              <input type="date" id="prof_fecha_ingreso">
+            </div>
+            <div class="form-group"></div>
+          </div>
+          <div class="wizard-nav">
+            <button type="button" class="btn btn-secondary" onclick="wizPrev()">← Anterior</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
         </div>
       </form>
     </div>
   </div>
+
   <script src="/js/sidebar.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/auth.js"></script>
+  <script src="/libs/jspdf.umd.min.js"></script>
+  <script src="/libs/jspdf.plugin.autotable.min.js"></script>
+  <script src="/js/pdf-generator.js"></script>
+  <script src="/js/pdf-certificado.js"></script>
   <script src="/js/profesores.js"></script>
 </body>
 
