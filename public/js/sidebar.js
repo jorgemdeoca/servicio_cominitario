@@ -19,7 +19,7 @@
         { label: 'Inscripciones', href: '/inscripciones.html', icon: 'clipboard-list.svg' },
         { label: 'Estudiantes', href: '/estudiantes.html', icon: 'graduation-cap.svg' },
         { label: 'Representantes', href: '/personas.html', icon: 'users.svg' },
-        { label: 'Docentes', href: '/profesores.html', icon: 'user-check.svg' }
+        { label: 'Personal', href: '/profesores.html', icon: 'user-check.svg' }
       ]
     },
     {

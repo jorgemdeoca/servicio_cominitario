@@ -50,6 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
   validarSoloLetras('cfg_supervisor');
   validarSoloNumeros('cfg_cedula_supervisor');
   validarSoloNumeros('cfg_telefono_supervisor');
+  validarSoloNumeros('cfg_rif');
   if (document.getElementById('formUsuario')) {
     document.getElementById('formUsuario').addEventListener('submit', submitUsuario);
     document.getElementById('btnCancelUsuario').addEventListener('click', resetUsuarioForm);
@@ -647,6 +648,7 @@ async function loadConfiguracion() {
     if (conf.circuito) document.getElementById('cfg_circuito').value = conf.circuito;
     if (conf.membrete) document.getElementById('cfg_membrete').value = conf.membrete;
     if (conf.localidad) document.getElementById('cfg_localidad').value = conf.localidad;
+    if (conf.rif) document.getElementById('cfg_rif').value = conf.rif;
 
     // Mostrar preview del logo si existe (cargado desde URL guardada en BD)
     const previewEl = document.getElementById('previewLogo');
@@ -754,7 +756,8 @@ async function saveConfiguracion(e) {
     direccion: document.getElementById('cfg_direccion').value,
     circuito: document.getElementById('cfg_circuito').value,
     membrete: document.getElementById('cfg_membrete').value,
-    localidad: document.getElementById('cfg_localidad').value
+    localidad: document.getElementById('cfg_localidad').value,
+    rif: document.getElementById('cfg_rif').value
   };
 
   const fileInput = document.getElementById('cfg_logo');
@@ -803,7 +806,7 @@ async function cargarProfesoresDisponibles(buscar) {
   if (!anioId) return;
 
   try {
-    let url = `/api/profesores?anio_escolar_libre_id=${anioId}`;
+    let url = `/api/profesores?anio_escolar_libre_id=${anioId}&es_docente=true`;
     if (buscar && buscar.trim()) {
       url += `&buscar=${encodeURIComponent(buscar.trim())}`;
     }
@@ -889,7 +892,7 @@ async function cargarProfesoresParaModal(buscar) {
   if (!anioId) return;
 
   try {
-    let url = `/api/profesores?anio_escolar_libre_id=${anioId}`;
+    let url = `/api/profesores?anio_escolar_libre_id=${anioId}&es_docente=true`;
     if (buscar && buscar.trim()) {
       url += `&buscar=${encodeURIComponent(buscar.trim())}`;
     }

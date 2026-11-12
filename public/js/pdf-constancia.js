@@ -37,7 +37,7 @@ async function generarPDFConstancia(datos) {
   doc.setFontSize(12);
   doc.text('REPÚBLICA BOLIVARIANA DE VENEZUELA', centerX, yMembrete + 2, { align: 'center' });
 
-  var nombreEscuela = (datos.config.nombre_escuela || '').toUpperCase();
+  var nombreEscuela = toTitleCase(datos.config.nombre_escuela || '');
   doc.text(nombreEscuela, centerX, yMembrete + 2 + lineHeight, { align: 'center' });
 
   // Localidad y Estado en negrita con interlineado doble
@@ -45,11 +45,11 @@ async function generarPDFConstancia(datos) {
   var estado = datos.config.estado || '';
   var localidadEstado = '';
   if (localidad && estado) {
-    localidadEstado = localidad.toUpperCase() + ' – ESTADO ' + estado.toUpperCase();
+    localidadEstado = toTitleCase(localidad) + ' – Estado ' + toTitleCase(estado);
   } else if (estado) {
-    localidadEstado = 'ESTADO ' + estado.toUpperCase();
+    localidadEstado = 'Estado ' + toTitleCase(estado);
   } else if (localidad) {
-    localidadEstado = localidad.toUpperCase();
+    localidadEstado = toTitleCase(localidad);
   }
   doc.text(localidadEstado, centerX, yMembrete + 2 + lineHeight * 2, { align: 'center' });
 
@@ -70,17 +70,17 @@ async function generarPDFConstancia(datos) {
   var config = datos.config;
   var est = datos.estudiante;
 
-  var directorNombre = config.director || '[Director/a]';
+  var directorNombre = toTitleCase(config.director || '[Director/a]');
   var cedulaDirector = config.cedula_director || '[Cédula]';
-  var nombreEscuelaDoc = config.nombre_escuela || '[Nombre de la Institución]';
-  var municipio = config.municipio || '[Municipio]';
-  var parroquia = config.parroquia || '[Parroquia]';
-  var estadoDoc = config.estado || '[Estado]';
+  var nombreEscuelaDoc = toTitleCase(config.nombre_escuela || '[Nombre de la Institución]');
+  var municipio = toTitleCase(config.municipio || '[Municipio]');
+  var parroquia = toTitleCase(config.parroquia || '[Parroquia]');
+  var estadoDoc = toTitleCase(config.estado || '[Estado]');
 
-  var nombreEstudiante = est.nombre_completo || '[Nombre del Estudiante]';
+  var nombreEstudiante = toTitleCase(est.nombre_completo || '[Nombre del Estudiante]');
   var codigoEscolar = est.codigo_escolar || '[Código Escolar]';
-  var estadoNacimiento = est.estado_nacimiento || '[Estado]';
-  var lugarNacimiento = est.lugar_nacimiento || '[Lugar]';
+  var estadoNacimiento = toTitleCase(est.estado_nacimiento || '[Estado]');
+  var lugarNacimiento = toTitleCase(est.lugar_nacimiento || '[Lugar]');
   var fechaNacimiento = est.fecha_nacimiento || '[Fecha]';
   var gradoSeccion = datos.grado_seccion || '[Grado Sección]';
   var nivelEducacion = datos.nivel_educacion || '[Nivel]';
@@ -189,7 +189,7 @@ async function generarPDFConstancia(datos) {
     'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   var mes = meses[hoy.getMonth()];
   var anio = hoy.getFullYear();
-  var localidadFecha = config.localidad || '[Localidad]';
+  var localidadFecha = toTitleCase(config.localidad || '[Localidad]');
 
   var partesFecha = [
     { text: 'Constancia que se expide en ', bold: false },
