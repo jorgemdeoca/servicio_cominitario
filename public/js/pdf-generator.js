@@ -173,6 +173,25 @@ async function generarPDFMatriculaInicial(datos) {
 
 // ==================== NUEVO FORMATO ====================
 
+// Divide texto en líneas por espacios sin exceder maxWidth
+function wrapText(doc, text, maxWidth) {
+  if (!text || maxWidth <= 0) return [text || ''];
+  var words = String(text).split(/\s+/);
+  var lines = [];
+  var currentLine = '';
+  for (var i = 0; i < words.length; i++) {
+    var testLine = currentLine ? (currentLine + ' ' + words[i]) : words[i];
+    if (doc.getTextWidth(testLine) > maxWidth && currentLine) {
+      lines.push(currentLine);
+      currentLine = words[i];
+    } else {
+      currentLine = testLine;
+    }
+  }
+  if (currentLine) lines.push(currentLine);
+  return lines.length > 0 ? lines : [''];
+}
+
 function drawFieldNF(doc, label, value, x, y, maxX) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
@@ -412,24 +431,55 @@ async function generarPDFFichaInscripcion(datos, tipo) {
     doc.text(title, 45, startY + 11);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
-    var y = startY + 28; // Increased gap to prevent text overlap
+    var y = startY + 28;
 
     fields.forEach(function(row) {
       if (y > 780) { doc.addPage(); y = 40; }
       var x = 40;
       var colWidth = (pageW - 80) / row.length;
+      var extraLines = 0;
+
       row.forEach(function(field) {
         if (!field || !field.label) { x += colWidth; return; }
         doc.setFont('helvetica', 'bold');
         doc.text(field.label + ':', x, y);
-        var tw = doc.getTextWidth(field.label + ': '); // Calc width with bold font
+        var tw = doc.getTextWidth(field.label + ': ');
         doc.setFont('helvetica', 'normal');
-        doc.text(field.value ? String(field.value) : '', x + tw, y); // Removed fallback line
+        var val = field.value ? String(field.value) : '';
+
+        if (field.wrap && val) {
+          var availW1 = colWidth - tw - 4; // ancho primera línea (después del label)
+          var availW2 = colWidth - 4;      // ancho líneas siguientes (desde posición del label)
+          // Primera línea: cabe después del label
+          var words = String(val).split(/\s+/);
+          var firstLine = '';
+          var restWords = [];
+          var broke = false;
+          for (var wi = 0; wi < words.length; wi++) {
+            if (broke) { restWords.push(words[wi]); }
+            else {
+              var test = firstLine ? (firstLine + ' ' + words[wi]) : words[wi];
+              if (doc.getTextWidth(test) > availW1 && firstLine) { broke = true; restWords.push(words[wi]); }
+              else { firstLine = test; }
+            }
+          }
+          doc.text(firstLine || '', x + tw, y);
+          // Líneas siguientes: arrancan desde x (posición del label)
+          if (restWords.length > 0) {
+            var restLines = wrapText(doc, restWords.join(' '), availW2 > 10 ? availW2 : 50);
+            for (var li = 0; li < restLines.length; li++) {
+              doc.text(restLines[li], x, y + ((li + 1) * 11));
+            }
+            if (restLines.length > extraLines) extraLines = restLines.length;
+          }
+        } else {
+          doc.text(val, x + tw, y);
+        }
         x += colWidth;
       });
-      y += 16; // Reduced row height
+      y += 16 + (extraLines * 11);
     });
-    return y + 2; // Reduced gap after section
+    return y + 2;
   }
 
   // 1) Documentos Consignados
@@ -467,9 +517,9 @@ async function generarPDFFichaInscripcion(datos, tipo) {
   var fechaNacEst = est.fecha_nacimiento ? new Date(est.fecha_nacimiento).toLocaleDateString('es-VE') : '';
 
   currentY = addSection('2) Datos personales del estudiante', [
-    [{label: 'Apellidos', value: primerApellido.trim()}, {label: 'Lugar Nac.', value: est.lugar_nacimiento}, {label: 'Talla', value: insc.talla}],
-    [{label: 'Nombres', value: primerNombre.trim()}, {label: 'Estado Nac.', value: est.estado_nacimiento}, {label: 'Peso', value: insc.peso}],
-    [{label: 'Cod. Escolar', value: est.codigo_escolar}, {label: 'Dirección', value: insc.direccion}, {label: 'Camisa', value: insc.talla_camisa}],
+    [{label: 'Apellidos', value: primerApellido.trim(), wrap: true}, {label: 'Lugar Nac.', value: est.lugar_nacimiento}, {label: 'Talla', value: insc.talla}],
+    [{label: 'Nombres', value: primerNombre.trim(), wrap: true}, {label: 'Estado Nac.', value: est.estado_nacimiento}, {label: 'Peso', value: insc.peso}],
+    [{label: 'Cod. Escolar', value: est.codigo_escolar}, {label: 'Dirección', value: insc.direccion, wrap: true}, {label: 'Camisa', value: insc.talla_camisa}],
     [{label: 'Fecha Nac.', value: fechaNacEst}, {label: 'Lateralidad', value: est.lateralidad}, {label: 'Pantalón', value: insc.talla_pantalon}],
     [{label: 'Sexo', value: est.sexo}, {label: 'Sangre', value: est.tipo_sangre}, {label: 'Zapato', value: insc.talla_zapato}],
     [{label: 'Teléfono', value: insc.telefono}],
@@ -494,8 +544,8 @@ async function generarPDFFichaInscripcion(datos, tipo) {
     var ci = persona.cedula || '';
     var nac = persona.nacionalidad || 'V';
     var fn = persona.fecha_nacimiento ? new Date(persona.fecha_nacimiento).toLocaleDateString('es-VE') : '';
-    camposFamiliares.push([{label: 'Apellidos y nombres', value: nombres}, {label: 'Teléfono', value: persona.telefono}]);
-    camposFamiliares.push([{label: 'C.I.', value: ci}, {label: 'Dirección', value: persona.direccion}]);
+    camposFamiliares.push([{label: 'Apellidos y nombres', value: nombres, wrap: true}, {label: 'Teléfono', value: persona.telefono}]);
+    camposFamiliares.push([{label: 'C.I.', value: ci}, {label: 'Dirección', value: persona.direccion, wrap: true}]);
     camposFamiliares.push([{label: 'Nacionalidad', value: nac === 'V' ? 'Venezolana' : 'Extranjera'}, {label: 'Profesión u oficio', value: persona.profesion_oficio}]);
     camposFamiliares.push([{label: 'Fecha Nac.', value: fn}, {label: 'Estado civil', value: persona.estado_civil}]);
   }

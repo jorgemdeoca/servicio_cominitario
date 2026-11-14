@@ -96,6 +96,114 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/inscripciones/ultima/:estudiante_id - Última inscripción + historial para precarga
+router.get('/ultima/:estudiante_id', async (req, res) => {
+  try {
+    const estudianteId = parseInt(req.params.estudiante_id);
+
+    // Obtener datos médicos del estudiante (tipo_parto, vacunas, etc. están en tabla estudiantes)
+    const estudiante = await req.prisma.estudiantes.findUnique({
+      where: { id: estudianteId },
+      select: {
+        tipo_parto: true,
+        meses_prematuro: true,
+        apreciacion_medico: true,
+        apreciacion_detalle: true,
+        vacunas_completas: true,
+        vacunas_faltantes: true,
+        alergico: true,
+        alergico_detalle: true,
+        hospitalizado: true,
+        hospitalizado_detalle: true,
+        enfermedades_padecidas: true,
+      }
+    });
+
+    // Obtener la última inscripción con todos los datos
+    const ultimaInsc = await req.prisma.inscripciones.findFirst({
+      where: {
+        estudiante_id: estudianteId,
+        eliminado: false
+      },
+      orderBy: { id: 'desc' },
+      select: {
+        // Documentos
+        doc_partida_nacimiento: true,
+        doc_boleta_promocion: true,
+        doc_ci_madre: true,
+        doc_ci_padre: true,
+        doc_foto_estudiante: true,
+        doc_foto_representante: true,
+        doc_carpeta_marron: true,
+        doc_acta_compromiso: true,
+        // Datos variables
+        direccion: true,
+        telefono: true,
+        correo_electronico: true,
+        talla: true,
+        peso: true,
+        talla_camisa: true,
+        talla_pantalon: true,
+        talla_zapato: true,
+        // Procedencia
+        misma_institucion: true,
+        institucion_procedencia: true,
+        motivo_retiro_procedencia: true,
+        con_quien_vive: true,
+        tiene_hermanos_institucion: true,
+        cantidad_hermanos: true,
+        // Socioeconómicos
+        tipo_vivienda: true,
+        condicion_infraestructura: true,
+        // Integración social
+        integracion_pasivo: true,
+        integracion_inquieto: true,
+        integracion_tierno: true,
+        integracion_sensible: true,
+        habilidades: true,
+        observaciones_generales: true,
+        integracion_upe: true,
+      }
+    });
+
+    // Obtener historial académico completo
+    const inscripciones = await req.prisma.inscripciones.findMany({
+      where: {
+        estudiante_id: estudianteId,
+        eliminado: false
+      },
+      include: {
+        seccion: {
+          include: { grado: { select: { nombre: true, nivel: true, orden: true } } }
+        },
+        anio_escolar: { select: { nombre: true } }
+      },
+      orderBy: [
+        { anio_escolar: { nombre: 'desc' } },
+        { seccion: { grado: { orden: 'asc' } } }
+      ]
+    });
+
+    const historial = inscripciones.map(insc => ({
+      anio_escolar: insc.anio_escolar.nombre,
+      grado: insc.seccion.grado.nombre,
+      grado_nivel: insc.seccion.grado.nivel,
+      seccion: insc.seccion.letra,
+      literal: insc.literal,
+      estado: insc.estado
+    }));
+
+    res.json({
+      ultima_inscripcion: ultimaInsc,
+      datos_medicos_estudiante: estudiante,
+      historial
+    });
+  } catch (error) {
+    console.error('Error al obtener última inscripción:', error);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
+});
+
 // GET /api/inscripciones/historial/:estudiante_id - Historial académico del estudiante
 router.get('/historial/:estudiante_id', async (req, res) => {
   try {

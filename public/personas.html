@@ -348,6 +348,7 @@
   <!-- Mini-modal para ver estudiantes representados -->
   <div class="modal" id="modalEstudiantesRep" style="display:none;">
     <div class="modal-content" style="max-width:500px;">
+      <button type="button" class="modal-close-x" onclick="document.getElementById('modalEstudiantesRep').style.display='none'" title="Cerrar">&times;</button>
       <h2 style="margin-bottom:1rem;">Estudiantes Representados</h2>
       <div id="listaEstudiantesRep"></div>
       <div style="text-align:right;margin-top:1rem;">
@@ -360,6 +361,7 @@
   <!-- Modal Crear/Editar Representante (Wizard) -->
   <div class="modal" id="modalPersona">
     <div class="modal-content" style="max-width:640px;">
+      <button type="button" class="modal-close-x" onclick="cerrarModal()" title="Cerrar">&times;</button>
       <h2 id="modalTitulo" style="margin-bottom:0.5rem;">Nuevo Representante</h2>
       <div id="alertModal" class="alert" style="display: none;"></div>
 
@@ -582,6 +584,21 @@
       </form>
     </div>
   </div>
+  <!-- Modal de confirmación personalizado -->
+  <div class="confirm-overlay" id="confirmDialog">
+    <div class="confirm-box">
+      <div class="confirm-icon" id="confirmIcon">
+        <img id="confirmIconImg" src="/icons/alert-circle.svg" alt="">
+      </div>
+      <div class="confirm-title" id="confirmTitle">¿Está seguro?</div>
+      <div class="confirm-message" id="confirmMessage">Esta acción no se puede deshacer.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="confirmBtnCancel">Cancelar</button>
+        <button class="btn btn-primary" id="confirmBtnOk">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/sidebar.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/auth.js"></script>

@@ -869,6 +869,11 @@
           <div class="planilla-seccion">
             <div class="planilla-seccion-titulo"><span class="seccion-num">2</span> ASIGNACIÓN</div>
             <div class="planilla-seccion-body">
+              <!-- Historial Académico del estudiante (se llena dinámicamente) -->
+              <div id="historialAsignacion" style="display:none; margin-bottom:var(--space-4); padding:var(--space-3) var(--space-4); background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);">
+                <div style="font-weight:700; font-size:var(--font-size-sm); margin-bottom:var(--space-2); color:var(--primary);">📚 Historial Académico</div>
+                <div id="historialAsignacionBody"></div>
+              </div>
               <div class="form-row">
                 <div class="form-group">
                   <label>Año Escolar *</label>
@@ -1170,8 +1175,7 @@
             <div class="planilla-seccion-body">
               <div id="seccion_solo_inicial"
                 style="background:var(--primary-bg); padding:1rem; border-radius:var(--radius); margin-bottom:1rem;">
-                <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--primary-dark);">Datos del Parto
-                  (Solo Inicial)</div>
+                <div style="font-weight:600; margin-bottom:var(--space-3); color:var(--primary-dark);">🤰 Datos del Parto</div>
                 <div class="form-row-3">
                   <div class="form-group">
                     <label>Condición del parto</label>
@@ -1191,8 +1195,9 @@
                     <label>Apreciación del Médico</label>
                     <select id="insc_apreciacion_medico">
                       <option value="">- Seleccionar -</option>
-                      <option value="Todo bien">Todo bien</option>
-                      <option value="Algo Mal">Algo Mal</option>
+                      <option value="BUENA">Buena</option>
+                      <option value="REGULAR">Regular</option>
+                      <option value="MALA">Mala</option>
                     </select>
                   </div>
                 </div>
@@ -1540,7 +1545,7 @@
   <script src="/libs/jspdf.umd.min.js"></script>
   <script src="/js/pdf-generator.js"></script>
   <script src="/js/pdf-constancia.js"></script>
-  <script src="/js/inscripciones.js?v=5"></script>
+  <script src="/js/inscripciones.js?v=6"></script>
 </body>
 
 </html>

@@ -438,27 +438,32 @@ async function generarCertificado(id) {
     }
     const datos = await res.json();
 
-    // Validar datos mínimos
+    // Recopilar datos faltantes
+    const faltantes = [];
     if (!datos.profesor.cargo) {
-      var continuar = await confirmDialog({
-        title: 'Cargo no registrado',
-        message: 'Este trabajador no tiene un <strong>cargo</strong> registrado. El certificado se generará con "[Cargo]" como marcador.<br><br>¿Desea continuar de todos modos?',
-        type: 'warning',
-        confirmText: 'Generar igual',
-        cancelText: 'Cancelar'
-      });
-      if (!continuar) return;
+      faltantes.push('<li>📋 <strong>Cargo</strong> — se mostrará como <em>"[Cargo]"</em></li>');
+    }
+    if (!datos.profesor.fecha_ingreso_institucion) {
+      faltantes.push('<li>📅 <strong>Fecha de ingreso</strong> — se mostrará como <em>"[Fecha de Ingreso]"</em></li>');
     }
 
-    if (!datos.profesor.fecha_ingreso_institucion) {
-      var continuar2 = await confirmDialog({
-        title: 'Fecha de ingreso no registrada',
-        message: 'Este trabajador no tiene <strong>fecha de ingreso a la institución</strong>. El certificado se generará con "[Fecha de Ingreso]" como marcador.<br><br>¿Desea continuar?',
+    if (faltantes.length > 0) {
+      var nombreTrabajador = (datos.profesor.nombres + ' ' + datos.profesor.apellidos).trim();
+      var continuar = await confirmDialog({
+        title: '⚠️ Datos incompletos para el certificado',
+        message:
+          '<div style="text-align:left; line-height:1.7;">' +
+            '<p style="margin-bottom:10px;">El trabajador <strong>' + nombreTrabajador + '</strong> no tiene registrado:</p>' +
+            '<ul style="margin:0 0 12px 8px; padding-left:12px; list-style:none;">' +
+              faltantes.join('') +
+            '</ul>' +
+            '<p style="color:var(--text-muted); font-size:0.9em;">💡 Puede completar estos datos editando al trabajador desde el botón <strong>✏️ Editar</strong> antes de generar el certificado.</p>' +
+          '</div>',
         type: 'warning',
-        confirmText: 'Generar igual',
-        cancelText: 'Cancelar'
+        confirmText: 'Generar de todos modos',
+        cancelText: 'Volver y completar datos'
       });
-      if (!continuar2) return;
+      if (!continuar) return;
     }
 
     await generarPDFCertificado(datos);

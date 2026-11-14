@@ -346,6 +346,11 @@ function abrirPlanilla(estudiante = null) {
     document.getElementById('e_estado_nacimiento').value = estudiante.estado_nacimiento || '';
     document.getElementById('e_lateralidad').value = estudiante.lateralidad || '';
     document.getElementById('e_tipo_sangre').value = estudiante.tipo_sangre || '';
+    // Datos de parto
+    document.getElementById('dv_tipo_parto').value = estudiante.tipo_parto || '';
+    document.getElementById('dv_meses_prematuro').value = estudiante.meses_prematuro || '';
+    document.getElementById('dv_apreciacion_medico').value = estudiante.apreciacion_medico || '';
+    document.getElementById('dv_apreciacion_detalle').value = estudiante.apreciacion_detalle || '';
 
     // Datos variables de la última inscripción
     if (estudiante.inscripciones && estudiante.inscripciones.length > 0) {
@@ -487,6 +492,11 @@ async function guardarEstudiante(e) {
       estado_nacimiento: document.getElementById('e_estado_nacimiento').value.trim() || null,
       lateralidad: document.getElementById('e_lateralidad').value || null,
       tipo_sangre: document.getElementById('e_tipo_sangre').value || null,
+      // Datos de parto
+      tipo_parto: document.getElementById('dv_tipo_parto').value || null,
+      meses_prematuro: document.getElementById('dv_meses_prematuro').value ? parseInt(document.getElementById('dv_meses_prematuro').value) : null,
+      apreciacion_medico: document.getElementById('dv_apreciacion_medico').value || null,
+      apreciacion_detalle: document.getElementById('dv_apreciacion_detalle').value.trim() || null,
     },
     madre: {
       cedula: document.getElementById('m_cedula').value.trim(),
