@@ -81,21 +81,37 @@ document.addEventListener('DOMContentLoaded', () => {
   // Botón de apagar sistema
   var btnApagar = document.getElementById('btnApagarSistema');
   if (btnApagar) {
-    btnApagar.addEventListener('click', function() {
+    btnApagar.addEventListener('click', async function() {
       // Primera confirmación
-      var confirmar1 = confirm(
-        '⚠️ ¿Está seguro que desea APAGAR el sistema?\n\n' +
-        'Se detendrá el servidor web y la base de datos.\n' +
-        'Todos los usuarios perderán el acceso inmediatamente.'
-      );
+      var confirmar1 = await confirmDialog({
+        title: '⚠️ Apagar Sistema',
+        message:
+          '<div style="text-align:left; line-height:1.7;">' +
+            '<p style="margin-bottom:10px;">Está a punto de <strong>apagar el sistema completo</strong>.</p>' +
+            '<ul style="margin:0 0 12px 0; padding-left:20px; color:var(--text-muted);">' +
+              '<li>Se detendrá el servidor web</li>' +
+              '<li>Se cerrará la base de datos</li>' +
+              '<li>Todos los usuarios perderán el acceso</li>' +
+            '</ul>' +
+          '</div>',
+        type: 'danger',
+        confirmText: 'Continuar con el apagado',
+        cancelText: 'Cancelar'
+      });
       if (!confirmar1) return;
 
       // Segunda confirmación
-      var confirmar2 = confirm(
-        '🔴 ÚLTIMA CONFIRMACIÓN\n\n' +
-        '¿Realmente desea apagar TODO el sistema ahora?\n' +
-        'Esta acción no se puede deshacer.'
-      );
+      var confirmar2 = await confirmDialog({
+        title: '🔴 Última Confirmación',
+        message:
+          '<div style="text-align:center; line-height:1.7;">' +
+            '<p style="font-size:1.05em; font-weight:600; margin-bottom:8px;">¿Realmente desea apagar TODO el sistema ahora?</p>' +
+            '<p style="color:var(--error); font-size:0.9em;">Esta acción no se puede deshacer desde aquí.</p>' +
+          '</div>',
+        type: 'danger',
+        confirmText: '🔴 Sí, apagar ahora',
+        cancelText: 'No, mantener encendido'
+      });
       if (!confirmar2) return;
 
       // Ejecutar apagado

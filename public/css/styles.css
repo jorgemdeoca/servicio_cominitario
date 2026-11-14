@@ -1207,6 +1207,32 @@ tbody td { vertical-align: middle; }
   padding: var(--space-6);
 }
 
+/* Botón X para cerrar modales */
+.modal-close-x {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  transition: all 0.15s ease;
+  z-index: 10;
+  line-height: 1;
+  padding: 0;
+}
+.modal-close-x:hover {
+  background: var(--bg-hover);
+  color: var(--error);
+}
+
 .modal-header {
   display: flex;
   justify-content: space-between;
@@ -1617,10 +1643,30 @@ select {
   display: flex;
   align-items: baseline;
   gap: 0;
+  flex-wrap: wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .vi-dato strong {
   flex-shrink: 0;
+}
+
+/* Campos que pueden tener textos largos: usan hanging indent */
+.vi-dato.vi-dato-wrap {
+  display: block;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+.vi-dato.vi-dato-wrap .copy-icon {
+  vertical-align: baseline;
+  margin-left: 4px;
+}
+/* En grids de 2 columnas, los campos wrap ocupan ancho completo */
+.vi-grid .vi-dato-wrap,
+div[style*="grid-template-columns"] > .vi-dato-wrap {
+  grid-column: 1 / -1;
 }
 
 

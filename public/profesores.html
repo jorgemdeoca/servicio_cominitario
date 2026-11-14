@@ -179,6 +179,7 @@
   <!-- Modal Crear/Editar Personal (Wizard 3 pasos) -->
   <div class="modal" id="modalProfesor">
     <div class="modal-content" style="max-width:720px;">
+      <button type="button" class="modal-close-x" onclick="cerrarModal()" title="Cerrar">&times;</button>
       <h2 id="modalTitulo" style="margin-bottom:0.5rem;">Nuevo Personal</h2>
       <div id="alertModal" class="alert" style="display: none;"></div>
 
@@ -366,6 +367,21 @@
           </div>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal de confirmación personalizado -->
+  <div class="confirm-overlay" id="confirmDialog">
+    <div class="confirm-box">
+      <div class="confirm-icon" id="confirmIcon">
+        <img id="confirmIconImg" src="/icons/alert-circle.svg" alt="">
+      </div>
+      <div class="confirm-title" id="confirmTitle">¿Está seguro?</div>
+      <div class="confirm-message" id="confirmMessage">Esta acción no se puede deshacer.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-secondary" id="confirmBtnCancel">Cancelar</button>
+        <button class="btn btn-primary" id="confirmBtnOk">Aceptar</button>
+      </div>
     </div>
   </div>
 

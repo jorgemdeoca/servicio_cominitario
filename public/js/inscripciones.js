@@ -455,15 +455,7 @@ async function cargarSeccionesModal() {
 }
 
 document.getElementById('insc_seccion').addEventListener('change', (e) => {
-  const opt = e.target.options[e.target.selectedIndex];
-  const seccionInicial = document.getElementById('seccion_solo_inicial');
-  if (seccionInicial) {
-    if (opt && opt.dataset.nivel === 'inicial') {
-      seccionInicial.style.display = 'block';
-    } else {
-      seccionInicial.style.display = 'none';
-    }
-  }
+  // Datos de parto ahora se muestran siempre, sin importar el nivel del grado
 });
 
 // ==========================================
@@ -690,6 +682,150 @@ function seleccionarEstudiante(id, nombre) {
   const selected = document.getElementById('estudianteSeleccionado');
   selected.style.display = 'block';
   selected.textContent = `✓ Estudiante seleccionado: ${nombre}`;
+
+  // Precargar datos de la última inscripción + historial
+  precargarDesdeUltimaInscripcion(id);
+}
+
+async function precargarDesdeUltimaInscripcion(estudianteId) {
+  try {
+    const res = await apiFetch(`/api/inscripciones/ultima/${estudianteId}`);
+    if (!res || !res.ok) return;
+    const data = await res.json();
+
+    // ====== HISTORIAL en paso 2 ======
+    const histContainer = document.getElementById('historialAsignacion');
+    const histBody = document.getElementById('historialAsignacionBody');
+    if (data.historial && data.historial.length > 0) {
+      histContainer.style.display = '';
+      renderHistorialEnAsignacion(data.historial, histBody);
+    } else {
+      histContainer.style.display = '';
+      histBody.innerHTML = '<p style="color:var(--text-muted); font-size:var(--font-size-sm); margin:0;">Sin inscripciones previas — Nuevo Ingreso</p>';
+    }
+
+    // ====== PRECARGA de datos ======
+    const ui = data.ultima_inscripcion;
+    if (!ui) return; // No hay inscripción previa
+
+    // Paso 3: Documentos
+    const setCheck = (elId, val) => { const el = document.getElementById(elId); if (el) el.checked = !!val; };
+    // Paso 4: Datos variables
+    const setVal = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
+    // Helper para selects: busca la opción por value y la selecciona explícitamente
+    const setSelect = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (!el || val === null || val === undefined) return;
+      const strVal = String(val);
+      for (let i = 0; i < el.options.length; i++) {
+        if (el.options[i].value === strVal) {
+          el.selectedIndex = i;
+          return;
+        }
+      }
+    };
+
+    setCheck('doc_partida', ui.doc_partida_nacimiento);
+    setCheck('doc_boleta', ui.doc_boleta_promocion);
+    setCheck('doc_ci_madre', ui.doc_ci_madre);
+    setCheck('doc_ci_padre', ui.doc_ci_padre);
+    setCheck('doc_foto_est', ui.doc_foto_estudiante);
+    setCheck('doc_foto_rep', ui.doc_foto_representante);
+    setCheck('doc_carpeta', ui.doc_carpeta_marron);
+    setCheck('doc_acta', ui.doc_acta_compromiso);
+
+    setVal('insc_direccion', ui.direccion);
+    setVal('insc_correo_electronico', ui.correo_electronico);
+    setVal('insc_talla', ui.talla);
+    setVal('insc_peso', ui.peso);
+    setVal('insc_talla_camisa', ui.talla_camisa);
+    setVal('insc_talla_pantalon', ui.talla_pantalon);
+    setVal('insc_talla_zapato', ui.talla_zapato);
+
+    // Paso 5: Procedencia
+    setSelect('insc_misma_institucion', ui.misma_institucion === false ? 'false' : 'true');
+    setVal('insc_institucion_procedencia', ui.institucion_procedencia);
+    setVal('insc_motivo_retiro_procedencia', ui.motivo_retiro_procedencia);
+    setSelect('insc_con_quien_vive', ui.con_quien_vive);
+    setSelect('insc_tiene_hermanos', ui.tiene_hermanos_institucion ? 'true' : 'false');
+    setVal('insc_cantidad_hermanos', ui.cantidad_hermanos);
+
+    // Paso 6: Socioeconómicos
+    setSelect('insc_tipo_vivienda', ui.tipo_vivienda);
+    setSelect('insc_condicion_infraestructura', ui.condicion_infraestructura);
+
+    // Paso 7: Médica / Integración
+    // Campos médicos vienen del estudiante, no de la inscripción
+    const med = data.datos_medicos_estudiante;
+    if (med) {
+      setSelect('insc_tipo_parto', med.tipo_parto);
+      setVal('insc_meses_prematuro', med.meses_prematuro);
+      setSelect('insc_apreciacion_medico', med.apreciacion_medico);
+      setVal('insc_apreciacion_detalle', med.apreciacion_detalle);
+      setSelect('insc_vacunas_completas', med.vacunas_completas === false ? 'false' : 'true');
+      setVal('insc_vacunas_faltantes', med.vacunas_faltantes);
+      setSelect('insc_alergico', med.alergico ? 'true' : 'false');
+      setVal('insc_alergico_detalle', med.alergico_detalle);
+      setSelect('insc_tratamiento', med.hospitalizado ? 'true' : 'false');
+      setVal('insc_tratamiento_detalle', med.hospitalizado_detalle);
+      setVal('insc_enfermedades', med.enfermedades_padecidas);
+    }
+    // Integración social (estos sí están en la inscripción)
+    setCheck('insc_int_pasivo', ui.integracion_pasivo);
+    setCheck('insc_int_inquieto', ui.integracion_inquieto);
+    setCheck('insc_int_tierno', ui.integracion_tierno);
+    setCheck('insc_int_sensible', ui.integracion_sensible);
+    setVal('insc_habilidades', ui.habilidades);
+    setCheck('insc_integracion_upe', ui.integracion_upe);
+
+  } catch (err) {
+    console.warn('[precargar] Error al precargar datos:', err);
+  }
+}
+
+function renderHistorialEnAsignacion(historial, container) {
+  const literalConfig = {
+    'A': { cls: 'badge-green', label: 'A' },
+    'B': { cls: 'badge-blue', label: 'B' },
+    'C': { cls: 'badge-orange', label: 'C' },
+    'D': { cls: 'badge-red', label: 'D' },
+    'E': { cls: 'badge-red', label: 'E — Repite' }
+  };
+  const estadoConfig = {
+    'ACTIVO': { cls: 'badge-green', label: 'Activo' },
+    'APROBADO': { cls: 'badge-teal', label: 'Aprobado' },
+    'REPROBADO': { cls: 'badge-red', label: 'Reprobado' },
+    'RETIRADO': { cls: 'badge-gray', label: 'Retirado' }
+  };
+
+  let html = '<table style="width:100%; font-size:var(--font-size-xs); border-collapse:collapse;">';
+  html += '<thead><tr style="border-bottom:2px solid var(--border);">';
+  html += '<th style="text-align:left;padding:4px 6px;">Año Escolar</th>';
+  html += '<th style="text-align:left;padding:4px 6px;">Grado</th>';
+  html += '<th style="text-align:center;padding:4px 6px;">Sección</th>';
+  html += '<th style="text-align:center;padding:4px 6px;">Literal</th>';
+  html += '<th style="text-align:center;padding:4px 6px;">Estado</th>';
+  html += '</tr></thead><tbody>';
+
+  historial.forEach(function(h) {
+    const lc = h.literal && literalConfig[h.literal] ? literalConfig[h.literal] : null;
+    const ec = estadoConfig[h.estado] || { cls: 'badge-gray', label: h.estado };
+    const litBadge = lc
+      ? '<span class="badge ' + lc.cls + ' no-dot" style="font-size:0.7rem;">' + lc.label + '</span>'
+      : '<span style="color:var(--text-muted);">—</span>';
+    const estBadge = '<span class="badge ' + ec.cls + ' no-dot" style="font-size:0.7rem;">' + ec.label + '</span>';
+
+    html += '<tr style="border-bottom:1px solid var(--border);">';
+    html += '<td style="padding:4px 6px;font-weight:600;">' + h.anio_escolar + '</td>';
+    html += '<td style="padding:4px 6px;">' + h.grado + '</td>';
+    html += '<td style="text-align:center;padding:4px 6px;">"' + h.seccion + '"</td>';
+    html += '<td style="text-align:center;padding:4px 6px;">' + litBadge + '</td>';
+    html += '<td style="text-align:center;padding:4px 6px;">' + estBadge + '</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
 }
 
 // ==========================================
@@ -705,6 +841,10 @@ function abrirModalInscripcion() {
   document.getElementById('insc_fecha').value = new Date().toISOString().substring(0, 10);
   hideAlert('alertModal');
   /* COLAB OCULTO */ // limpiarCamposColaboracion();
+
+  // Limpiar historial del paso 2
+  document.getElementById('historialAsignacion').style.display = 'none';
+  document.getElementById('historialAsignacionBody').innerHTML = '';
 
   // Recargar secciones del año activo
   cargarSeccionesModal();
@@ -1278,11 +1418,11 @@ async function verInscripcion(id) {
       const menuPersona = buildCopyMenuPersona(p, menuId);
       return `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;">
-          <div class="vi-dato"><strong>Nombre:</strong> ${nombreCompleto}${iconoCopiar(nombreCompleto)}</div>
+          <div class="vi-dato vi-dato-wrap"><strong>Nombre:</strong> ${nombreCompleto}${iconoCopiar(nombreCompleto)}</div>
           <div class="vi-dato"><strong>Cédula:</strong> ${p.cedula || '—'}${iconoCopiar(p.cedula)}</div>
           <div class="vi-dato"><strong>Teléfono:</strong> ${p.telefono || '—'}${iconoCopiar(p.telefono)}</div>
           <div class="vi-dato"><strong>Profesión:</strong> ${p.profesion || '—'}${iconoCopiar(p.profesion)}</div>
-          <div class="vi-dato"><strong>Dirección:</strong> ${p.direccion || '—'}${iconoCopiar(p.direccion)}</div>
+          <div class="vi-dato vi-dato-wrap"><strong>Dirección:</strong> ${p.direccion || '—'}${iconoCopiar(p.direccion)}</div>
           <div class="vi-dato"><strong>Estado Civil:</strong> ${p.estado_civil || '—'}</div>
         </div>
       `;
@@ -1325,7 +1465,7 @@ async function verInscripcion(id) {
         </div>
         <div class="vi-body">
           <div class="vi-grid">
-            <div class="vi-dato"><strong>Nombre:</strong> ${nombre}${iconoCopiar(nombre)}</div>
+            <div class="vi-dato vi-dato-wrap"><strong>Nombre:</strong> ${nombre}${iconoCopiar(nombre)}</div>
             <div class="vi-dato"><strong>Edad:</strong> ${edad} años</div>
             <div class="vi-dato"><strong>Sexo:</strong> ${est.sexo === 'M' ? 'Masculino' : 'Femenino'}</div>
             <div class="vi-dato"><strong>F. Nacimiento:</strong> ${estFechaNac}${iconoCopiar(estFechaNac !== '--' ? estFechaNac : null)}</div>
@@ -1335,7 +1475,7 @@ async function verInscripcion(id) {
             <div class="vi-dato"><strong>Cód. Escolar:</strong> ${est.codigo_escolar || '—'}${iconoCopiar(est.codigo_escolar)}</div>
             <div class="vi-dato"><strong>Lateralidad:</strong> ${est.lateralidad || '—'}</div>
             <div class="vi-dato"><strong>Tipo Sangre:</strong> ${est.tipo_sangre || '—'}</div>
-            <div class="vi-dato"><strong>Dirección Actual:</strong> ${insc.direccion || '—'}${iconoCopiar(insc.direccion)}</div>
+            <div class="vi-dato vi-dato-wrap"><strong>Dirección Actual:</strong> ${insc.direccion || '—'}${iconoCopiar(insc.direccion)}</div>
             <div class="vi-dato"><strong>Teléfono:</strong> ${insc.telefono || '—'}${iconoCopiar(insc.telefono)}</div>
           </div>
         </div>

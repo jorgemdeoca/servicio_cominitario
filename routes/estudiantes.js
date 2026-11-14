@@ -287,6 +287,11 @@ router.post('/', async (req, res) => {
           estado_nacimiento: estudiante.estado_nacimiento || null,
           lateralidad: estudiante.lateralidad || null,
           tipo_sangre: estudiante.tipo_sangre || null,
+          // Datos médicos de parto
+          tipo_parto: estudiante.tipo_parto || null,
+          meses_prematuro: estudiante.meses_prematuro ? parseInt(estudiante.meses_prematuro) : null,
+          apreciacion_medico: estudiante.apreciacion_medico || null,
+          apreciacion_detalle: estudiante.apreciacion_detalle || null,
           madre_id: madreDB.id,
           padre_id: padreDB ? padreDB.id : null,
           representante_id: representanteId,
@@ -382,6 +387,11 @@ router.put('/:id', async (req, res) => {
         if (estudiante.estado_nacimiento !== undefined) data.estado_nacimiento = estudiante.estado_nacimiento || null;
         if (estudiante.lateralidad !== undefined) data.lateralidad = estudiante.lateralidad || null;
         if (estudiante.tipo_sangre !== undefined) data.tipo_sangre = estudiante.tipo_sangre || null;
+        // Datos médicos de parto
+        if (estudiante.tipo_parto !== undefined) data.tipo_parto = estudiante.tipo_parto || null;
+        if (estudiante.meses_prematuro !== undefined) data.meses_prematuro = estudiante.meses_prematuro ? parseInt(estudiante.meses_prematuro) : null;
+        if (estudiante.apreciacion_medico !== undefined) data.apreciacion_medico = estudiante.apreciacion_medico || null;
+        if (estudiante.apreciacion_detalle !== undefined) data.apreciacion_detalle = estudiante.apreciacion_detalle || null;
       }
 
       const actualizado = await prisma.estudiantes.update({

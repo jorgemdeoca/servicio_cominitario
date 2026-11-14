@@ -945,6 +945,41 @@
               DATOS MÉDICOS E INTEGRACIÓN SOCIAL
             </div>
             <div class="planilla-seccion-body">
+              <!-- Datos de Parto -->
+              <div style="font-weight:600; font-size:var(--font-size-sm); margin-bottom:var(--space-3);">🤰 Datos de Parto</div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Tipo de Parto</label>
+                  <select id="dv_tipo_parto">
+                    <option value="">— Sin especificar —</option>
+                    <option value="NORMAL">Normal</option>
+                    <option value="CESAREA">Cesárea</option>
+                    <option value="FORCEPS">Fórceps</option>
+                    <option value="PREMATURO">Prematuro</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Meses Prematuro</label>
+                  <input type="number" id="dv_meses_prematuro" min="1" max="9" placeholder="Solo si es prematuro">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Apreciación Médica</label>
+                  <select id="dv_apreciacion_medico">
+                    <option value="">— Sin especificar —</option>
+                    <option value="BUENA">Buena</option>
+                    <option value="REGULAR">Regular</option>
+                    <option value="MALA">Mala</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Detalle Apreciación</label>
+                  <input type="text" id="dv_apreciacion_detalle" placeholder="Observaciones médicas">
+                </div>
+              </div>
+              <div style="margin-top:var(--space-4); padding-top:var(--space-4); border-top:1px solid var(--border);"></div>
+              <!-- Vacunas y demás campos médicos existentes -->
               <div class="form-row">
                 <div class="form-group">
                   <label>¿Vacunas completas?</label>
