@@ -697,6 +697,12 @@ function initEstWizardForEdit() {
   indicators.forEach(i => i.style.display = '');
   connectors.forEach(c => c.style.display = '');
 
+  // Limpiar estilos inline de todos los paneles (por si venimos de modo crear)
+  for (let i = 1; i <= 6; i++) {
+    const panel = document.getElementById('estWizStep' + i);
+    if (panel) panel.style.display = '';
+  }
+
   // Mostrar panel 1 y ocultar el resto
   showEstWizardPanel(1);
   updateEstWizardIndicators(1);
@@ -722,27 +728,37 @@ function initEstWizardForCreate() {
   estWizardCurrentStep = 1;
 
   const bar = document.getElementById('estWizardBar');
-  if (bar) bar.style.display = 'none';
-
-  // En modo crear, mostramos todos los paneles (sin wizard)
-  for (let i = 1; i <= 6; i++) {
-    const panel = document.getElementById('estWizStep' + i);
-    if (panel) {
-      if (i <= 3) {
-        panel.classList.add('active');
-        panel.style.display = '';
-      } else {
-        panel.classList.remove('active');
-        panel.style.display = 'none';
-      }
-    }
+  if (bar) {
+    bar.style.display = '';
+    // Mostrar solo los 3 primeros indicadores y conectores
+    const indicators = bar.querySelectorAll('.est-wizard-step-indicator');
+    const connectors = bar.querySelectorAll('.est-wizard-step-connector');
+    indicators.forEach((ind, idx) => {
+      ind.style.display = idx < 3 ? '' : 'none';
+    });
+    connectors.forEach((conn, idx) => {
+      conn.style.display = idx < 2 ? '' : 'none';
+    });
   }
 
-  // Mostrar footer original
-  const footer = document.querySelector('.modal-planilla-footer');
-  if (footer) footer.style.display = '';
+  // Mostrar solo panel 1, ocultar el resto
+  showEstWizardPanel(1);
+  updateEstWizardIndicators(1);
 
-  // Ocultar secciones avanzadas
+  // Ocultar secciones avanzadas (paneles 4-6)
+  for (let i = 4; i <= 6; i++) {
+    const panel = document.getElementById('estWizStep' + i);
+    if (panel) {
+      panel.classList.remove('active');
+      panel.style.display = 'none';
+    }
+  }
+  // Asegurar paneles 1-3 están habilitados para el wizard
+  for (let i = 1; i <= 3; i++) {
+    const panel = document.getElementById('estWizStep' + i);
+    if (panel) panel.style.display = '';
+  }
+
   const secDV = document.getElementById('seccionDatosVariables');
   const secProcedencia = document.getElementById('seccionProcedencia');
   const secMedica = document.getElementById('seccionMedica');
@@ -750,34 +766,45 @@ function initEstWizardForCreate() {
   if (secProcedencia) secProcedencia.style.display = 'none';
   if (secMedica) secMedica.style.display = 'none';
 
-  removeEstWizardNavButtons();
+  // Ocultar footer original y agregar navegación wizard
+  const footer = document.querySelector('.modal-planilla-footer');
+  if (footer) footer.style.display = 'none';
+
+  addEstWizardNavButtons();
 }
 
 function addEstWizardNavButtons() {
   removeEstWizardNavButtons(); // Limpiar previos
 
-  const panels = [
-    { id: 'estWizStep1', back: null, next: 2 },
-    { id: 'estWizStep2', back: 1, next: 3 },
-    { id: 'estWizStep3', back: 2, next: 4 },
-    { id: 'estWizStep4', back: 3, next: 5 },
-    { id: 'estWizStep5', back: 4, next: 6 },
-    { id: 'estWizStep6', back: 5, next: null } // Último: botón guardar
+  const allPanels = [
+    { id: 'estWizStep1', step: 1 },
+    { id: 'estWizStep2', step: 2 },
+    { id: 'estWizStep3', step: 3 },
+    { id: 'estWizStep4', step: 4 },
+    { id: 'estWizStep5', step: 5 },
+    { id: 'estWizStep6', step: 6 }
   ];
 
-  panels.forEach(p => {
+  // Solo generar botones para los pasos activos
+  const activePanels = allPanels.filter(p => p.step <= estWizardMaxSteps);
+  const saveLabel = estWizardIsEditMode ? '💾 Guardar Cambios' : '💾 Guardar Estudiante';
+
+  activePanels.forEach((p, idx) => {
     const panel = document.getElementById(p.id);
     if (!panel) return;
+
+    const isFirst = idx === 0;
+    const isLast = idx === activePanels.length - 1;
 
     const nav = document.createElement('div');
     nav.className = 'wizard-nav est-wizard-nav-dynamic';
 
-    if (p.back !== null) {
+    if (!isFirst) {
       const btnBack = document.createElement('button');
       btnBack.type = 'button';
       btnBack.className = 'btn btn-secondary';
       btnBack.innerHTML = '&larr; Anterior';
-      btnBack.onclick = () => estWizardBack(p.back);
+      btnBack.onclick = () => estWizardBack(activePanels[idx - 1].step);
       nav.appendChild(btnBack);
     }
 
@@ -785,19 +812,19 @@ function addEstWizardNavButtons() {
     spacer.className = 'wizard-nav-spacer';
     nav.appendChild(spacer);
 
-    if (p.next !== null) {
+    if (!isLast) {
       const btnNext = document.createElement('button');
       btnNext.type = 'button';
       btnNext.className = 'btn btn-primary';
       btnNext.innerHTML = 'Siguiente &rarr;';
-      btnNext.onclick = () => estWizardNext(p.next);
+      btnNext.onclick = () => estWizardNext(activePanels[idx + 1].step);
       nav.appendChild(btnNext);
     } else {
       // Último paso: botón guardar
       const btnSave = document.createElement('button');
       btnSave.type = 'submit';
       btnSave.className = 'btn btn-primary';
-      btnSave.innerHTML = '💾 Guardar Cambios';
+      btnSave.innerHTML = saveLabel;
       nav.appendChild(btnSave);
     }
 

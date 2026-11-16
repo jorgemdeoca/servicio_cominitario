@@ -2078,7 +2078,19 @@ async function guardarCambioSeccion() {
     return;
   }
 
-  if (!confirm('¿Está seguro de cambiar el grado/sección de este estudiante?')) return;
+  // Obtener nombres para el mensaje
+  const selGrado = document.getElementById('cs_grado');
+  const selSeccion = document.getElementById('cs_seccion');
+  const gradoNombre = selGrado.options[selGrado.selectedIndex].text;
+  const seccionNombre = selSeccion.options[selSeccion.selectedIndex].text;
+
+  const confirmar = await confirmDialog(
+    `¿Está seguro de cambiar al estudiante a <strong>${seccionNombre}</strong>?`,
+    'warning',
+    'Sí, cambiar',
+    'Cancelar'
+  );
+  if (!confirmar) return;
 
   try {
     const res = await apiFetch(`/api/inscripciones/${_csInscripcionId}`, {
