@@ -100,7 +100,7 @@ async function generarPDFConstancia(datos) {
     { text: municipio, bold: true, underline: true },
     { text: ', de la Parroquia ', bold: false },
     { text: parroquia, bold: true, underline: true },
-    { text: ', adscrita al Centro de Desarrollo de la Calidad Educativa Estadal ESTADO ', bold: false },
+    { text: ', adscrita al Centro de Desarrollo de la Calidad Educativa Estadal, Estado ', bold: false },
     { text: estadoDoc, bold: true, underline: true },
     { text: '.', bold: false }
   ];

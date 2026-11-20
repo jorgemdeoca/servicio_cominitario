@@ -263,6 +263,7 @@ function precargarDatos(p) {
   document.getElementById('prof_estado_nacimiento').value = p.estado_nacimiento || '';
   document.getElementById('prof_es_docente').checked = p.es_docente !== false;
   document.getElementById('prof_cargo').value = p.cargo || '';
+  document.getElementById('prof_nivel_cargo').value = p.nivel_cargo || '';
   document.getElementById('prof_codigo_cargo').value = p.codigo_cargo || '';
   document.getElementById('prof_titulo').value = p.titulo || '';
   document.getElementById('prof_nivel_instruccion').value = p.nivel_instruccion || '';
@@ -363,6 +364,7 @@ async function guardarProfesor(e) {
     estado_nacimiento: document.getElementById('prof_estado_nacimiento').value.trim() || null,
     es_docente: document.getElementById('prof_es_docente').checked,
     cargo: document.getElementById('prof_cargo').value.trim() || null,
+    nivel_cargo: parseInt(document.getElementById('prof_nivel_cargo').value) || null,
     codigo_cargo: document.getElementById('prof_codigo_cargo').value.trim() || null,
     titulo: document.getElementById('prof_titulo').value.trim() || null,
     nivel_instruccion: document.getElementById('prof_nivel_instruccion').value || null,

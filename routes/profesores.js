@@ -136,7 +136,7 @@ router.post('/', async (req, res) => {
             direccion, titulo, nivel_instruccion, grado_academico,
             tipo_cargo, condicion_trabajo, anos_servicio,
             lugar_nacimiento, estado_nacimiento,
-            es_docente, cargo, codigo_cargo, fecha_ingreso_institucion, turno } = req.body;
+            es_docente, cargo, nivel_cargo, codigo_cargo, fecha_ingreso_institucion, turno } = req.body;
 
     if (!nombres || !apellidos || !cedula) {
       return res.status(400).json({ error: 'Nombres, apellidos y cédula son obligatorios.' });
@@ -167,6 +167,7 @@ router.post('/', async (req, res) => {
         estado_nacimiento: estado_nacimiento || null,
         es_docente: es_docente !== undefined ? es_docente : true,
         cargo: cargo || null,
+        nivel_cargo: nivel_cargo ? parseInt(nivel_cargo) : null,
         codigo_cargo: codigo_cargo || null,
         fecha_ingreso_institucion: fecha_ingreso_institucion ? new Date(fecha_ingreso_institucion) : null,
         turno: turno || 'Mañana',
@@ -189,7 +190,7 @@ router.put('/:id', async (req, res) => {
             direccion, titulo, nivel_instruccion, grado_academico,
             tipo_cargo, condicion_trabajo, anos_servicio,
             lugar_nacimiento, estado_nacimiento,
-            es_docente, cargo, codigo_cargo, fecha_ingreso_institucion, turno } = req.body;
+            es_docente, cargo, nivel_cargo, codigo_cargo, fecha_ingreso_institucion, turno } = req.body;
 
     const data = {};
     if (nombres !== undefined) data.nombres = nombres;
@@ -212,6 +213,7 @@ router.put('/:id', async (req, res) => {
     if (estado_nacimiento !== undefined) data.estado_nacimiento = estado_nacimiento || null;
     if (es_docente !== undefined) data.es_docente = es_docente;
     if (cargo !== undefined) data.cargo = cargo || null;
+    if (nivel_cargo !== undefined) data.nivel_cargo = nivel_cargo ? parseInt(nivel_cargo) : null;
     if (codigo_cargo !== undefined) data.codigo_cargo = codigo_cargo || null;
     if (fecha_ingreso_institucion !== undefined) data.fecha_ingreso_institucion = fecha_ingreso_institucion ? new Date(fecha_ingreso_institucion) : null;
     if (turno !== undefined) data.turno = turno || null;
