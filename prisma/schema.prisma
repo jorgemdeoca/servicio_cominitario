@@ -244,6 +244,7 @@ model profesores {
   activo           Boolean  @default(true)
   es_docente       Boolean  @default(true)
   cargo            String?  @db.VarChar(100)
+  nivel_cargo      Int?     // Nivel del cargo (ej: 1=I, 2=II, 3=III, 4=IV)
   codigo_cargo     String?  @db.VarChar(20)
   fecha_ingreso_institucion DateTime? @db.Date
   turno            String?  @db.VarChar(20) @default("Mañana")

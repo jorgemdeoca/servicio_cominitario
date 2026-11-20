@@ -155,7 +155,7 @@ function generarPDFAsistenciaDiaria(datos, fechaISO) {
       fontSize: 14
     },
     columnStyles: {
-      0: { halign: 'left', cellWidth: 'auto' },
+      0: { halign: 'left', cellWidth: 100 },
       10: { cellWidth: 70 }
     },
     margin: { left: marginL, right: marginR },

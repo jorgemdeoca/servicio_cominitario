@@ -89,7 +89,11 @@ async function generarPDFCertificado(datos) {
   // Datos del trabajador
   var nombreTrabajador = toTitleCase(((prof.nombres || '') + ' ' + (prof.apellidos || '')).trim()) || '[Nombre del Trabajador]';
   var cedulaTrabajador = prof.cedula || '[Cédula]';
-  var cargoTrabajador = toTitleCase(prof.cargo || '[Cargo]');
+  var cargoBase = toTitleCase(prof.cargo || '[Cargo]');
+  // Nivel del cargo en números romanos
+  var romanosMap = {1:'I', 2:'II', 3:'III', 4:'IV', 5:'V', 6:'VI'};
+  var nivelRomano = prof.nivel_cargo ? romanosMap[prof.nivel_cargo] || '' : '';
+  var cargoTrabajador = nivelRomano ? cargoBase + ' ' + nivelRomano : cargoBase;
   var codigoCargo = prof.codigo_cargo || '';
   var turno = toTitleCase(prof.turno || 'Mañana');
 

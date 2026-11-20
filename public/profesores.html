@@ -290,10 +290,22 @@
 
         <!-- PASO 3: Datos Profesionales -->
         <div class="wizard-panel" id="wizStep3">
-          <div class="form-row">
+          <div class="form-row-3">
             <div class="form-group">
               <label>Cargo *</label>
-              <input type="text" id="prof_cargo" placeholder="Ej: Docente de Aula I, Obrero General I, Cocinera...">
+              <input type="text" id="prof_cargo" placeholder="Ej: Docente de Aula, Obrero General, Cocinera...">
+            </div>
+            <div class="form-group">
+              <label>Nivel del Cargo <small style="color:var(--text-muted);">(Opcional, en romanos)</small></label>
+              <select id="prof_nivel_cargo">
+                <option value="">— Sin nivel —</option>
+                <option value="1">I</option>
+                <option value="2">II</option>
+                <option value="3">III</option>
+                <option value="4">IV</option>
+                <option value="5">V</option>
+                <option value="6">VI</option>
+              </select>
             </div>
             <div class="form-group">
               <label>Código de Cargo <small style="color:var(--text-muted);">(Alfanumérico, para certificado)</small></label>
